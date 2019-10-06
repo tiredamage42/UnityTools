@@ -1,2 +1,2 @@
 # UnityTools
-Runtime library of miscellaneous scripts to share between projects
+Library of miscellaneous scripts to share between projects
