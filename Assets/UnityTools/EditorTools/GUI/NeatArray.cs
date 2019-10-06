@@ -17,9 +17,6 @@ namespace UnityTools.EditorTools {
     [CustomPropertyDrawer(typeof(NeatArrayAttribute))] 
     class NeatArrayAttributeDrawer : PropertyDrawer
     {
-        readonly Color backgroundColor = new Color(0,0,0,.225f);
-
-
         GUIContent isShownContent = BuiltInIcons.GetIcon("animationvisibilitytoggleon", "Hide");
         GUIContent hiddenContent = BuiltInIcons.GetIcon("animationvisibilitytoggleoff", "Show");
         GUIContent addContent = BuiltInIcons.GetIcon("Toolbar Plus", "Add New Element");
@@ -74,7 +71,7 @@ namespace UnityTools.EditorTools {
             label.text = lbl;
             label.tooltip = tooltip;
             
-            GUITools.Box ( new Rect ( indent1,  y, pos.width - GUITools.iconButtonWidth, h + GUITools.singleLineHeight * .1f), backgroundColor );
+            GUITools.Box ( new Rect ( indent1,  y, pos.width - GUITools.iconButtonWidth, h + GUITools.singleLineHeight * .1f), GUITools.shade );
             
             MakeSureSizeIsOK(prop, att.enforceSize);
             

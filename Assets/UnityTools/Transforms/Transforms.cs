@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using UnityEditor;
+using UnityTools.EditorTools;
 namespace UnityTools {
 
     /*
@@ -10,6 +12,42 @@ namespace UnityTools {
     [System.Serializable] public class MiniTransform {
         public Vector3 position, rotation, scale;
     }
+
+    
+    #if UNITY_EDITOR
+    [CustomPropertyDrawer(typeof(MiniTransform))]
+    class MiniTransformDrawer : PropertyDrawer {
+        public override void OnGUI(Rect pos, SerializedProperty prop, GUIContent label) {
+            EditorGUI.BeginProperty(pos, label, prop);
+            
+            GUITools.Box(new Rect(pos.x, pos.y, pos.width, EditorGUIUtility.singleLineHeight * 3 + GUITools.singleLineHeight), GUITools.shade);
+            pos.height = EditorGUIUtility.singleLineHeight;
+            
+            EditorGUI.LabelField(pos, label, GUITools.boldLabel);
+            pos.y += EditorGUIUtility.singleLineHeight;
+            
+            float w = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = 75;
+            EditorGUI.PropertyField(pos, prop.FindPropertyRelative("position"), true);
+            pos.y += EditorGUIUtility.singleLineHeight;
+            EditorGUI.PropertyField(pos, prop.FindPropertyRelative("rotation"), true);
+            pos.y += EditorGUIUtility.singleLineHeight;
+            EditorGUI.PropertyField(pos, prop.FindPropertyRelative("scale"), true);
+            EditorGUIUtility.labelWidth = w;
+            
+            EditorGUI.EndProperty();
+        }
+
+        public override float GetPropertyHeight(SerializedProperty prop, GUIContent label) {
+            return GUITools.singleLineHeight * 4;
+        }
+    }
+
+    #endif
+
+
+
+
 
     public static class TransformUtils 
     {
@@ -26,6 +64,16 @@ namespace UnityTools {
             transform.SetParent(parent, localPosition, localRotation);
             transform.localScale = localScale;
         }
+
+        public static void SetTransform (this Transform transform, Vector3 position, Quaternion rotation) {
+            transform.position = position;
+            transform.rotation = rotation;
+        }
+        public static void SetLocalTransform (this Transform transform, Vector3 position, Quaternion rotation) {
+            transform.localPosition = position;
+            transform.localRotation = rotation;
+        }
+
 
 
         public static void SetTransform (this Transform transform, MiniTransform settings, TransformBehavior behavior) {
@@ -54,7 +102,7 @@ namespace UnityTools {
         public static void SetTransform (this Transform transform, Transform parent, TransformBehavior behavior, string name) {
             transform.SetTransform(parent, GetTransform(behavior, name), behavior);
         }
-
+        
         static Dictionary<int, Dictionary<string, MiniTransform>> transformDictionaries = new Dictionary<int, Dictionary<string, MiniTransform>>();
         static MiniTransform GetTransform (TransformBehavior behavior, string name) {
             Dictionary<string, MiniTransform> dictionary;

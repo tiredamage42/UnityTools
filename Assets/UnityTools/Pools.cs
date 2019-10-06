@@ -1,12 +1,14 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
+using System;
 namespace UnityTools {
 
     public abstract class Pool<T> where T : Component {
         protected T FindAvailableInstance (List<T> pool) {
             for (int i = 0; i < pool.Count; i++) {
                 if (!pool[i].gameObject.activeSelf) {
+                    pool[i].transform.SetParent(null);
                     pool[i].gameObject.SetActive(true);
                     return pool[i];
                 }
@@ -18,23 +20,24 @@ namespace UnityTools {
     public class PrefabPool<T> : Pool<T> where T : Component {
         Dictionary<int, List<T>> pool = new Dictionary<int, List<T>>();
 
-        T CreateInstance (T prefab, List<T> pool) {
+        T CreateInstance (T prefab, List<T> pool, Action<T> onCreateNew) {
             T newInstance = GameObject.Instantiate(prefab);
+            if (onCreateNew != null) onCreateNew(newInstance);
             pool.Add(newInstance);
             return newInstance;
         }
 
-        public T GetAvailable (T prefab) {
+        public T GetAvailable (T prefab, Action<T> onCreateNew) {
             List<T> prefabPool;
             if (pool.TryGetValue(prefab.GetInstanceID(), out prefabPool)) {
                 T r = FindAvailableInstance(prefabPool);
-                if (r == null) r = CreateInstance(prefab, prefabPool);
+                if (r == null) r = CreateInstance(prefab, prefabPool, onCreateNew);
                 return r;
             }
             
             prefabPool = new List<T>();
             pool[prefab.GetInstanceID()] = prefabPool;
-            return CreateInstance(prefab, prefabPool);
+            return CreateInstance(prefab, prefabPool, onCreateNew);
         }
     }
 

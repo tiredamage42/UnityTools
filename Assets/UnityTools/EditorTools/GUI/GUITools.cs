@@ -18,6 +18,9 @@ namespace UnityTools.EditorTools {
         public static readonly Color32 darkGray = new Color32(75, 75, 75, 255);
         public static readonly Color32 gray = new Color32 (115, 115, 115, 255);
         public static readonly Color32 liteGray = new Color32 (210, 210, 210, 255);
+
+
+        public static readonly Color32 shade = new Color32 (0, 0, 0, 25);
                             
 
 

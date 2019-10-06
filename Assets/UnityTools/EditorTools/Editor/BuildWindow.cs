@@ -20,7 +20,6 @@ namespace UnityTools.EditorTools.Editor {
         SerializedObject windowSO;
         int topSpaces = 5;
         
-
         SerializedProperty scenesList { get { return windowSO.FindProperty("scenes").FindPropertyRelative("list"); } }
         void UpdateToReflectSettings() {
 

@@ -4,7 +4,7 @@ using UnityEngine;
 
 using UnityTools.EditorTools;
 using UnityTools.Audio;
-
+using UnityTools.Particles;
 namespace UnityToolsDemo {
     /*
         used for testing
@@ -22,6 +22,8 @@ namespace UnityToolsDemo {
 
         [NeatArray] public ExtendedAudioClipArray extendedClips;
         public ExtendedAudioClip extendedClip0, extendedClip1;
+
+        public ParticlesFX particlesFX, particlesFX2;
 
     }
 }

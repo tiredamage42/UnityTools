@@ -7,6 +7,8 @@ namespace UnityTools {
 
     public static class GameObjects 
     {
+
+
         public static T GetOrAddComponent<T> (this GameObject g) where T : Component {
             T r = g.GetComponent<T>();
             if (r == null) r = g.AddComponent<T>();
@@ -14,6 +16,10 @@ namespace UnityTools {
         }
         public static T GetOrAddComponent<T> (this GameObject g, ref T variable) where T : Component {
             if (variable == null) variable = g.GetOrAddComponent<T>();
+            return variable;
+        }
+        public static T GetComponentIfNull<T> (this GameObject g, ref T variable) where T : Component {
+            if (variable == null) variable = g.GetComponent<T>();
             return variable;
         }    
     }

@@ -48,18 +48,28 @@ namespace UnityTools.Audio {
         static GUIContent advancedSettingsContent = BuiltInIcons.GetIcon("_Popup", "Advanced Settings");
 
         public override void OnGUI(Rect pos, SerializedProperty prop, GUIContent label) {
+            SerializedProperty clipsProp = prop.FindPropertyRelative("clips");
+            SerializedProperty is2D = prop.FindPropertyRelative("is2D");
+            SerializedProperty showAdvanced = prop.FindPropertyRelative("showAdvanced");
 
+
+            
             pos.height = EditorGUIUtility.singleLineHeight;
             EditorGUI.LabelField(pos, label, GUITools.boldLabel);
-            pos.y += GUITools.singleLineHeight;
+            
+            float h = CalculateHeight (clipsProp, is2D, showAdvanced);
+            GUITools.Box(new Rect(pos.x, pos.y, pos.width, h + EditorGUIUtility.singleLineHeight * .1f), GUITools.shade);
 
-            SerializedProperty clipsProp = prop.FindPropertyRelative("clips");
+            
+            pos.y += GUITools.singleLineHeight;
+            
+            pos.x += GUITools.iconButtonWidth;
+            pos.width -= GUITools.iconButtonWidth;
+
             EditorGUI.PropertyField(pos, clipsProp, true);
             pos.y += EditorGUI.GetPropertyHeight(clipsProp, true);
             pos.height = GUITools.singleLineHeight;
 
-            SerializedProperty is2D = prop.FindPropertyRelative("is2D");
-            SerializedProperty showAdvanced = prop.FindPropertyRelative("showAdvanced");
             SerializedProperty oneShot = prop.FindPropertyRelative("oneShot");
 
             float x = pos.x;
@@ -99,8 +109,8 @@ namespace UnityTools.Audio {
                 EditorGUI.LabelField(pos, "Advanced Settings:", GUITools.boldLabel);
                 pos.y += EditorGUIUtility.singleLineHeight;
 
-                pos.x += GUITools.iconButtonWidth;
-                pos.width -= GUITools.iconButtonWidth;
+                // pos.x += GUITools.iconButtonWidth;
+                // pos.width -= GUITools.iconButtonWidth;
 
                 if (!is2D.boolValue) {
                     EditorGUI.PropertyField(pos, prop.FindPropertyRelative("spread"), true);
@@ -117,19 +127,53 @@ namespace UnityTools.Audio {
             }
         }
 
+
+        float CalculateHeight (SerializedProperty clipsProp, SerializedProperty is2D, SerializedProperty showAdvanced) {
+            float h = 0;
+            h += GUITools.singleLineHeight;
+            h += EditorGUI.GetPropertyHeight(clipsProp, true);
+
+            h += GUITools.singleLineHeight;
+            h += GUITools.singleLineHeight;
+            h += GUITools.singleLineHeight;
+
+            if (!is2D.boolValue) {
+                h += GUITools.singleLineHeight;
+            }
+
+            if (showAdvanced.boolValue) {
+                
+                h += EditorGUIUtility.singleLineHeight;
+                
+                
+                if (!is2D.boolValue) {
+                h += EditorGUIUtility.singleLineHeight;
+                h += EditorGUIUtility.singleLineHeight;
+                }
+                
+                h += EditorGUIUtility.singleLineHeight;
+                h += EditorGUIUtility.singleLineHeight;
+                
+            }
+            return h;
+        }
+
         public override float GetPropertyHeight(SerializedProperty prop, GUIContent label) {
 
-            SerializedProperty is2D = prop.FindPropertyRelative("is2D");
+            return CalculateHeight (prop.FindPropertyRelative("clips"), prop.FindPropertyRelative("is2D"), prop.FindPropertyRelative("showAdvanced")) + EditorGUIUtility.singleLineHeight * .5f;
+            // SerializedProperty is2D = prop.FindPropertyRelative("is2D");
+
+
             
-            float h = GUITools.singleLineHeight * (is2D.boolValue ? 4 : 5);
+            // float h = GUITools.singleLineHeight * (is2D.boolValue ? 4 : 5);
             
-            if (prop.FindPropertyRelative("showAdvanced").boolValue) {
-                h += EditorGUIUtility.singleLineHeight * (is2D.boolValue ? 2 : 4);
-            }
+            // if (prop.FindPropertyRelative("showAdvanced").boolValue) {
+            //     h += EditorGUIUtility.singleLineHeight * (is2D.boolValue ? 2 : 4);
+            // }
             
-            h += EditorGUI.GetPropertyHeight(prop.FindPropertyRelative("clips"), true);
+            // h += EditorGUI.GetPropertyHeight(prop.FindPropertyRelative("clips"), true);
         
-            return h;
+            // return h;
         }
             
 
