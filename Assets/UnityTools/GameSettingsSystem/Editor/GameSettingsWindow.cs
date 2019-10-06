@@ -14,7 +14,7 @@ namespace UnityTools.GameSettingsSystem.Internal {
 
     [Serializable] public class GameSettingsWindow : EditorWindow {
 
-        [MenuItem(ProjectTools.defaultMenuItemSection + "Game Settings", false, ProjectTools.defaultMenuItemPriority)]
+        [MenuItem(ProjectTools.defaultMenuItemSection + "Unity Tools/Game Settings", false, ProjectTools.defaultMenuItemPriority)]
 		static void OpenWindow () {
             EditorWindowTools.OpenWindowNextToInspector<GameSettingsWindow>("Game Settings");
 		}

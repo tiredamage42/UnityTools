@@ -4,14 +4,16 @@ using UnityEditor;
 namespace UnityTools.EditorTools.Editor {
 
     // custom class so it can be drawn as asset selector iwithin array
-    [System.Serializable] public class SceneAssetArrayElement : NeatArrayElement { [AssetSelection(typeof(SceneAsset))] public SceneAsset element; }
+    // [System.Serializable] public class SceneAssetArrayElement : NeatArrayElement { [AssetSelection(typeof(SceneAsset))] public SceneAsset element; }
+    [System.Serializable] public class SceneAssetArrayElement : NeatArrayElement { [AssetSelection] public SceneAsset element; }
+    
     [System.Serializable] public class SceneAssetArray : NeatArrayWrapper<SceneAssetArrayElement> {  }
 
     [System.Serializable] public class BuildWindow : EditorWindow
     {
         //% (ctrl on Windows, cmd on macOS), # (shift), & (alt).
 
-        [MenuItem(ProjectTools.defaultMenuItemSection + "Build Window", false, ProjectTools.defaultMenuItemPriority)]
+        [MenuItem(ProjectTools.defaultMenuItemSection + "Unity Tools/Editor Tools/Build Window", false, ProjectTools.defaultMenuItemPriority)]
 		static void OpenWindow () {
             EditorWindowTools.OpenWindowNextToInspector<BuildWindow>("Build");
 		}

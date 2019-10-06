@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 
 using UnityTools.Audio.Internal;
-
-// namespace UnityTools.EditorTools.Audio {
 namespace UnityTools.Audio.Editor {
 
     #if UNITY_EDITOR

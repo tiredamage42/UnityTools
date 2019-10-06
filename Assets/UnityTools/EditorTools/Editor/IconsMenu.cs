@@ -5,9 +5,8 @@ namespace UnityTools.EditorTools.Editor
 {
 	public class IconsMenu : EditorWindow
 	{
-		[MenuItem(ProjectTools.defaultMenuItemSection + "Custom Editor/Icons Menu", false, ProjectTools.defaultMenuItemPriority)]
-		public static void ShowWindow()
-		{
+		[MenuItem(ProjectTools.defaultMenuItemSection + "Unity Tools/Editor Tools/Icons Menu", false, ProjectTools.defaultMenuItemPriority)]
+		public static void ShowWindow() {
 			EditorWindowTools.SetSize(EditorWindow.GetWindow<IconsMenu>("Icons Menu"), 512, 512).CenterWindow();
 		}
 

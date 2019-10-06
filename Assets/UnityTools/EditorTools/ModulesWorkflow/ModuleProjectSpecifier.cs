@@ -14,7 +14,7 @@ namespace UnityTools.EditorTools.Internal.Modules {
         DO NOT KEEP IT IN THE MODULES DIRECTORY OR IT MIGHT ACCIDENTALLY BE 
         EXPORTED WITH THE MODULE AND MESS UP OTHER PROJECTS FOR MODULES
     */
-    [CreateAssetMenu(menuName="Custom Editor Tools/Module Project Specifier", fileName="ModuleProjectSpecifier")]
+    [CreateAssetMenu(menuName="Unity Tools/Editor Tools/Module Project Specifier", fileName="ModuleProjectSpecifier")]
     public class ModuleProjectSpecifier : ScriptableObject
     {
         public Module workingModule;

@@ -6,7 +6,7 @@ using UnityEditor;
 namespace UnityTools.EditorTools.Internal.Modules {
 
 // namespace CustomEditorTools.Internal.Modules {
-    [CreateAssetMenu(menuName="Custom Editor Tools/Module", fileName="New Module")]
+    [CreateAssetMenu(menuName="Unity Tools/Editor Tools/Module", fileName="New Module")]
     public class Module : ScriptableObject {
         [HideInInspector] public string moduleName;
         [HideInInspector] public int currentVersion;

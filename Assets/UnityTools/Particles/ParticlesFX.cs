@@ -7,7 +7,8 @@ using UnityEditor;
 namespace UnityTools.Particles {
     [Serializable] public class ParticlesFX 
     {
-        [AssetSelection(typeof(ParticleSystem))] public ParticleSystem particle;
+        // [AssetSelection(typeof(ParticleSystem))] public ParticleSystem particle;
+        [AssetSelection] public ParticleSystem particle;
 
         public float size = 1;
         public float playbackSpeed = 1;

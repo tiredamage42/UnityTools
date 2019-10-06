@@ -10,7 +10,7 @@ namespace UnityTools {
         
         positions/rotations/scales
     */
-    [CreateAssetMenu(menuName="Transform Behavior", fileName="New Transform Behavior")]
+    [CreateAssetMenu(menuName="Unity Tools/Transform Behavior", fileName="New Transform Behavior")]
     public class TransformBehavior : ScriptableObject {
         [System.Serializable] public class TransformArray : NeatArrayWrapper<Transform> {  }
         

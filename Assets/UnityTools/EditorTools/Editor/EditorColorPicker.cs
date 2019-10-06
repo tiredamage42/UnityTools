@@ -4,7 +4,7 @@ using UnityEditor;
 namespace UnityTools.EditorTools.Editor {
     public class EditorColorPicker : EditorWindow
     {
-        [MenuItem(ProjectTools.defaultMenuItemSection + "Custom Editor/Colors", false, ProjectTools.defaultMenuItemPriority)]
+        [MenuItem(ProjectTools.defaultMenuItemSection + "Unity Tools/Editor Tools/Colors", false, ProjectTools.defaultMenuItemPriority)]
 		public static void ShowWindow() {
 			EditorWindowTools.SetSize(EditorWindow.GetWindow<EditorColorPicker>("Icons Menu"), 512, 512).CenterWindow();
 		}

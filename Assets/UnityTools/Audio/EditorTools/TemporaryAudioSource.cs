@@ -3,6 +3,9 @@ using UnityEditor;
 
 
 namespace UnityTools.Audio.Internal {
+    /*
+        instantiate a temprorary game object with an audio source to play sounds in editor
+    */
     #if UNITY_EDITOR
     [ExecuteInEditMode] class TemporaryAudioSource : MonoBehaviour
     {    

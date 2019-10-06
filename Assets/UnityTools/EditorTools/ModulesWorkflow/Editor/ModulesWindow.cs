@@ -7,7 +7,9 @@ namespace UnityTools.EditorTools.Internal.Modules {
 
     public class ModulesWindow : EditorWindow
     {
-        [MenuItem(ProjectTools.defaultMenuItemSection + "Modules", false, ProjectTools.defaultMenuItemPriority)]
+
+        		
+        [MenuItem(ProjectTools.defaultMenuItemSection + "Unity Tools/Editor Tools/Modules", false, ProjectTools.defaultMenuItemPriority)]
 		static void OpenWindow () {
             EditorWindowTools.OpenWindowNextToInspector<ModulesWindow>("Modules");
 		}

@@ -12,7 +12,7 @@ namespace UnityTools.GameSettingsSystem {
         game settings objects in the project, the holder is located in a Resources folder, so we dont
         have to worry about having references to any of our game settings objects during builds
     */
-    [CreateAssetMenu(menuName="Game Settings System/Replacement Game Settings Object", fileName=GameSettings.fileName)]
+    [CreateAssetMenu(menuName="Unity Tools/Replacement Game Settings Object", fileName=GameSettings.fileName)]
     public class GameSettings : ScriptableObject
     {
         const string resourcesDirectory = "GameSettingsSystem/";

@@ -2,7 +2,9 @@
 using UnityEngine;
 
 namespace UnityTools.Audio.Internal {
-
+    /*
+        used to fade audiosources in / out
+    */
     class FadingAudioSource {
         static List<FadingAudioSource> fadingAudioSources = new List<FadingAudioSource>();
         static Dictionary<int, FadingAudioSource> sourceToFadingAudioSource = new Dictionary<int, FadingAudioSource>();
@@ -80,13 +82,15 @@ namespace UnityTools.Audio.Internal {
         }
         
         bool UpdateSource (float deltaTime) {
-            if (source == null || !source.isPlaying) return true;
+            if (source == null || !source.isPlaying) 
+                return true;
 
             volumeT = Mathf.Clamp01(volumeT + deltaTime * fadeDuration);
             source.volume = (fadeIn ? volumeT : 1 - volumeT) * targetVolume;
 
             bool done = volumeT == 1.0f;
-            if (!fadeIn && done) source.Stop();
+            if (!fadeIn && done) 
+                source.Stop();
             return done;   
         }
     }
