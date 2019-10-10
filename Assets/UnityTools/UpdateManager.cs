@@ -16,4 +16,47 @@ namespace UnityTools {
                 update(Time.deltaTime);
         }
     }
+
+    public enum UpdateMode { Update, FixedUpdate, LateUpdate, Custom };
+
+
+    public abstract class CustomUpdater {
+        protected abstract UpdateMode GetUpdateMode ();
+        public abstract void UpdateLoop (float deltaTime);
+
+        public bool Update () {
+            if (GetUpdateMode() != UpdateMode.Update) return false;
+            UpdateLoop(Time.deltaTime);
+            return true;
+        }
+        public bool FixedUpdate () {
+            if (GetUpdateMode() != UpdateMode.FixedUpdate) return false;
+            UpdateLoop(Time.fixedDeltaTime);
+            return true;
+        }
+        public bool LateUpdate () {
+            if (GetUpdateMode() != UpdateMode.LateUpdate) return false;
+            UpdateLoop(Time.deltaTime);
+            return true;
+        }
+    }
+
+    public abstract class CustomUpdaterMonobehaviour : MonoBehaviour {
+
+        protected abstract UpdateMode GetUpdateMode ();
+        public abstract void UpdateLoop (float deltaTime);
+
+        void Update () {
+            if (GetUpdateMode() != UpdateMode.Update) return;
+            UpdateLoop(Time.deltaTime);
+        }
+        void FixedUpdate () {
+            if (GetUpdateMode() != UpdateMode.FixedUpdate) return;
+            UpdateLoop(Time.fixedDeltaTime);
+        }
+        void LateUpdate () {
+            if (GetUpdateMode() != UpdateMode.LateUpdate) return;
+            UpdateLoop(Time.deltaTime);
+        }
+    }
 }

@@ -60,6 +60,14 @@ namespace UnityTools.EditorTools {
                 return _toolbar;
             }
         }
+        static GUIStyle _toolbarDropDown;
+        public static GUIStyle toolbarDropDown {
+            get {
+                if (_toolbarDropDown == null) _toolbarDropDown = new GUIStyle(EditorStyles.toolbarDropDown);
+                return _toolbarDropDown;
+            }
+        }
+
         static GUIStyle _label;
         public static GUIStyle label {
             get {

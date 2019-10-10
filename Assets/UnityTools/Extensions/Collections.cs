@@ -18,5 +18,13 @@ namespace UnityTools {
             if (c == 1) return a[0];
             return a[Random.Range(0, c)];
         }
+
+        public static T[] MakeCopy <T> (this T[] s) {
+            T[] t = new T[s.Length];
+            for (int i = 0; i < s.Length; i++) {
+                t[i] = s[i];
+            }
+            return t;
+        }
     }
 }

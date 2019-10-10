@@ -21,6 +21,9 @@ namespace UnityTools {
                 Debug.Log("Multiple instances of " + typeof(T).Name + " singleton in the scene");
                 Destroy (this.gameObject);
             }
+            else {
+                DontDestroyOnLoad(gameObject);
+            }
         }
     }
 }

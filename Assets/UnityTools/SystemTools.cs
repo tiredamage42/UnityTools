@@ -1,14 +1,23 @@
-﻿// using System.Collections;
-// using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-// using System;
+using System;
 namespace UnityTools {
 
     public class SystemTools : MonoBehaviour
     {
         
-        // Doestn Work
+        public static T StringToEnum<T>(string value, T defValue)
+		{
+			if(string.IsNullOrEmpty(value))
+				return defValue;
+			
+			try {
+				return (T)Enum.Parse(typeof(T), value, true);
+			}
+			catch {
+				return defValue;
+			}
+		}
         
     }
 }
