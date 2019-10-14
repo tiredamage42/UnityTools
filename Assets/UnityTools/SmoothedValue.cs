@@ -53,7 +53,6 @@ namespace UnityTools {
 
             EditorGUI.PropertyField(new Rect(position.x + lblOffset + (slw-10), position.y, wLhalf - (slw-10), position.height), property.FindPropertyRelative("speed"), GUITools.noContent, true);
             
-
             EditorGUI.EndProperty();
         }
     }

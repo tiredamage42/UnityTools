@@ -17,9 +17,9 @@ namespace UnityTools.EditorTools {
         press the button next to the field to refresh asset references
     */    
     public class AssetSelectionAttribute : PropertyAttribute {
-        // public Type type;   
+        public Type type;   
         public virtual List<AssetSelectorElement> OnAssetsLoaded (List<AssetSelectorElement> originals) { return originals; }
-        // public AssetSelectionAttribute(Type type) { this.type = type; }
+        public AssetSelectionAttribute(Type type) { this.type = type; }
     }
 
     public class AssetSelectorElement {
@@ -47,9 +47,9 @@ namespace UnityTools.EditorTools {
                 return;
             }
 
-            Type type = SerializedProperties.GetType(property);
-            
             AssetSelectionAttribute att = attribute as AssetSelectionAttribute;
+            Type type = att.type;// SerializedProperties.GetType(property);
+            
             AssetSelector.Draw(type, position, property, label, att.OnAssetsLoaded);
         }
     }

@@ -1,13 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
+﻿using UnityEngine;
 
 namespace UnityTools {
 
     public class RandomTools 
     {
-
         public static float RandomSign (float value, float mask) {
             return (mask == 0 || value == 0 || Random.value < .5f) ? value : -value;
         }
@@ -19,9 +15,6 @@ namespace UnityTools {
         }
         public static Vector3 RandomSign (Vector3 v) {
             return RandomSign(v, Vector3.one);
-        }
-                
-                
-        
+        }   
     }
 }

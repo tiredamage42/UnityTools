@@ -6,6 +6,11 @@ namespace UnityToolsDemo {
 
     public class CameraShake : MonoBehaviour
     {
+        Transform cameraTransform;
+
+        void Awake () {
+            cameraTransform = GetComponentInChildren<Camera>().transform;
+        }
 
         public DurationShakeInfo positionShake;
         public DurationShakeInfo rotationShake;
@@ -21,8 +26,8 @@ namespace UnityToolsDemo {
         {
             transformShake.Update(out _, out _);
             
-            transform.localPosition = transformShake.positionOffset;
-            transform.localRotation = Quaternion.Euler(transformShake.rotationOffset);
+            cameraTransform.localPosition = transformShake.positionOffset;
+            cameraTransform.localRotation = Quaternion.Euler(transformShake.rotationOffset);
         }
         void FixedUpdate () {
             transformShake.FixedUpdate(out _, out _);

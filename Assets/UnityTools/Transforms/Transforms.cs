@@ -11,6 +11,29 @@ namespace UnityTools {
     */
     [System.Serializable] public class MiniTransform {
         public Vector3 position, rotation, scale;
+
+
+        void Initialize (Vector3 position, Vector3 rotation, Vector3 scale) {
+            this.position = position;
+            this.rotation = rotation;
+            this.scale = scale;
+
+        }
+        public MiniTransform (Vector3 position, Vector3 rotation, Vector3 scale) {
+            Initialize(position, rotation, scale);
+        }
+        public MiniTransform (Vector3 position, Quaternion rotation, Vector3 scale) {
+            Initialize(position, rotation.eulerAngles, scale);
+        }
+        public MiniTransform (Vector3 position, Quaternion rotation) {
+            Initialize(position, rotation.eulerAngles, Vector3.one);
+        }
+        public MiniTransform (Vector3 position, Vector3 rotation) {
+            Initialize(position, rotation, Vector3.one);
+        }
+        public MiniTransform (Vector3 position) {
+            Initialize(position, Vector3.zero, Vector3.one);
+        }
     }
 
     

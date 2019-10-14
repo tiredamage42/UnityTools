@@ -16,7 +16,7 @@ namespace UnityToolsDemo {
         [PreviewedAudio(false)] public AudioClip previewedAudio;
         [PreviewedAudio(true)] public AudioClip previewedAudioSelector;
 
-        [CustomAssetSelection] public SampleObject sampleObjectCustomSelector;
+        [CustomAssetSelection(typeof(SampleObject))] public SampleObject sampleObjectCustomSelector;
 
         [NeatArray] public ExtendedAudioClipArray extendedClips;
         public ExtendedAudioClip extendedClip0, extendedClip1;

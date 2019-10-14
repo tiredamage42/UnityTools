@@ -19,7 +19,7 @@ namespace UnityTools {
         protected virtual void Awake () {
             if (_instance != null && _instance != this) {
                 Debug.Log("Multiple instances of " + typeof(T).Name + " singleton in the scene");
-                Destroy (this.gameObject);
+                Destroy (gameObject);
             }
             else {
                 DontDestroyOnLoad(gameObject);

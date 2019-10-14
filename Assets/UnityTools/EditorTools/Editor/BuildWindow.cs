@@ -5,7 +5,7 @@ namespace UnityTools.EditorTools.Editor {
 
     // custom class so it can be drawn as asset selector iwithin array
     // [System.Serializable] public class SceneAssetArrayElement : NeatArrayElement { [AssetSelection(typeof(SceneAsset))] public SceneAsset element; }
-    [System.Serializable] public class SceneAssetArrayElement : NeatArrayElement { [AssetSelection] public SceneAsset element; }
+    [System.Serializable] public class SceneAssetArrayElement : NeatArrayElement { [AssetSelection(typeof(SceneAsset))] public SceneAsset element; }
     
     [System.Serializable] public class SceneAssetArray : NeatArrayWrapper<SceneAssetArrayElement> {  }
 

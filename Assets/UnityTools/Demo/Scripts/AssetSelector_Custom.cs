@@ -15,6 +15,6 @@ namespace UnityToolsDemo {
 
             return originals;
         }
-        // public CustomAssetSelectionAttribute ( Type type ) : base(type) { }
+        public CustomAssetSelectionAttribute ( Type type ) : base(type) { }
     }
 }
