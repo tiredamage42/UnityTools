@@ -3,10 +3,50 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO.Compression;
 
+using System.Linq;
 namespace UnityTools {
 
-    public class SystemTools 
+    public static class SystemTools 
     {   
+
+        public static Type[] FindDerivedTypes(this Type type, bool includeSelf)
+        {
+            return type.Assembly.GetTypes().Where(t => (t != type || includeSelf) && type.IsAssignableFrom(t)).ToArray();
+        }
+
+        /*
+            gets a string hash code that will persist between runs
+        */
+        public static int GetPersistentHashCode(this string str)
+        {
+            /*
+                'unchecked' keyword disables overflow-checking for the integer arithmetic done inside the function. 
+                If the function was executed inside a checked context, you might get an OverflowException at runtime
+            */
+            unchecked
+            {
+                
+                // int hash1 = 5381;
+                int hash1 = (5381 << 16) + 5381;
+                
+                int hash2 = hash1;
+
+                // for (int i = 0; i < str.Length && str[i] != '\0'; i += 2)
+                for (int i = 0; i < str.Length; i += 2)
+                {
+                    hash1 = ((hash1 << 5) + hash1) ^ str[i];
+
+                    // if (i == str.Length - 1 || str[i+1] == '\0')
+                    if (i == str.Length - 1)
+                        break;
+
+                    hash2 = ((hash2 << 5) + hash2) ^ str[i + 1];
+                }
+
+                return hash1 + (hash2 * 1566083941);
+            }
+        }
+
         public static T StringToEnum<T>(string value, T defValue)
 		{
 			if(string.IsNullOrEmpty(value))

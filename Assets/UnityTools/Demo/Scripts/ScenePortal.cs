@@ -7,6 +7,8 @@ using UnityEditor;
 namespace UnityToolsDemo {
     public class ScenePortal : MonoBehaviour
     {
+        public BaseClassTestArray baseClassTesting;
+
         public string scene;
         public void GoToScene () {
             SceneLoading.LoadSceneAsync (scene, null);

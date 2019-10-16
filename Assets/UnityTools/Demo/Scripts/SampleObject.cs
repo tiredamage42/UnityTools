@@ -2,6 +2,8 @@
 #if UNITY_EDITOR
 using UnityEngine;
 
+
+using UnityTools;
 using UnityTools.EditorTools;
 using UnityTools.Audio;
 using UnityTools.Particles;
@@ -12,16 +14,31 @@ namespace UnityToolsDemo {
     [CreateAssetMenu(menuName="Unity Tools/Demo Sample Object")]
     public class SampleObject : ScriptableObject
     {
-        [NeatArray] public PreviewedAudioAssetArray audioClipsAssets;
-        [PreviewedAudio(false)] public AudioClip previewedAudio;
-        [PreviewedAudio(true)] public AudioClip previewedAudioSelector;
+        // [NeatArray] public PreviewedAudioAssetArray audioClipsAssets;
+        // [PreviewedAudio(false)] public AudioClip previewedAudio;
+        // [PreviewedAudio(true)] public AudioClip previewedAudioSelector;
 
-        [CustomAssetSelection(typeof(SampleObject))] public SampleObject sampleObjectCustomSelector;
+        // [CustomAssetSelection(typeof(SampleObject))] public SampleObject sampleObjectCustomSelector;
 
-        [NeatArray] public ExtendedAudioClipArray extendedClips;
-        public ExtendedAudioClip extendedClip0, extendedClip1;
+        // [NeatArray] public ExtendedAudioClipArray extendedClips;
+        // public ExtendedAudioClip extendedClip0, extendedClip1;
 
-        public ParticlesFX particlesFX, particlesFX2;
+        // public ParticlesFX particlesFX, particlesFX2;
+
+        // [NeatArray] public GameValueArray gameValues;
+
+        // [NeatArray] public GameValueModifierArray modifiers;
+        // [NeatArray] public GameValueModifierArray2D modifiers2d;
+
+
+        // [NeatArray] 
+        public BaseClassTestArray baseClassTesting;
+
+        public Conditions conditions;
+
+        // public ONamepsac.BaseClassTest baseClassTest;
+
+        
 
     }
 }

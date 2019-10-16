@@ -15,12 +15,15 @@ namespace UnityTools.EditorTools {
     */
 
     [CustomPropertyDrawer(typeof(NeatArrayAttribute))] 
-    class NeatArrayAttributeDrawer : PropertyDrawer
+    public class NeatArrayAttributeDrawer : PropertyDrawer
     {
-        GUIContent isShownContent = BuiltInIcons.GetIcon("animationvisibilitytoggleon", "Hide");
-        GUIContent hiddenContent = BuiltInIcons.GetIcon("animationvisibilitytoggleoff", "Show");
-        GUIContent addContent = BuiltInIcons.GetIcon("Toolbar Plus", "Add New Element");
-        GUIContent deleteContent = BuiltInIcons.GetIcon("Toolbar Minus", "Delete Element");
+        protected GUIContent isShownContent = BuiltInIcons.GetIcon("animationvisibilitytoggleon", "Hide");
+        protected GUIContent hiddenContent = BuiltInIcons.GetIcon("animationvisibilitytoggleoff", "Show");
+        protected GUIContent addContent = BuiltInIcons.GetIcon("Toolbar Plus", "Add New Element");
+        protected GUIContent deleteContent = BuiltInIcons.GetIcon("Toolbar Minus", "Delete Element");
+
+
+
 
         const string displayedName = "displayed";
         const string listName = "list";
@@ -42,28 +45,49 @@ namespace UnityTools.EditorTools {
                 }
             }
         }
-        public override void OnGUI(Rect pos, SerializedProperty prop, GUIContent label)
-        {
-            NeatArrayAttribute att = attribute as NeatArrayAttribute;
 
-            float indent1 = pos.x + GUITools.iconButtonWidth;
-            float indent2 = indent1 + GUITools.iconButtonWidth;
-            float indent2Width = pos.width - GUITools.iconButtonWidth * 2;
-            float y = pos.y;
-
-            EditorGUI.BeginProperty(pos, label, prop);
-            
+        protected bool DrawDisplayedToggle (Rect pos, SerializedProperty prop) {
             SerializedProperty displayed = prop.FindPropertyRelative(displayedName);
-            if (GUITools.IconButton(pos.x, y, displayed.boolValue ? isShownContent : hiddenContent, GUITools.white)){
+            if (GUITools.IconButton(pos.x, pos.y, displayed.boolValue ? isShownContent : hiddenContent, GUITools.white)){
                 displayed.boolValue = !displayed.boolValue;
             }
+            return displayed.boolValue;
+        }
+
+        protected void DrawArrayTitle (Rect pos, SerializedProperty prop, GUIContent label, float xOffset) {
             
-            bool displayedValue = displayed.boolValue;
+            label.text += " [" + prop.arraySize + "]";
+            GUITools.Label(new Rect(xOffset, pos.y, pos.width, EditorGUIUtility.singleLineHeight), label, GUITools.black, GUITools.boldLabel);
+        }
+
+        protected void DrawAddElement (Rect pos, SerializedProperty prop, float indent1, bool displayedValue) {
+            GUI.enabled = displayedValue;
+            if (GUITools.IconButton(indent1, pos.y, addContent, displayedValue ? GUITools.green : GUITools.white)) {
+                prop.InsertArrayElementAtIndex(prop.arraySize);
+                SerializedProperty p = prop.GetArrayElementAtIndex(prop.arraySize - 1);
+                if (p.propertyType == SerializedPropertyType.ObjectReference) {
+                    p.objectReferenceValue = null;
+                }
+            }
+            GUI.enabled = true;
+        }
+
+        protected void StartArrayDraw (Rect pos, ref SerializedProperty prop, ref GUIContent label, out float indent1, out float indent2, out float indent2Width, out bool displayedValue) {
+            indent1 = pos.x + GUITools.iconButtonWidth;
+            indent2 = indent1 + GUITools.iconButtonWidth;
+            indent2Width = pos.width - GUITools.iconButtonWidth * 2;
+            
+            EditorGUI.BeginProperty(pos, label, prop);
+
+            displayedValue = DrawDisplayedToggle ( pos, prop );
 
             // the property we want to draw is the list child
             prop = prop.FindPropertyRelative(listName);
 
-            
+            DrawBox ( pos, prop, ref label, indent1, displayedValue );
+        }
+
+        protected void DrawBox (Rect pos, SerializedProperty prop, ref GUIContent label, float indent1, bool displayedValue) {
             string lbl = label.text;
             string tooltip = label.tooltip;
             
@@ -71,33 +95,38 @@ namespace UnityTools.EditorTools {
             label.text = lbl;
             label.tooltip = tooltip;
             
-            GUITools.Box ( new Rect ( indent1,  y, pos.width - GUITools.iconButtonWidth, h + GUITools.singleLineHeight * .1f), GUITools.shade );
+            GUITools.Box ( new Rect ( indent1,  pos.y, pos.width - GUITools.iconButtonWidth, h + GUITools.singleLineHeight * .1f), GUITools.shade );
+        }
             
+            
+            
+
+        public override void OnGUI(Rect pos, SerializedProperty prop, GUIContent label)
+        {
+            NeatArrayAttribute att = attribute as NeatArrayAttribute;
+
+            float indent1, indent2, indent2Width;
+            bool displayedValue;
+            StartArrayDraw ( pos, ref prop, ref label, out indent1, out indent2, out indent2Width, out displayedValue );
+
             MakeSureSizeIsOK(prop, att.enforceSize);
             
             if (att.enforceSize < 0) {
 
-                GUI.enabled = displayedValue;
-                if (GUITools.IconButton(indent1, y, addContent, displayedValue ? GUITools.green : GUITools.white)) {
-                    prop.InsertArrayElementAtIndex(prop.arraySize);
-                }
-                GUI.enabled = true;
+                DrawAddElement ( pos, prop, indent1, displayedValue );
             }
 
             float xOffset = (att.enforceSize < 0 ? indent2 : indent1) + GUITools.toolbarDividerSize;
 
-            int arraySize = prop.arraySize;
-            label.text += " [" + arraySize + "]";
-            GUITools.Label(new Rect(xOffset, y, pos.width, EditorGUIUtility.singleLineHeight), label, GUITools.black, GUITools.boldLabel);
+            DrawArrayTitle ( pos, prop, label, xOffset );
             
-            
-
             if (displayedValue) {
+                float y = pos.y;
                 y += GUITools.singleLineHeight;
                 
                 int indexToDelete = -1;
 
-                for (int i = 0; i < arraySize; i++) {
+                for (int i = 0; i < prop.arraySize; i++) {
                     if (att.enforceSize < 0) {
                         if (GUITools.IconButton(indent1, y, deleteContent, GUITools.red))
                             indexToDelete = i;
@@ -108,13 +137,19 @@ namespace UnityTools.EditorTools {
                     y += EditorGUI.GetPropertyHeight(p, true);
                 }
                 
-                if (indexToDelete != -1) prop.DeleteArrayElementAtIndex(indexToDelete);
+                if (indexToDelete != -1) {
+                    SerializedProperty p = prop.GetArrayElementAtIndex(indexToDelete);
+                    if (p.propertyType == SerializedPropertyType.ObjectReference) {
+                        prop.DeleteArrayElementAtIndex(indexToDelete);
+                    }
+                    prop.DeleteArrayElementAtIndex(indexToDelete);
+                }
             }
 
             EditorGUI.EndProperty();
         }
 
-        float CalculateHeight (SerializedProperty prop, bool displayed) {
+        protected float CalculateHeight (SerializedProperty prop, bool displayed) {
             if (!displayed) return GUITools.singleLineHeight;
             float h = GUITools.singleLineHeight;
             int arraySize = prop.arraySize;
@@ -200,9 +235,9 @@ namespace UnityTools.EditorTools {
         public T GetRandom(T defaultValue) { return list.GetRandom<T>(defaultValue); }
             
         public List<T> list;
+        public bool displayed;
         public int Count { get { return list.Count; } }
         public T this[int index] { get { return list[index]; } }
-        public bool displayed;
         public static implicit operator List<T>(NeatListWrapper<T> c) { return c.list; }
     }
 }

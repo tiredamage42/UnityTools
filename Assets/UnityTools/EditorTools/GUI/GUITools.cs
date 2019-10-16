@@ -142,8 +142,7 @@ namespace UnityTools.EditorTools {
         public static void DrawIconPrefixedField (float x, float y, float w, float h, SerializedProperty prop, GUIContent content, Color32 color) {
             IconButton(x, y, content, color);
             float offset = iconButtonWidth + toolbarDividerSize;
-            SetPosition(x + offset, y);
-            SetSize(w - offset, EditorGUIUtility.singleLineHeight);
+            SetRect(x + offset, y, w - offset, EditorGUIUtility.singleLineHeight);
             EditorGUI.PropertyField(_rect, prop, noContent, true);
         }
 
@@ -185,8 +184,7 @@ namespace UnityTools.EditorTools {
         }
 
         public static bool Button (float x, float y, float w, float h, GUIContent content, Color32 color, GUIStyle style, Color32 textColor) {
-            SetPosition(x, y);
-            SetSize(w, h);
+            SetRect(x, y, w, h);
             Color32 textCol = style.normal.textColor;
             style.normal.textColor = textColor;
             GUI.backgroundColor = color;
@@ -211,8 +209,7 @@ namespace UnityTools.EditorTools {
         public const float toolbarDividerSize = 5;
 
         public static void DrawToolbarDivider (float x, float y) {
-            SetPosition(x, y);
-            SetSize(toolbarDividerSize, EditorGUIUtility.singleLineHeight);
+            SetRect(x, y, toolbarDividerSize, EditorGUIUtility.singleLineHeight);
             GUI.backgroundColor = GUITools.darkGray;
             GUI.BeginGroup(_rect, toolbar);
             GUI.EndGroup();
@@ -231,6 +228,23 @@ namespace UnityTools.EditorTools {
         }
         static void SetPosition (Vector2 position) {
             SetPosition(position.x, position.y);
+        }
+
+        static void SetRect (float x, float y, float w, float h) {
+            SetPosition(x, y);
+            SetSize(w, h);
+        }
+
+        public static void StringFieldWithDefault (float x, float y, float w, float h, SerializedProperty prop, string defaultString) {
+            string s = prop.stringValue;
+            if (string.IsNullOrEmpty(s) || string.IsNullOrWhiteSpace(s)) prop.stringValue = defaultString;
+            SetRect(x, y, w, h);
+            EditorGUI.PropertyField(_rect, prop, GUITools.noContent);
+        }
+        public static string StringFieldWithDefault (float x, float y, float w, float h, string value, string defaultString) {
+            if (string.IsNullOrEmpty(value) || string.IsNullOrWhiteSpace(value)) value = defaultString;
+            SetRect(x, y, w, h);
+            return EditorGUI.TextField(_rect, GUITools.noContent, value);
         }
     }
 }
