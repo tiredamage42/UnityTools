@@ -135,8 +135,9 @@ namespace UnityTools.EditorTools {
             }
             return value;
         }
-        public static void DrawToggleButton (SerializedProperty prop, GUIContent content, float x, float y, Color32 onColor, Color32 offColor) {
+        public static bool DrawToggleButton (SerializedProperty prop, GUIContent content, float x, float y, Color32 onColor, Color32 offColor) {
             prop.boolValue = DrawToggleButton (prop.boolValue, content, x, y, onColor, offColor);
+            return prop.boolValue;
         }
             
         public static void DrawIconPrefixedField (float x, float y, float w, float h, SerializedProperty prop, GUIContent content, Color32 color) {

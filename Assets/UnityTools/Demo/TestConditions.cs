@@ -64,7 +64,8 @@ namespace UnityToolsDemo {
 
 
 
-        [NeatArray] public Conditions conditions;
+        // [NeatArray] 
+        public Conditions conditions;
 
         public bool checkConditions, addRemoveMods;
 

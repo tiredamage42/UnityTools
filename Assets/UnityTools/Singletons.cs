@@ -16,9 +16,12 @@ namespace UnityTools {
         static T _instance;
         public static T instance { get { return Singleton.GetInstance<T>(ref _instance); } }
 
+
+        protected bool thisInstanceErrored;
         protected virtual void Awake () {
             if (_instance != null && _instance != this) {
-                Debug.Log("Multiple instances of " + typeof(T).Name + " singleton in the scene");
+                thisInstanceErrored = true;
+                Debug.Log("Multiple instances of " + typeof(T).Name + " singleton in the scene. Destroying instance: " + gameObject.name);
                 Destroy (gameObject);
             }
             else {

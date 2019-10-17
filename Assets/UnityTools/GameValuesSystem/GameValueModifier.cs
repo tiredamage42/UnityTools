@@ -1,13 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
+﻿using UnityEngine;
 
 using UnityEditor;
 using UnityTools.EditorTools;
 namespace UnityTools {
 
-    
     [System.Serializable] public class GameValueModifierArray : NeatArrayWrapper<GameValueModifier> { }
     [System.Serializable] public class GameValueModifierArray2D { 
         public bool displayed;
@@ -24,7 +20,7 @@ namespace UnityTools {
             }
         }
 
-        [NeatArray] public Conditions conditions;
+        public Conditions conditions;
         
         public GameValueModifier (GameValue.GameValueComponent modifyValueComponent, ModifyBehavior modifyBehavior, float modifyValue) {
             this.modifyValueComponent = modifyValueComponent;
@@ -39,18 +35,15 @@ namespace UnityTools {
         public GameValueModifier (GameValueModifier template, int count, int key, string description) {
             this.key = key;
             this.count = count;
+            this.description = description;
 
             gameValueName = template.gameValueName;
             modifyValueComponent = template.modifyValueComponent;
             modifyBehavior = template.modifyBehavior;
             modifyValue = template.modifyValue;
-
-            this.description = description;
         }
 
-
         public string description;
-            
         [HideInInspector] public int key;
         [HideInInspector] public int count = 1;
         int getCount { get { return isStackable ? count : 1; } }
@@ -62,6 +55,8 @@ namespace UnityTools {
         public ModifyBehavior modifyBehavior;
         public float modifyValue = 0;
 
+        public bool showConditions;
+
         public float Modify(float baseValue) {
             if (modifyBehavior == ModifyBehavior.Set)
                 return modifyValue;
@@ -71,65 +66,80 @@ namespace UnityTools {
                 return baseValue * (modifyValue * getCount);
             return baseValue;
         }
-
-        // public string modifyBehaviorString {
-        //     get {
-        //         if (modifyBehavior == ModifyBehavior.Set)
-        //             return "=";
-        //         else if (modifyBehavior == ModifyBehavior.Add)
-        //             return "+";
-        //         else if (modifyBehavior == ModifyBehavior.Multiply) 
-        //             return "x";
-        //         return "";
-        //     }
-        // }
-        // // public string gameMessageToShow {
-        //     get {
-        //         return gameValueName + " " + modifyBehaviorString + modifyValue.ToString(); 
-        //     }
-        // }
     }
 #if UNITY_EDITOR
     [CustomPropertyDrawer(typeof(GameValueModifier))] public class GameValueModifierDrawer : PropertyDrawer
     {
+        static GUIContent _stackableContent;
+        static GUIContent stackableContent { get { 
+            if (_stackableContent == null) _stackableContent = BuiltInIcons.GetIcon("UnityEditor.SceneHierarchyWindow", "Is Stackable"); 
+            return _stackableContent;
+        } }
+
+        static GUIContent _showConditionsContent;
+        static GUIContent showConditionsContent { get { 
+            if (_showConditionsContent == null) _showConditionsContent = new GUIContent("?", "Show Conditions"); 
+            return _showConditionsContent;
+        } }
+        
+        static readonly float[] widths = new float[] { 60, 100, 90, 80, 60, 15, };
+        
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
 
-            float singleLineHeight = EditorGUIUtility.singleLineHeight;
             EditorGUI.BeginProperty(position, label, property);
 
+            position.height = EditorGUIUtility.singleLineHeight;
+
             int i = 0;
-            float[] widths = new float[] { 60, 100, 90, 80, 60, 15, };
 
-            float x = position.x;
-            EditorGUI.PropertyField(new Rect(x, position.y, widths[i], singleLineHeight), property.FindPropertyRelative("modifyBehavior"), GUITools.noContent);
-            x += widths[i++];
+            float origX = position.x;
+            float origW = position.width;
             
-            GUITools.StringFieldWithDefault ( x, position. y, widths[i], singleLineHeight, property.FindPropertyRelative("gameValueName"), "Value Name");
-            x+= widths[i++];
+            position.width = widths[i];
+            EditorGUI.PropertyField(position, property.FindPropertyRelative("modifyBehavior"), GUITools.noContent);
+            position.x += widths[i++];
+                        
+            GUITools.StringFieldWithDefault ( position.x, position. y, widths[i], EditorGUIUtility.singleLineHeight, property.FindPropertyRelative("gameValueName"), "Value Name");
+            position.x+= widths[i++];
 
-            EditorGUI.PropertyField(new Rect(x, position.y, widths[i], singleLineHeight), property.FindPropertyRelative("modifyValueComponent"), GUITools.noContent);
-            x+= widths[i++];
+            position.width = widths[i];
+            EditorGUI.PropertyField(position, property.FindPropertyRelative("modifyValueComponent"), GUITools.noContent);
+            position.x+= widths[i++];
             
-            EditorGUI.PropertyField(new Rect(x, position.y, widths[i], singleLineHeight), property.FindPropertyRelative("modifyValue"), GUITools.noContent);
-            x+= widths[i++];
-            
-            EditorGUI.LabelField(new Rect(x, position.y, widths[i], singleLineHeight), "Stackable:");
-            x+= widths[i++];
-            
-            EditorGUI.PropertyField(new Rect(x, position.y, widths[i], singleLineHeight), property.FindPropertyRelative("isStackable"), GUITools.noContent);
-            
-            // EditorGUI.indentLevel = oldIndent + 1;
+            position.width = widths[i];
+            EditorGUI.PropertyField(position, property.FindPropertyRelative("modifyValue"), GUITools.noContent);
+            position.x+= widths[i++];
+
+            GUITools.DrawToggleButton(property.FindPropertyRelative("isStackable"), stackableContent, position.x, position.y, GUITools.blue, GUITools.white);
+            position.x += GUITools.iconButtonWidth;
+
+            SerializedProperty showConditions = property.FindPropertyRelative("showConditions");
             SerializedProperty conditionsProp = property.FindPropertyRelative("conditions");
-            EditorGUI.PropertyField(new Rect(position.x, position.y + singleLineHeight, position.width, (EditorGUI.GetPropertyHeight(conditionsProp, true))), conditionsProp, new GUIContent("Conditions"));
-            // EditorGUI.indentLevel = oldIndent;
+
+            if (!showConditions.boolValue) {
+                if (conditionsProp.FindPropertyRelative("list").arraySize > 0) {
+                    showConditions.boolValue = true;
+                }
+            }
+
+            GUITools.DrawToggleButton(showConditions, showConditionsContent, position.x, position.y, GUITools.blue, GUITools.white);
+            
+            if (showConditions.boolValue) {
+                position.x = origX;
+                position.y += EditorGUIUtility.singleLineHeight;
+                position.width = origW;
+                EditorGUI.PropertyField(position, conditionsProp, new GUIContent("Conditions"));
+            }
             
             EditorGUI.EndProperty();
         }
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            return EditorGUIUtility.singleLineHeight + (EditorGUI.GetPropertyHeight(property.FindPropertyRelative("conditions"), true));
+            SerializedProperty showConditions = property.FindPropertyRelative("showConditions");
+
+            return GUITools.singleLineHeight + (showConditions.boolValue ? EditorGUI.GetPropertyHeight(property.FindPropertyRelative("conditions"), true) : 0);
         }
     }
 #endif

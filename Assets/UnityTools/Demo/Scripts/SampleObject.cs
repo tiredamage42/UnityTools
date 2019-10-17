@@ -30,10 +30,6 @@ namespace UnityToolsDemo {
         // [NeatArray] public GameValueModifierArray modifiers;
         // [NeatArray] public GameValueModifierArray2D modifiers2d;
 
-
-        // [NeatArray] 
-        public BaseClassTestArray baseClassTesting;
-
         public Conditions conditions;
 
         // public ONamepsac.BaseClassTest baseClassTest;

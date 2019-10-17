@@ -131,6 +131,51 @@ namespace UnityTools.GameSettingsSystem {
         public static T GetSettings<T> (string name=null) where T : GameSettingsObject {
             return GetSettingsInternal<T>(name, true);
         }
+
+        public static List<T> GetSettingsOfType<T> () where T : GameSettingsObject {
+            return GetSettingsOfTypeInternal<T>(true);
+        }
+        static List<T> GetSettingsOfTypeInternal<T> (bool firstTry) where T : GameSettingsObject {
+            List<T> r = new List<T>();
+            if (settings == null)
+                return r;
+
+            // during editor, just search by for loop
+            if (!Application.isPlaying) {
+                for (int i = 0; i < settings.Length; i++) {
+                    GameSettingsObject gs = settings[i];
+                    T t = gs as T;
+                    if (t != null) {
+                        r.Add(t);
+                    }
+                }
+                if (r.Count == 0) {
+
+                    if (firstTry) {
+                        // try and refresh teh settings list if we cant find it
+                        RefreshSettingsList.RefreshGameSettingsList();
+                        return GetSettingsOfTypeInternal<T>(false);
+                    }   
+                }   
+            }
+            else {
+                if (typesLookups == null) {
+                    InitializeRuntimeSettingsLookups ();
+                }
+                Dictionary<string, GameSettingsObject> namesLookup;
+                if (typesLookups.TryGetValue(typeof(T), out namesLookup)) {
+
+                    foreach (var k in namesLookup.Keys) {
+                        r.Add(namesLookup[k] as T);
+                    }
+                }
+            }
+            if (r.Count == 0) {
+                Debug.LogError("Couldnt find any Settings Object of type " + typeof(T).FullName);
+            }
+            return r;
+
+        }
     }
 
     // base class for game settings to keep track of within the framework

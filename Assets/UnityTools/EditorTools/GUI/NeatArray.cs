@@ -17,22 +17,35 @@ namespace UnityTools.EditorTools {
     [CustomPropertyDrawer(typeof(NeatArrayAttribute))] 
     public class NeatArrayAttributeDrawer : PropertyDrawer
     {
-        protected GUIContent isShownContent = BuiltInIcons.GetIcon("animationvisibilitytoggleon", "Hide");
-        protected GUIContent hiddenContent = BuiltInIcons.GetIcon("animationvisibilitytoggleoff", "Show");
-        protected GUIContent addContent = BuiltInIcons.GetIcon("Toolbar Plus", "Add New Element");
-        protected GUIContent deleteContent = BuiltInIcons.GetIcon("Toolbar Minus", "Delete Element");
 
-
-
+        static GUIContent _isShownContent;
+        protected static GUIContent isShownContent { get { 
+            if (_isShownContent == null) _isShownContent = BuiltInIcons.GetIcon("animationvisibilitytoggleon", "Hide"); 
+            return _isShownContent;
+        } }
+        static GUIContent _hiddenContent;
+        protected static GUIContent hiddenContent { get { 
+            if (_hiddenContent == null) _hiddenContent = BuiltInIcons.GetIcon("animationvisibilitytoggleoff", "Show"); 
+            return _hiddenContent;
+        } }
+        static GUIContent _addContent;
+        protected static GUIContent addContent { get { 
+            if (_addContent == null) _addContent = BuiltInIcons.GetIcon("Toolbar Plus", "Add New Element"); 
+            return _addContent;
+        } }
+        static GUIContent _deleteContent;
+        protected static GUIContent deleteContent { get { 
+            if (_deleteContent == null) _deleteContent = BuiltInIcons.GetIcon("Toolbar Minus", "Delete Element"); 
+            return _deleteContent;
+        } }
 
         const string displayedName = "displayed";
-        const string listName = "list";
+        protected const string listName = "list";
 
         void MakeSureSizeIsOK (SerializedProperty prop, int enforceSize) {
             
             if (enforceSize < 0)
                 return;
-            
 
             if (prop.arraySize != enforceSize) {
                 if (prop.arraySize > enforceSize) {
@@ -57,8 +70,17 @@ namespace UnityTools.EditorTools {
         protected void DrawArrayTitle (Rect pos, SerializedProperty prop, GUIContent label, float xOffset) {
             
             label.text += " [" + prop.arraySize + "]";
-            GUITools.Label(new Rect(xOffset, pos.y, pos.width, EditorGUIUtility.singleLineHeight), label, GUITools.black, GUITools.boldLabel);
+            pos.x = xOffset;
+            GUITools.Label(pos, label, GUITools.black, GUITools.boldLabel);
         }
+
+        protected virtual void OnAddNewElement (SerializedProperty newElement) {
+
+        }
+        protected virtual void OnDeleteElement (SerializedProperty deleteElement) {
+        
+        }
+
 
         protected void DrawAddElement (Rect pos, SerializedProperty prop, float indent1, bool displayedValue) {
             GUI.enabled = displayedValue;
@@ -68,6 +90,8 @@ namespace UnityTools.EditorTools {
                 if (p.propertyType == SerializedPropertyType.ObjectReference) {
                     p.objectReferenceValue = null;
                 }
+
+                OnAddNewElement (p);
             }
             GUI.enabled = true;
         }
@@ -95,10 +119,12 @@ namespace UnityTools.EditorTools {
             label.text = lbl;
             label.tooltip = tooltip;
             
-            GUITools.Box ( new Rect ( indent1,  pos.y, pos.width - GUITools.iconButtonWidth, h + GUITools.singleLineHeight * .1f), GUITools.shade );
+            pos.x = indent1;
+            pos.width -= GUITools.iconButtonWidth;
+            pos.height = h + GUITools.singleLineHeight * .1f;
+
+            GUITools.Box ( pos, GUITools.shade );
         }
-            
-            
             
 
         public override void OnGUI(Rect pos, SerializedProperty prop, GUIContent label)
@@ -109,36 +135,45 @@ namespace UnityTools.EditorTools {
             bool displayedValue;
             StartArrayDraw ( pos, ref prop, ref label, out indent1, out indent2, out indent2Width, out displayedValue );
 
-            MakeSureSizeIsOK(prop, att.enforceSize);
+            if (att != null) {
+                MakeSureSizeIsOK(prop, att.enforceSize);
+            }
             
-            if (att.enforceSize < 0) {
+            if (att == null || att.enforceSize < 0) {
 
                 DrawAddElement ( pos, prop, indent1, displayedValue );
             }
 
-            float xOffset = (att.enforceSize < 0 ? indent2 : indent1) + GUITools.toolbarDividerSize;
+            float xOffset = (att == null || att.enforceSize < 0 ? indent2 : indent1) + GUITools.toolbarDividerSize;
 
             DrawArrayTitle ( pos, prop, label, xOffset );
             
             if (displayedValue) {
-                float y = pos.y;
-                y += GUITools.singleLineHeight;
-                
                 int indexToDelete = -1;
 
+                pos.x = xOffset;
+                pos.y += GUITools.singleLineHeight;
+                pos.width = indent2Width - GUITools.toolbarDividerSize * 2;
+                pos.height = EditorGUIUtility.singleLineHeight;
+
                 for (int i = 0; i < prop.arraySize; i++) {
-                    if (att.enforceSize < 0) {
-                        if (GUITools.IconButton(indent1, y, deleteContent, GUITools.red))
+                    if (att == null || att.enforceSize < 0) {
+                        if (GUITools.IconButton(indent1, pos.y, deleteContent, GUITools.red))
                             indexToDelete = i;
                     }
                     
                     SerializedProperty p = prop.GetArrayElementAtIndex(i);
-                    EditorGUI.PropertyField(new Rect(xOffset, y, indent2Width - GUITools.toolbarDividerSize, EditorGUIUtility.singleLineHeight), p, true);
-                    y += EditorGUI.GetPropertyHeight(p, true);
+                    EditorGUI.PropertyField(pos, p, true);
+
+                    pos.y += EditorGUI.GetPropertyHeight(p, true);
                 }
                 
                 if (indexToDelete != -1) {
+
                     SerializedProperty p = prop.GetArrayElementAtIndex(indexToDelete);
+                    
+                    OnDeleteElement(p);
+
                     if (p.propertyType == SerializedPropertyType.ObjectReference) {
                         prop.DeleteArrayElementAtIndex(indexToDelete);
                     }
@@ -221,6 +256,8 @@ namespace UnityTools.EditorTools {
     [Serializable] public class NeatGameObjectList : NeatListWrapper<GameObject> {}
     [Serializable] public class NeatGameObjectArray : NeatArrayWrapper<GameObject> {}
 
+    [Serializable] public class NeatKeyCodeList : NeatListWrapper<KeyCode> {}
+    [Serializable] public class NeatKeyCodeArray : NeatArrayWrapper<KeyCode> {}
 
     public class NeatArrayWrapper<T> {
         public T GetRandom(T defaultValue) { return list.GetRandom<T>(defaultValue); }

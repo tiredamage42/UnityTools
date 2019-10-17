@@ -3,7 +3,6 @@ using UnityEngine;
 
 using UnityTools;
 
-
 using UnityTools.GameSettingsSystem;
 namespace UnityToolsDemo {
     [System.Serializable] public class ActorState : SceneObjectState {
@@ -25,17 +24,12 @@ namespace UnityToolsDemo {
         public void LoadFromSavedObject (ActorState savedActor) {
             health = savedActor.health;
         }
-        
         public void WarpTo (Vector3 position, Quaternion rotation) {
             transform.position = position;
             transform.rotation = rotation;
         }
-
         public static PrefabPool<Actor> pool = new PrefabPool<Actor>();
-        
         public string basePrefabName;
-
-
         public static Actor playerActor;
 
         public bool isPlayer;
