@@ -229,17 +229,17 @@ namespace UnityTools.EditorTools {
         }
     }
     
-    [Serializable] public class NeatBoolList : NeatListWrapper<bool> {}
-    [Serializable] public class NeatBoolArray : NeatArrayWrapper<bool> {}
+    [Serializable] public class NeatBoolList : NeatListWrapper<bool> { public NeatBoolList() : base() { } public NeatBoolList(List<bool> list) : base(list) { } }
+    [Serializable] public class NeatBoolArray : NeatArrayWrapper<bool> { public NeatBoolArray() : base() { } public NeatBoolArray(bool[] list) : base(list) { } }
     
-    [Serializable] public class NeatStringList : NeatListWrapper<string> {}
-    [Serializable] public class NeatStringArray : NeatArrayWrapper<string> {}
+    [Serializable] public class NeatStringList : NeatListWrapper<string> { public NeatStringList() : base() { } public NeatStringList(List<string> list) : base(list) { } }
+    [Serializable] public class NeatStringArray : NeatArrayWrapper<string> { public NeatStringArray() : base() { } public NeatStringArray(string[] list) : base(list) { } }
     
-    [Serializable] public class NeatIntList : NeatListWrapper<int> {}
-    [Serializable] public class NeatIntArray : NeatArrayWrapper<int> {}
+    [Serializable] public class NeatIntList : NeatListWrapper<int> { public NeatIntList() : base() { } public NeatIntList(List<int> list) : base(list) { } }
+    [Serializable] public class NeatIntArray : NeatArrayWrapper<int> { public NeatIntArray() : base() { } public NeatIntArray(int[] list) : base(list) { } }
     
-    [Serializable] public class NeatFloatList : NeatListWrapper<float> {}
-    [Serializable] public class NeatFloatArray : NeatArrayWrapper<float> {}
+    [Serializable] public class NeatFloatList : NeatListWrapper<float> { public NeatFloatList() : base() { } public NeatFloatList(List<float> list) : base(list) { } }
+    [Serializable] public class NeatFloatArray : NeatArrayWrapper<float> { public NeatFloatArray() : base() { } public NeatFloatArray(float[] list) : base(list) { } }
 
     [Serializable] public class NeatAudioClipList : NeatListWrapper<AudioClip> {}
     [Serializable] public class NeatAudioClipArray : NeatArrayWrapper<AudioClip> {}
@@ -256,10 +256,14 @@ namespace UnityTools.EditorTools {
     [Serializable] public class NeatGameObjectList : NeatListWrapper<GameObject> {}
     [Serializable] public class NeatGameObjectArray : NeatArrayWrapper<GameObject> {}
 
-    [Serializable] public class NeatKeyCodeList : NeatListWrapper<KeyCode> {}
-    [Serializable] public class NeatKeyCodeArray : NeatArrayWrapper<KeyCode> {}
+    [Serializable] public class NeatKeyCodeList : NeatListWrapper<KeyCode> { public NeatKeyCodeList() : base() { } public NeatKeyCodeList(List<KeyCode> list) : base(list) { } }
+    [Serializable] public class NeatKeyCodeArray : NeatArrayWrapper<KeyCode> { public NeatKeyCodeArray() : base() { } public NeatKeyCodeArray(KeyCode[] list) : base(list) { } }
 
     public class NeatArrayWrapper<T> {
+        
+        public NeatArrayWrapper (T[] list) { this.list = list; }
+        public NeatArrayWrapper () { }
+
         public T GetRandom(T defaultValue) { return list.GetRandom<T>(defaultValue); }
         
         public T[] list;
@@ -269,6 +273,10 @@ namespace UnityTools.EditorTools {
         public static implicit operator T[](NeatArrayWrapper<T> c) { return c.list; }
     }
     public class NeatListWrapper<T> {
+
+        public NeatListWrapper (List<T> list) { this.list = list; }
+        public NeatListWrapper () { }
+
         public T GetRandom(T defaultValue) { return list.GetRandom<T>(defaultValue); }
             
         public List<T> list;

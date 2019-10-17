@@ -43,19 +43,19 @@ namespace UnityTools {
 
     public abstract class CustomUpdaterMonobehaviour : MonoBehaviour {
 
-        protected abstract UpdateMode GetUpdateMode ();
+        public UpdateMode updateMode;
         public abstract void UpdateLoop (float deltaTime);
 
         void Update () {
-            if (GetUpdateMode() != UpdateMode.Update) return;
+            if (updateMode != UpdateMode.Update) return;
             UpdateLoop(Time.deltaTime);
         }
         void FixedUpdate () {
-            if (GetUpdateMode() != UpdateMode.FixedUpdate) return;
+            if (updateMode != UpdateMode.FixedUpdate) return;
             UpdateLoop(Time.fixedDeltaTime);
         }
         void LateUpdate () {
-            if (GetUpdateMode() != UpdateMode.LateUpdate) return;
+            if (updateMode != UpdateMode.LateUpdate) return;
             UpdateLoop(Time.deltaTime);
         }
     }

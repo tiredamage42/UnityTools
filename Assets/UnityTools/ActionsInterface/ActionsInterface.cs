@@ -2,6 +2,10 @@
 using UnityEngine;
 
 using System;
+
+using UnityEditor;
+using UnityTools.EditorTools;
+
 namespace UnityTools {
     /*
         interface to standardize inputs with systems
@@ -116,4 +120,45 @@ namespace UnityTools {
             return getMousePos(controller);
         }
     }
+
+    public abstract class ActionsInterfaceController : MonoBehaviour {
+        void Awake () {
+            if (ActionsInterface.InitializeActionsInterface (GetActionDown, GetAction, GetActionUp, GetAxis, GetMousePos, 1, this))
+                DontDestroyOnLoad(gameObject);
+        }
+
+        protected abstract bool GetActionDown (int action, int controller);
+        protected abstract bool GetAction (int action, int controller);
+        protected abstract bool GetActionUp (int action, int controller);
+        protected abstract float GetAxis (int axis, int controller);
+        protected abstract Vector2 GetMousePos (int controller);
+        public abstract string ConstructTooltip ();
+    }
+
+    public class ActionAttribute : PropertyAttribute { }
+    
+    #if UNITY_EDITOR
+    [CustomPropertyDrawer(typeof(ActionAttribute))] 
+    public class ActionAttributeDrawer : PropertyDrawer
+    {
+        static ActionsInterfaceController _sceneController;
+        static ActionsInterfaceController sceneController {
+            get {
+                if (_sceneController == null) _sceneController = GameObject.FindObjectOfType<ActionsInterfaceController>();
+                return _sceneController;
+            }
+        }
+
+        public override void OnGUI(Rect pos, SerializedProperty prop, GUIContent label)
+        {
+            EditorGUI.BeginProperty(pos, label, prop);
+            if (sceneController != null) label.tooltip = sceneController.ConstructTooltip();
+            EditorGUI.PropertyField(pos, prop, label, true);
+            EditorGUI.EndProperty();
+        }    
+    }
+    #endif
+
+    
+    
 }
