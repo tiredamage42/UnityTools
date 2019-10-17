@@ -19,15 +19,19 @@ namespace UnityTools {
         // action, controller
         Dictionary<int, int> occupied = new Dictionary<int, int>();
         public void MarkOccupied(int action, int controller) {
-            occupied[action] = controller;
+            if (action >= 0)
+                occupied[action] = controller;
         }
         public void MarkUnoccupied(int action) {
-            occupied[action] = unoccupied;
+            if (action >= 0)
+                occupied[action] = unoccupied;
         }
-        public bool IsOccupied (int action, int controller) {            
-            int controllerVal;
-            if (occupied.TryGetValue(action, out controllerVal)) 
-                return controllerVal != unoccupied && (controller == controllerVal || controller < 0);
+        public bool IsOccupied (int action, int controller) {     
+            if (action >= 0) {
+                int controllerVal;
+                if (occupied.TryGetValue(action, out controllerVal)) 
+                    return controllerVal != unoccupied && (controller == controllerVal || controller < 0);
+            }       
             return false;
         }
     }
@@ -100,19 +104,19 @@ namespace UnityTools {
             return true;
         }
         public static bool GetActionDown (int action, int controller=0, bool checkOccupied=true) {
-            if (!IsInitialized() || inputFrozen || (checkOccupied && ActionOccupied(action, controller))) return false;
+            if (!IsInitialized() || action < 0 || inputFrozen || (checkOccupied && ActionOccupied(action, controller))) return false;
             return getActionDown(action, controller);
         }
         public static bool GetAction (int action, int controller=0, bool checkOccupied=true) {
-            if (!IsInitialized() || inputFrozen || (checkOccupied && ActionOccupied(action, controller))) return false;
+            if (!IsInitialized() || action < 0 || inputFrozen || (checkOccupied && ActionOccupied(action, controller))) return false;
             return getAction(action, controller);
         }
         public static bool GetActionUp (int action, int controller=0, bool checkOccupied=true) {
-            if (!IsInitialized() || inputFrozen || (checkOccupied && ActionOccupied(action, controller))) return false;
+            if (!IsInitialized() || action < 0|| inputFrozen || (checkOccupied && ActionOccupied(action, controller))) return false;
             return getActionUp(action, controller);
         }
         public static float GetAxis (int axis, int controller=0, bool checkOccupied=true) {
-            if (!IsInitialized() || inputFrozen || (checkOccupied && AxisOccupied(axis, controller))) return 0;
+            if (!IsInitialized() || axis < 0 || inputFrozen || (checkOccupied && AxisOccupied(axis, controller))) return 0;
             return getAxis(axis, controller);
         }
         public static Vector2 GetMousePos (int controller=0, bool checkOccupied=true) {
