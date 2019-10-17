@@ -12,7 +12,6 @@ namespace UnityTools {
     {
         static Dictionary<string, object> saveState = new Dictionary<string, object>();
         
-
         public static void UpdateSaveState (string key, object savedObject) {
             saveState[key] = savedObject;
         }

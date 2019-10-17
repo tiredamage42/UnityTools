@@ -16,6 +16,7 @@ namespace UnityTools {
         static T _instance;
         public static T instance { get { return Singleton.GetInstance<T>(ref _instance); } }
 
+        protected static void BuildInstanceIfNull () { T i = instance; }
 
         protected bool thisInstanceErrored;
         protected virtual void Awake () {
