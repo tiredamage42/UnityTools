@@ -27,51 +27,49 @@ namespace UnityTools {
             return false;
         }
     }
-    public abstract class ActionsInterface : Singleton<ActionsInterface>
+    public static class ActionsInterface 
     {
         //2 for vr, 1 for fps...
-        // public static int maxControllers = 1; 
+        public static int maxControllers = 1; 
 
         // action, controller
-        // static Func<int, int, bool> getActionDown, getAction, getActionUp;
-        // static Func<int, int, float> getAxis;
-        // static Func<int, Vector2> getMousePos;
+        static Func<int, int, bool> getActionDown, getAction, getActionUp;
+        static Func<int, int, float> getAxis;
+        static Func<int, Vector2> getMousePos;
+
+        static object interfaceInitializer;
+        static bool inputFrozen;
+        public static void FreezeInput (bool frozen) { inputFrozen = frozen; }
+        public static void FreezeInput () { FreezeInput(true); }
+        public static void UnfreezeInput () { FreezeInput(false); }
+        
+        public static bool InitializeActionsInterface (
+            Func<int, int, bool> getActionDown, Func<int, int, bool> getAction, Func<int, int, bool> getActionUp, 
+            Func<int, int, float> getAxis, Func<int, Vector2> getMousePos,
+            int maxControllers, object interfaceInitializer
+        ) {
+
+            if (IsInitialized(false)) {
+                Debug.Log("Actions Interface already initialized by " + interfaceInitializer.GetType());
+                return false;
+            }
 
 
-        public static int maxControllers { get { return instance.MaxControllers(); } }
+            ActionsInterface.interfaceInitializer = interfaceInitializer;
+            ActionsInterface.getActionDown = getActionDown;
+            ActionsInterface.getAction = getAction;
+            ActionsInterface.getActionUp = getActionUp;
 
-        protected abstract int MaxControllers ();
-        protected abstract bool _GetActionDown (int action, int controller);
-        protected abstract bool _GetAction (int action, int controller);
-        protected abstract bool _GetActionUp (int action, int controller);
-        protected abstract float _GetAxis (int axis, int controller);
-        protected abstract Vector2 _GetMousePos (int controller);
+            ActionsInterface.getAxis = getAxis;
+            ActionsInterface.getMousePos = getMousePos;
 
-        protected override void Awake() {
-            base.Awake();
-            if (thisInstanceErrored)
-                return;            
+            ActionsInterface.maxControllers = maxControllers;
+
+            SceneLoading.prepareForSceneLoad += FreezeInput;
+            SceneLoading.endSceneLoad += UnfreezeInput;
+
+            return true;
         }
-
-        
-        // public static void InitializeActionsInterface (
-        //     Func<int, int, bool> getActionDown, 
-        //     Func<int, int, bool> getAction, 
-        //     Func<int, int, bool> getActionUp, 
-        //     Func<int, int, float> getAxis, 
-        //     Func<int, Vector2> getMousePos,
-        //     int maxControllers
-        // ) {
-        
-        //     ActionsInterface.getActionDown = getActionDown;
-        //     ActionsInterface.getAction = getAction;
-        //     ActionsInterface.getActionUp = getActionUp;
-
-        //     ActionsInterface.getAxis = getAxis;
-        //     ActionsInterface.getMousePos = getMousePos;
-
-        //     ActionsInterface.maxControllers = maxControllers;
-        // }
 
         static OccupiedInput occupiedActions = new OccupiedInput();
         static OccupiedInput occupiedAxes = new OccupiedInput();
@@ -90,51 +88,32 @@ namespace UnityTools {
         public static bool MouseAxisOccupied (int controller) { return occupiedMouseAxis.IsOccupied(0, controller); }
             
 
-        // static bool UninitializedCheck () {
-        //     if (getActionDown == null || getAction == null || getActionUp == null || getAxis == null || getMousePos == null) {
-        //         Debug.LogError("ActionsInterface not initialized with action functions");
-        //         return true;
-        //     }
-        //     return false;
-        // }
-        // public static bool GetActionDown (int action, int controller) {
-        //     if (UninitializedCheck()) return false;
-        //     return getActionDown(action, controller);
-        // }
-        // public static bool GetAction (int action, int controller) {
-        //     if (UninitializedCheck()) return false;
-        //     return getAction(action, controller);
-        // }
-        // public static bool GetActionUp (int action, int controller) {
-        //     if (UninitializedCheck()) return false;
-        //     return getActionUp(action, controller);
-        // }
-
-        // public static float GetAxis (int axis, int controller) {
-        //     if (UninitializedCheck()) return 0;
-        //     return getAxis(axis, controller);
-        // }
-        // public static Vector2 GetMousePos (int controller) {
-        //     if (UninitializedCheck()) return Vector2.zero;
-        //     return getMousePos(controller);
-        // }
-
-        public static bool GetActionDown (int action, int controller) {
-            return instance._GetActionDown(action, controller);
+        static bool IsInitialized (bool throwError = true) {
+            if (getActionDown == null || getAction == null || getActionUp == null || getAxis == null || getMousePos == null) {
+                if (throwError) Debug.LogError("ActionsInterface not initialized with action functions");
+                return false;
+            }
+            return true;
         }
-        public static bool GetAction (int action, int controller) {
-            return instance._GetAction(action, controller);
+        public static bool GetActionDown (int action, int controller=0, bool checkOccupied=true) {
+            if (!IsInitialized() || inputFrozen || (checkOccupied && ActionOccupied(action, controller))) return false;
+            return getActionDown(action, controller);
         }
-        public static bool GetActionUp (int action, int controller) {
-            return instance._GetActionUp(action, controller);
+        public static bool GetAction (int action, int controller=0, bool checkOccupied=true) {
+            if (!IsInitialized() || inputFrozen || (checkOccupied && ActionOccupied(action, controller))) return false;
+            return getAction(action, controller);
         }
-        public static float GetAxis (int axis, int controller) {
-            return instance._GetAxis(axis, controller);
+        public static bool GetActionUp (int action, int controller=0, bool checkOccupied=true) {
+            if (!IsInitialized() || inputFrozen || (checkOccupied && ActionOccupied(action, controller))) return false;
+            return getActionUp(action, controller);
         }
-        public static Vector2 GetMousePos (int controller) {
-            return instance._GetMousePos(controller);
+        public static float GetAxis (int axis, int controller=0, bool checkOccupied=true) {
+            if (!IsInitialized() || inputFrozen || (checkOccupied && AxisOccupied(axis, controller))) return 0;
+            return getAxis(axis, controller);
         }
-
-
+        public static Vector2 GetMousePos (int controller=0, bool checkOccupied=true) {
+            if (!IsInitialized() || inputFrozen || (checkOccupied && MouseAxisOccupied(controller))) return Vector2.zero;
+            return getMousePos(controller);
+        }
     }
 }

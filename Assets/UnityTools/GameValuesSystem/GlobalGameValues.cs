@@ -8,8 +8,6 @@ namespace UnityTools {
     [CreateAssetMenu(menuName="Unity Tools/Global Game Values Object", fileName="GlobalValuesObject")]
     public class GlobalGameValues : GameSettingsObject
     {
-        
-
         static Dictionary<string, GameValue> globalValuesDict;
 
         public static void AddGlobalValue (GameValue gameValue) {
@@ -72,10 +70,6 @@ namespace UnityTools {
         }
 
         static GlobalGameValueSelector globalGameValueSelector;
-
-
-       
-
     }
 
     public class GlobalGameValueSelector {

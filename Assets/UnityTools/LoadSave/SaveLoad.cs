@@ -7,7 +7,6 @@ using UnityEngine.SceneManagement;
           
 namespace UnityTools {
 
-
     public class SaveLoad 
     {
         static Dictionary<string, object> saveState = new Dictionary<string, object>();
@@ -31,7 +30,7 @@ namespace UnityTools {
         const string savedSceneKey = "SAVELOAD.SAVEDSCENE";
         public static event Action<Scene> onSaveGame;
         public static bool isLoadingSaveSlot;
-
+        
         
         static string GetSavePath (int slot) {
             return Application.persistentDataPath + "/SaveSate" + slot.ToString() + ".save";
@@ -50,10 +49,16 @@ namespace UnityTools {
         }
 
         public static void SaveGame (int slot) {
-            Debug.Log("Saving game");
-
             // keep track of the scene we were in when saving
             Scene currentScene = SceneManager.GetActiveScene();
+            
+            if (GameManager.SceneIsNonSaveable( currentScene.name )) {
+                Debug.LogWarning("Cant save in scene '" + currentScene.name + "', it is marked non-saveable");
+                return;
+            }
+            
+            Debug.Log("Saving game");
+
             saveState[savedSceneKey] = currentScene.name;
             
             // let everyone know we're saving
@@ -73,8 +78,6 @@ namespace UnityTools {
 
             Debug.Log("Starting Load");
             
-            SceneLoading.PrepareForSceneLoad ();
-
             isLoadingSaveSlot = true;
 
             // load the actual save state
@@ -84,5 +87,6 @@ namespace UnityTools {
             
             SceneLoading.LoadSceneAsync(sceneFromSave, (s) => { isLoadingSaveSlot = false; });            
         }
+
     }
 }

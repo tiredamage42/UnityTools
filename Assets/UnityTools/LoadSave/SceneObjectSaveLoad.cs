@@ -151,13 +151,18 @@ namespace UnityTools {
         }
 
         void OnSceneExit (Scene scene) {
-            // dont save if we're exiting scene from manual loading another scene
-            if (!SaveLoad.isLoadingSaveSlot) {
-                // save the objects in this scene if we're going to another one,
 
-                // e.g we're going to an indoor area that's a different scene, then save the objects "outdoors"
-                SaveObjectsInScene ( scene, false );
-            }
+            if (GameManager.SceneIsNonSaveable(scene.name))
+                return;
+
+            // dont save if we're exiting scene from manual loading another scene
+            if (SaveLoad.isLoadingSaveSlot)
+                return;
+
+            // save the objects in this scene if we're going to another one,
+
+            // e.g we're going to an indoor area that's a different scene, then save the objects "outdoors"
+            SaveObjectsInScene ( scene, false );
         }
 
         static string SceneKey (Scene scene, string suffix) {

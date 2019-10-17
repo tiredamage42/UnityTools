@@ -10,19 +10,16 @@ namespace UnityTools {
     public class SceneLoading 
     {
         public static event Action prepareForSceneLoad, endSceneLoad;
-        public static event Action<Scene> onSceneExit;
         public static event Action<float> onSceneLoadUpdate;
+        public static event Action<Scene> onSceneExit;
 
-        public static void PrepareForSceneLoad () {
-            // pause game completely
+        static void PrepareForSceneLoad () {
             // show loading progress bar
-
             if (prepareForSceneLoad != null) {
                 prepareForSceneLoad();
             }
         }   
-        public static void EndSceneLoad () {
-            // unpause game
+        static void EndSceneLoad () {
             // hide progress bar ui
             if (endSceneLoad != null) {
                 endSceneLoad();
@@ -30,6 +27,9 @@ namespace UnityTools {
         }
 
         public static void LoadSceneAsync (string scene, Action<Scene> onSceneLoaded) {
+
+            PrepareForSceneLoad();
+
             if (onSceneExit != null) onSceneExit(SceneManager.GetActiveScene());
             
             AsyncOperation operation = SceneManager.LoadSceneAsync(scene);
