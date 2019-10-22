@@ -48,6 +48,8 @@ namespace UnityTools.GameSettingsSystem.Internal {
             if (selectedSettings != null) CreateEditor();
         }
 
+        static Vector2 scrollPosition;
+
         void OnGUI () {
             GUITools.Space(3);
             EditorGUI.BeginChangeCheck();
@@ -69,9 +71,11 @@ namespace UnityTools.GameSettingsSystem.Internal {
             if (selectedSettings == null) return;
 
             if (settingsEditor == null) CreateEditor();
-
+            
+            scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
             // draw the object
             settingsEditor.OnInspectorGUI();
+            EditorGUILayout.EndScrollView();
         }   
     }
 }

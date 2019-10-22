@@ -10,7 +10,6 @@ namespace UnityTools {
                 KeyCode.LeftShift,
             }
         );
-        
         [NeatArray] public NeatKeyCodeArray axesPos = new NeatKeyCodeArray(
             new KeyCode[] {
                 KeyCode.D,
@@ -41,17 +40,22 @@ namespace UnityTools {
             }   
             return r;
         }
-        
-        protected override bool GetActionDown (int action, int controller) {
-            if (!CheckActionIndex("Action", action, actions.Length)) return false;
+        protected override bool GetActionDown (int action, bool checkingAxis, int controller) {
+            if (!CheckActionIndex("Action", action, checkingAxis ? axesPos.Length : actions.Length)) return false;
+            if (checkingAxis && !CheckActionIndex("Action", action, axesNeg.Length)) return false;
+            if (checkingAxis) return Input.GetKeyDown(axesNeg[action]) || Input.GetKeyDown(axesPos[action]);
             return Input.GetKeyDown(actions[action]);
         }
-        protected override bool GetAction (int action, int controller) {
-            if (!CheckActionIndex("Action", action, actions.Length)) return false;
+        protected override bool GetAction (int action, bool checkingAxis, int controller) {
+            if (!CheckActionIndex("Action", action, checkingAxis ? axesPos.Length : actions.Length)) return false;
+            if (checkingAxis && !CheckActionIndex("Action", action, axesNeg.Length)) return false;
+            if (checkingAxis) return Input.GetKey(axesNeg[action]) || Input.GetKey(axesPos[action]);
             return Input.GetKey(actions[action]);
         }
-        protected override bool GetActionUp (int action, int controller) {
-            if (!CheckActionIndex("Action", action, actions.Length)) return false;
+        protected override bool GetActionUp (int action, bool checkingAxis, int controller) {
+            if (!CheckActionIndex("Action", action, checkingAxis ? axesPos.Length : actions.Length)) return false;
+            if (checkingAxis && !CheckActionIndex("Action", action, axesNeg.Length)) return false;
+            if (checkingAxis) return Input.GetKeyUp(axesNeg[action]) || Input.GetKeyUp(axesPos[action]);
             return Input.GetKeyUp(actions[action]);
         }
         protected override float GetAxis (int axis, int controller) {
@@ -62,6 +66,5 @@ namespace UnityTools {
             if (Input.GetKey(axesNeg[axis])) r -= 1;
             return r;
         }
-        
     }
 }

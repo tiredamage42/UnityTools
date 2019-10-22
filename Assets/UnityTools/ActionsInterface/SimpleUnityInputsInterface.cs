@@ -7,12 +7,20 @@ namespace UnityTools {
         protected override Vector2 GetMousePos (int controller) {
             return Input.mousePosition;
         }
-        protected bool CheckActionIndex (string type, int action, int length) {
-            if (action < 0 || action >= length) {
-                Debug.LogWarning(type + ": " + action + " is out of range [" + length + "]");
-                return false;
-            }
-            return true;
-        }        
+        protected override Vector2 GetMouseScrollDelta (int controller) {
+            return Input.mouseScrollDelta;
+        }
+        protected override bool GetMouseButtonDown (int button, int controller) {
+            return Input.GetMouseButtonDown(button);
+        }
+        protected override bool GetMouseButton (int button, int controller) {
+            return Input.GetMouseButton(button);
+        }
+        protected override bool GetMouseButtonUp (int button, int controller) {
+            return Input.GetMouseButtonUp(button);
+        }
+        protected override int MaxControllers () {
+            return 1;
+        }
     }
 }

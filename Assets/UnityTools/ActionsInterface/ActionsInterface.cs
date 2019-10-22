@@ -41,10 +41,11 @@ namespace UnityTools {
         public static int maxControllers = 1; 
 
         // action, controller
-        static Func<int, int, bool> getActionDown, getAction, getActionUp;
+        static Func<int, bool, int, bool> getActionDown, getAction, getActionUp;
         static Func<int, int, float> getAxis;
-        static Func<int, Vector2> getMousePos;
-
+        static Func<int, Vector2> getMousePos, getMouseScrollDelta;
+        static Func<int, int, bool> getMouseButtonDown, getMouseButton, getMouseButtonUp;
+        
         static object interfaceInitializer;
         static bool inputFrozen;
         public static void FreezeInput (bool frozen) { inputFrozen = frozen; }
@@ -52,8 +53,10 @@ namespace UnityTools {
         public static void UnfreezeInput () { FreezeInput(false); }
         
         public static bool InitializeActionsInterface (
-            Func<int, int, bool> getActionDown, Func<int, int, bool> getAction, Func<int, int, bool> getActionUp, 
-            Func<int, int, float> getAxis, Func<int, Vector2> getMousePos,
+            Func<int, bool, int, bool> getActionDown, Func<int, bool, int, bool> getAction, Func<int, bool, int, bool> getActionUp, 
+            Func<int, int, float> getAxis, Func<int, Vector2> getMousePos, Func<int, Vector2> getMouseScrollDelta,
+            Func<int, int, bool> getMouseButtonDown, Func<int, int, bool> getMouseButton, Func<int, int, bool> getMouseButtonUp, 
+            
             int maxControllers, object interfaceInitializer
         ) {
 
@@ -71,6 +74,12 @@ namespace UnityTools {
             ActionsInterface.getAxis = getAxis;
             ActionsInterface.getMousePos = getMousePos;
 
+            ActionsInterface.getMouseScrollDelta = getMouseScrollDelta;
+            
+            ActionsInterface.getMouseButtonDown = getMouseButtonDown;
+            ActionsInterface.getMouseButton = getMouseButton;
+            ActionsInterface.getMouseButtonUp = getMouseButtonUp;
+
             ActionsInterface.maxControllers = maxControllers;
 
             SceneLoading.prepareForSceneLoad += FreezeInput;
@@ -80,21 +89,32 @@ namespace UnityTools {
         }
 
         static OccupiedInput occupiedActions = new OccupiedInput();
-        static OccupiedInput occupiedAxes = new OccupiedInput();
-        static OccupiedInput occupiedMouseAxis = new OccupiedInput();
-
         public static void MarkActionOccupied(int action, int controller) { occupiedActions.MarkOccupied(action, controller); }
         public static void MarkActionUnoccupied(int action) { occupiedActions.MarkUnoccupied(action); }            
         public static bool ActionOccupied (int action, int controller) { return occupiedActions.IsOccupied(action, controller); }
 
+        static OccupiedInput occupiedAxes = new OccupiedInput();
         public static void MarkAxisOccupied(int axis, int controller) { occupiedAxes.MarkOccupied(axis, controller); }
         public static void MarkAxisUnoccupied(int axis) { occupiedAxes.MarkUnoccupied(axis); }
         public static bool AxisOccupied (int axis, int controller) { return occupiedAxes.IsOccupied(axis, controller); }
 
+        static OccupiedInput occupiedMouseAxis = new OccupiedInput();
         public static void MarkMouseAxisOccupied(int controller) { occupiedMouseAxis.MarkOccupied(0, controller); }
         public static void MarkMouseAxisUnoccupied() { occupiedMouseAxis.MarkUnoccupied(0); }
         public static bool MouseAxisOccupied (int controller) { return occupiedMouseAxis.IsOccupied(0, controller); }
+
+        static OccupiedInput occupiedMouseScroll = new OccupiedInput();
+        public static void MarkMouseScrollOccupied(int controller) { occupiedMouseScroll.MarkOccupied(0, controller); }
+        public static void MarkMouseScrollUnoccupied() { occupiedMouseScroll.MarkUnoccupied(0); }
+        public static bool MouseScrollOccupied (int controller) { return occupiedMouseScroll.IsOccupied(0, controller); }
             
+        
+        static OccupiedInput occupiedMouseButtons = new OccupiedInput();
+        public static void MarkMouseButtonOccupied(int button, int controller) { occupiedMouseButtons.MarkOccupied(button, controller); }
+        public static void MarkMouseButtonUnoccupied(int button) { occupiedMouseButtons.MarkUnoccupied(button); }
+        public static bool MouseButtonOccupied (int button, int controller) { return occupiedMouseButtons.IsOccupied(button, controller); }
+
+        
 
         static bool IsInitialized (bool throwError = true) {
             if (getActionDown == null || getAction == null || getActionUp == null || getAxis == null || getMousePos == null) {
@@ -103,17 +123,43 @@ namespace UnityTools {
             }
             return true;
         }
-        public static bool GetActionDown (int action, int controller=0, bool checkOccupied=true) {
-            if (!IsInitialized() || action < 0 || inputFrozen || (checkOccupied && ActionOccupied(action, controller))) return false;
-            return getActionDown(action, controller);
+        public static bool GetActionDown (int action, bool checkingAxis=false, int controller=0, bool checkOccupied=true) {
+            if (!IsInitialized() || action < 0 || inputFrozen) return false;
+            if (checkOccupied) {
+                if (checkingAxis) {
+                    if (AxisOccupied(action, controller)) return false;
+                }
+                else {
+                    if (ActionOccupied(action, controller)) return false;
+                }
+            }
+            return getActionDown(action, checkingAxis, controller);
         }
-        public static bool GetAction (int action, int controller=0, bool checkOccupied=true) {
-            if (!IsInitialized() || action < 0 || inputFrozen || (checkOccupied && ActionOccupied(action, controller))) return false;
-            return getAction(action, controller);
+        public static bool GetAction (int action, bool checkingAxis=false, int controller=0, bool checkOccupied=true) {
+            if (!IsInitialized() || action < 0 || inputFrozen) return false;
+            if (checkOccupied) {
+                if (checkingAxis) {
+                    if (AxisOccupied(action, controller)) return false;
+                }
+                else {
+                    if (ActionOccupied(action, controller)) return false;
+                }
+            }
+            
+            return getAction(action, checkingAxis, controller);
         }
-        public static bool GetActionUp (int action, int controller=0, bool checkOccupied=true) {
-            if (!IsInitialized() || action < 0|| inputFrozen || (checkOccupied && ActionOccupied(action, controller))) return false;
-            return getActionUp(action, controller);
+        public static bool GetActionUp (int action, bool checkingAxis=false, int controller=0, bool checkOccupied=true) {
+            if (!IsInitialized() || action < 0|| inputFrozen) return false;
+            if (checkOccupied) {
+                if (checkingAxis) {
+                    if (AxisOccupied(action, controller)) return false;
+                }
+                else {
+                    if (ActionOccupied(action, controller)) return false;
+                }
+            }
+            
+            return getActionUp(action, checkingAxis, controller);
         }
         public static float GetAxis (int axis, int controller=0, bool checkOccupied=true) {
             if (!IsInitialized() || axis < 0 || inputFrozen || (checkOccupied && AxisOccupied(axis, controller))) return 0;
@@ -123,19 +169,60 @@ namespace UnityTools {
             if (!IsInitialized() || inputFrozen || (checkOccupied && MouseAxisOccupied(controller))) return Vector2.zero;
             return getMousePos(controller);
         }
+
+        public static Vector2 GetMouseScrollDelta (int controller = 0, bool checkOccupied=true) {
+            if (!IsInitialized() || inputFrozen || (checkOccupied && MouseScrollOccupied(controller))) return Vector2.zero;
+            return getMouseScrollDelta(controller);
+        }
+
+        public static bool GetMouseButtonDown (int action, int controller=0, bool checkOccupied=true) {
+            if (!IsInitialized() || action < 0 || inputFrozen) return false;
+            if (checkOccupied && MouseButtonOccupied(action, controller)) return false;
+            return getMouseButtonDown(action, controller);
+        }
+        public static bool GetMouseButton (int action, int controller=0, bool checkOccupied=true) {
+            if (!IsInitialized() || action < 0 || inputFrozen) return false;
+            if (checkOccupied && MouseButtonOccupied(action, controller)) return false;
+            return getMouseButton(action, controller);
+        }
+        public static bool GetMouseButtonUp (int action, int controller=0, bool checkOccupied=true) {
+            if (!IsInitialized() || action < 0|| inputFrozen) return false;
+            if (checkOccupied && MouseButtonOccupied(action, controller)) return false;
+            return getMouseButtonUp(action, controller);
+        }
     }
 
     public abstract class ActionsInterfaceController : MonoBehaviour {
         void Awake () {
-            if (ActionsInterface.InitializeActionsInterface (GetActionDown, GetAction, GetActionUp, GetAxis, GetMousePos, 1, this))
+            if (
+                ActionsInterface.InitializeActionsInterface (
+                    GetActionDown, GetAction, GetActionUp, GetAxis, 
+                    GetMousePos, GetMouseScrollDelta, 
+                    GetMouseButtonDown, GetMouseButton, GetMouseButtonUp,
+                    MaxControllers(), this
+                )
+            )
                 DontDestroyOnLoad(gameObject);
         }
+        protected bool CheckActionIndex (string type, int action, int length) {
+            if (action < 0 || action >= length) {
+                Debug.LogWarning(type + ": " + action + " is out of range [" + length + "]");
+                return false;
+            }
+            return true;
+        }        
 
-        protected abstract bool GetActionDown (int action, int controller);
-        protected abstract bool GetAction (int action, int controller);
-        protected abstract bool GetActionUp (int action, int controller);
+        protected abstract bool GetActionDown (int action, bool checkingAxis, int controller);
+        protected abstract bool GetAction (int action, bool checkingAxis, int controller);
+        protected abstract bool GetActionUp (int action, bool checkingAxis, int controller);
         protected abstract float GetAxis (int axis, int controller);
         protected abstract Vector2 GetMousePos (int controller);
+        protected abstract Vector2 GetMouseScrollDelta (int controller);
+        protected abstract bool GetMouseButtonDown (int button, int controller);
+        protected abstract bool GetMouseButton (int button, int controller);
+        protected abstract bool GetMouseButtonUp (int button, int controller);
+        protected abstract int MaxControllers ();
+        
         public abstract string ConstructTooltip ();
     }
 

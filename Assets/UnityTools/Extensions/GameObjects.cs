@@ -20,6 +20,19 @@ namespace UnityTools {
         public static T GetComponentIfNull<T> (this GameObject g, ref T variable) where T : Component {
             if (variable == null) variable = g.GetComponent<T>();
             return variable;
+        }
+        public static T GetComponentInChildrenIfNull<T> (this GameObject g, ref T variable) where T : Component {
+            if (variable == null) variable = g.GetComponentInChildren<T>();
+            return variable;
+        }
+
+        public static T[] GetComponentsIfNull<T> (this GameObject g, ref T[] variable) where T : Component {
+            if (variable == null || variable.Length == 0) variable = g.GetComponents<T>();
+            return variable;
+        }
+        public static T[] GetComponentsInChildrenIfNull<T> (this GameObject g, ref T[] variable) where T : Component {
+            if (variable == null || variable.Length == 0) variable = g.GetComponentsInChildren<T>();
+            return variable;
         }    
 
         static Dictionary<int, Component[]> componentsPerGameObject = new Dictionary<int, Component[]>();

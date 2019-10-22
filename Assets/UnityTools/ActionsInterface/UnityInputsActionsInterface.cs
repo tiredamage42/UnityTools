@@ -15,18 +15,17 @@ namespace UnityTools {
             return r;
         }
         
-
-        protected override bool GetActionDown (int action, int controller) {
-            if (!CheckActionIndex("Action", action, actionButtons.Length)) return false;
-            return Input.GetButtonDown(actionButtons[action]);
+        protected override bool GetActionDown (int action, bool checkingAxis, int controller) {
+            if (!CheckActionIndex("Action", action, checkingAxis ? axisNames.Length : actionButtons.Length)) return false;
+            return Input.GetButtonDown(checkingAxis ? axisNames[action] : actionButtons[action]);
         }
-        protected override bool GetAction (int action, int controller) {
-            if (!CheckActionIndex("Action", action, actionButtons.Length)) return false;
-            return Input.GetButton(actionButtons[action]);
+        protected override bool GetAction (int action, bool checkingAxis, int controller) {
+            if (!CheckActionIndex("Action", action, checkingAxis ? axisNames.Length : actionButtons.Length)) return false;
+            return Input.GetButton(checkingAxis ? axisNames[action] : actionButtons[action]);
         }
-        protected override bool GetActionUp (int action, int controller) {
-            if (!CheckActionIndex("Action", action, actionButtons.Length)) return false;
-            return Input.GetButtonUp(actionButtons[action]);
+        protected override bool GetActionUp (int action, bool checkingAxis, int controller) {
+            if (!CheckActionIndex("Action", action, checkingAxis ? axisNames.Length : actionButtons.Length)) return false;
+            return Input.GetButtonUp(checkingAxis ? axisNames[action] : actionButtons[action]);
         }
         protected override float GetAxis (int axis, int controller) {
             if (!CheckActionIndex("Axis", axis, axisNames.Length)) return 0;
