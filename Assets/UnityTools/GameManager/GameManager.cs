@@ -93,6 +93,7 @@ namespace UnityTools {
                 return Actor.playerActor;
             }
         }
+        public static Camera playerCamera { get { return PlayerCamera.camera; } }
         static void BuildPlayer () {
             if (!playerExists) {
                 GameObject.Instantiate(settings.playerPrefab);

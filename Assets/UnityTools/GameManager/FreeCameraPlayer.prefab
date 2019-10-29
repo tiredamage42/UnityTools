@@ -10,10 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 4277220106422331962}
   - component: {fileID: 4121559299076493139}
-  - component: {fileID: 1188034534277869778}
   - component: {fileID: 6943408655244114221}
   m_Layer: 0
-  m_Name: DemoPlayer
+  m_Name: FreeCameraPlayer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -46,30 +45,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 144dde761ed2e4e8b8ca0d2764212625, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameValues: []
+  gameValues:
+    list: []
+    displayed: 0
   basePrefabName: 
   isPlayer: 1
   gameValuesTemplate: {fileID: 0}
---- !u!114 &1188034534277869778
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2607047362160508121}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c299477ed9b274e1e8d7966156cc6b56, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  modifiers:
-    list: []
-    displayed: 1
-  conditions:
-    list: []
-    displayed: 1
-  checkConditions: 0
-  addRemoveMods: 0
 --- !u!114 &6943408655244114221
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -99,6 +80,7 @@ GameObject:
   - component: {fileID: 7483504279403006329}
   - component: {fileID: 2022168102615018392}
   - component: {fileID: 6515891339376519123}
+  - component: {fileID: 254673555171828845}
   m_Layer: 0
   m_Name: Camera
   m_TagString: Untagged
@@ -170,3 +152,15 @@ AudioListener:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3441701336091297259}
   m_Enabled: 1
+--- !u!114 &254673555171828845
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3441701336091297259}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58b6b24e30a93423d8d8c28939848bfd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
