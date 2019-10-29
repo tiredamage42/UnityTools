@@ -7,72 +7,100 @@ using UnityEngine.SceneManagement;
           
 namespace UnityTools {
 
-    public class SaveLoad 
-    {
-        static Dictionary<string, object> saveState = new Dictionary<string, object>();
-        
-        public static void UpdateSaveState (string key, object savedObject) {
+    [System.Serializable] public class GameSaveStateInfo {
+        public string sceneName;
+        public string dateTimeSaved;
+        // maybe a screenshot ?
+
+        public GameSaveStateInfo(string sceneName) {
+            this.sceneName = sceneName;
+            dateTimeSaved = System.DateTime.UtcNow.ToString("HH:mm dd MMMM, yyyy");
+        }
+        public override string ToString() {
+            return sceneName + "\n" + dateTimeSaved;
+        }
+    }
+
+    public class SaveState {
+
+        public Dictionary<string, object> saveState = new Dictionary<string, object>();
+        public void Reinitialize (Dictionary<string, object> saveState) {
+            Clear();
+            this.saveState = saveState;
+        }
+        public void Clear () {
+            saveState.Clear();
+        }
+
+        public void UpdateSaveState (string key, object savedObject) {
             saveState[key] = savedObject;
         }
-
-        public static bool SaveStateContainsKey (string key) {
+        public bool SaveStateContainsKey (string key) {
             return saveState.ContainsKey(key);
         }
-        
-        public static object LoadSavedObject(string key) {
+        public object LoadSaveStateObject(string key) {
             object o;
-            if (saveState.TryGetValue(key, out o)) {
-                return o;
-            }
+            if (saveState.TryGetValue(key, out o)) return o;
             return null;
-        }
+        }        
+    }
+        
+    public class SaveLoad 
+    {
+        public static SaveState gameSaveState = new SaveState();
+        public static SaveState settingsSaveState = new SaveState();
+        
 
-        const string savedSceneKey = "SAVELOAD.SAVEDSCENE";
         public static event Action<Scene> onSaveGame;
         public static bool isLoadingSaveSlot;
         
-        
-        static string GetSavePath (int slot) {
-            return Application.persistentDataPath + "/SaveSate" + slot.ToString() + ".save";
+        static string GetGameStatePath (int slot, string extension) {
+            return Application.persistentDataPath + "/SaveSate" + slot.ToString() + "." + extension;
+        }
+        static string GetGameSavePath (int slot) { return GetGameStatePath(slot, "save"); }
+        static string GetGameSaveInfoPath (int slot) { return GetGameStatePath(slot, "info"); }
+        static string GetGameSettingsOptionsPath () {
+            return Application.persistentDataPath + "/GameSettingsOptions.save";
         }
 
-        // deletes save game file, so scene loads dont reload any old info
-        public static void OnNewGameStarted (int slot) {
-            saveState.Clear();
-            string savePath = GetSavePath(slot);
-            if (File.Exists(savePath)) 
-                File.Delete(savePath);
+        // call when going to main menu, or starting new game
+        public static void ClearGameSaveState () {
+            gameSaveState.Clear();
         }
 
         public static bool SaveExists (int slot) {
-            return File.Exists(GetSavePath(slot));
+            return File.Exists(GetGameSavePath(slot));
         }
 
-        public static void SaveGame (int slot) {
-            // keep track of the scene we were in when saving
-            Scene currentScene = SceneManager.GetActiveScene();
-            
-            if (GameManager.SceneIsNonSaveable( currentScene.name )) {
-                Debug.LogWarning("Cant save in scene '" + currentScene.name + "', it is marked non-saveable");
+        public static void SaveGameState (int slot) {
+
+            if (GameManager.isInMainMenuScene) {
+                Debug.LogWarning("Cant save in main menu scene");
                 return;
             }
-            
             Debug.Log("Saving game");
-
-            saveState[savedSceneKey] = currentScene.name;
+            // keep track of the scene we were in when saving
+            Scene currentScene = SceneLoading.currentScene;
             
             // let everyone know we're saving
             if (onSaveGame != null) onSaveGame(currentScene);
 
-            SystemTools.SaveToFile(saveState, GetSavePath(slot));
+            SystemTools.SaveToFile(new GameSaveStateInfo(currentScene.name), GetGameSaveInfoPath(slot));
+            SystemTools.SaveToFile(gameSaveState.saveState, GetGameSavePath(slot));
         }
-        
-        public static void LoadGame (int slot) {
 
-            string savePath = GetSavePath(slot);
+        public static GameSaveStateInfo GetSaveDescription (int slot) {
+            if (!SaveExists(slot))
+                return null;
+            return (GameSaveStateInfo)SystemTools.LoadFromFile(GetGameSaveInfoPath(slot));
+        }
+
+        public static void LoadGameState (int slot) {
+
+            string savePath = GetGameSavePath(slot);
 
             if (!File.Exists(savePath)) {
-                Debug.LogError("No Save File Found");
+                Debug.LogError("No Save File Found For Slot " + slot.ToString());
                 return;
             }
 
@@ -80,13 +108,36 @@ namespace UnityTools {
             
             isLoadingSaveSlot = true;
 
+            GameSaveStateInfo savedStateInfo = GetSaveDescription(slot);
+
+            string sceneFromSave = savedStateInfo.sceneName;
+            
             // load the actual save state
-            saveState = (Dictionary<string, object>)SystemTools.LoadFromFile(savePath);
+            Action onSceneStartLoad = () => gameSaveState.Reinitialize( (Dictionary<string, object>)SystemTools.LoadFromFile(savePath) );
             
-            string sceneFromSave = (string)saveState[savedSceneKey];
+            Action<Scene> onSceneLoaded = (s) => isLoadingSaveSlot = false;
             
-            SceneLoading.LoadSceneAsync(sceneFromSave, (s) => { isLoadingSaveSlot = false; });            
+            if (!SceneLoading.LoadSceneAsync(sceneFromSave, onSceneStartLoad, onSceneLoaded)) {
+                isLoadingSaveSlot = false;
+            }
         }
 
+        public static event Action onSettingsOptionsLoaded, onSaveSettingsOptions;
+
+        // call when starting up game
+        public static void LoadSettingsOptions () {
+            string savePath = GetGameSettingsOptionsPath();
+            if (!File.Exists(savePath)) return;
+            Debug.Log("Starting Settings Load");
+            settingsSaveState.Reinitialize( (Dictionary<string, object>)SystemTools.LoadFromFile(savePath) );
+            if (onSettingsOptionsLoaded != null) onSettingsOptionsLoaded();
+        }
+        // call when we're done editng any settings, or when we're quittin ghte application
+        public static void SaveSettingsOptions () {
+            Debug.Log("Saving Settings");
+            // let everyone know we're saving settings
+            if (onSaveSettingsOptions != null) onSaveSettingsOptions();
+            SystemTools.SaveToFile(settingsSaveState.saveState, GetGameSettingsOptionsPath());
+        }
     }
 }

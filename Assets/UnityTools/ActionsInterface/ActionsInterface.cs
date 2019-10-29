@@ -48,8 +48,9 @@ namespace UnityTools {
         
         static object interfaceInitializer;
         static bool inputFrozen;
+
+        static void PrepareForSceneLoad (string targetScene) { FreezeInput(true); }
         public static void FreezeInput (bool frozen) { inputFrozen = frozen; }
-        public static void FreezeInput () { FreezeInput(true); }
         public static void UnfreezeInput () { FreezeInput(false); }
         
         public static bool InitializeActionsInterface (
@@ -82,7 +83,7 @@ namespace UnityTools {
 
             ActionsInterface.maxControllers = maxControllers;
 
-            SceneLoading.prepareForSceneLoad += FreezeInput;
+            SceneLoading.prepareForSceneLoad += PrepareForSceneLoad;
             SceneLoading.endSceneLoad += UnfreezeInput;
 
             return true;

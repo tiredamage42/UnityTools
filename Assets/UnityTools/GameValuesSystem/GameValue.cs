@@ -15,6 +15,8 @@ namespace UnityTools {
     */
 
     [System.Serializable] public class GameValueArray : NeatArrayWrapper<GameValue> { }
+    [System.Serializable] public class GameValueList : NeatListWrapper<GameValue> { }
+    
     [System.Serializable] public class GameValue
     {
 

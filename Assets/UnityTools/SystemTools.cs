@@ -52,9 +52,11 @@ namespace UnityTools {
             return false;
         }
 
-        public static bool CallStaticMethod (string callClassAndMethod, object[] parameters, out float value) {
-            value = 0;
 
+        static bool SeperateClassNameAndMethod (string callClassAndMethod, out Type classType, out string callMethod) {
+            
+            classType = null;
+            callMethod = null;
             int idx = callClassAndMethod.LastIndexOf('.');
             if (idx == -1) {
                 Debug.LogError("Class and method string '" + callClassAndMethod + "' is not in format: Class.Method");
@@ -62,15 +64,51 @@ namespace UnityTools {
             }
             
             string className = callClassAndMethod.Substring(0, idx);
-            string callMethod = callClassAndMethod.Substring(idx + 1);
-
-            Type classType = Type.GetType(className, false);
+            callMethod = callClassAndMethod.Substring(idx + 1);
+            classType = Type.GetType(className, false);
 
             if (classType == null) {
                 Debug.LogError("Couldnt find class '" + className + "' in current assembly!");
                 return false;
             }
+
+            return true;
+        }
+            
+        public static bool CallStaticMethod (string callClassAndMethod, object[] parameters, out float value) {
+            value = 0;
+
+            string callMethod;
+            Type classType;
+            if (!SeperateClassNameAndMethod ( callClassAndMethod, out classType, out callMethod )) {
+                return false;
+            }
             return TryAndCallMethod ( classType, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static, callMethod, null, parameters, out value, true, "Class: " + classType.FullName);
+        }
+
+        
+
+        public static bool CallStaticMethodSimple (string callClassAndMethod) {
+
+            string callMethod;
+            Type classType;
+            if (!SeperateClassNameAndMethod ( callClassAndMethod, out classType, out callMethod )) {
+                return false;
+            }
+            MethodInfo[] allMethods = classType.GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
+            for (int m = 0; m < allMethods.Length; m++) {
+                MethodInfo method = allMethods[m];
+                if (method.Name == callMethod) {
+                    if (method.ReturnType == typeof(void)) {
+                        if (method.GetParameters().Length == 0) {
+                            method.Invoke( null, null );
+                            return true;
+                        }
+                    }
+                }
+            }
+            Debug.LogError("Class: " + classType.FullName + " does not contain a call method: '" + callMethod + "'");
+            return false;
         }
 
         public static Type[] FindDerivedTypes(this Type type, bool includeSelf)

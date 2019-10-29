@@ -17,8 +17,8 @@ namespace UnityTools {
             this.position = position;
             this.rotation = rotation;
             this.scale = scale;
-
         }
+
         public MiniTransform (Vector3 position, Vector3 rotation, Vector3 scale) {
             Initialize(position, rotation, scale);
         }
@@ -74,6 +74,22 @@ namespace UnityTools {
 
     public static class TransformUtils 
     {
+
+        static Dictionary<int, CharacterController> transform2CC = new Dictionary<int, CharacterController>();
+
+        public static void WarpTo (this Transform transform, Vector3 position, Quaternion rotation) {
+            int id = transform.GetInstanceID();
+
+            if (!transform2CC.ContainsKey(id)) {
+                transform2CC[id] = transform.GetComponent<CharacterController>();
+            }
+
+            CharacterController cc = transform2CC[id];
+            bool wasEnabled = cc != null && cc.enabled;
+            if (wasEnabled) cc.enabled = false;
+            transform.SetTransform(position, rotation);
+            if (wasEnabled) cc.enabled = true;
+        }
 
         public static void SetParent (this Transform transform, Transform parent, Vector3 localPosition) {
             if (transform.parent != parent) transform.SetParent(parent);

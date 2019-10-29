@@ -260,6 +260,12 @@ namespace UnityTools.EditorTools {
     [Serializable] public class NeatKeyCodeArray : NeatArrayWrapper<KeyCode> { public NeatKeyCodeArray() : base() { } public NeatKeyCodeArray(KeyCode[] list) : base(list) { } }
 
     public class NeatArrayWrapper<T> {
+
+        public void CopyFrom (T[] list) {
+            System.Array.Resize(ref this.list, list.Length);
+            for (int i = 0; i < list.Length; i++)
+                this.list[i] = list[i];
+        }
         
         public NeatArrayWrapper (T[] list) { this.list = list; }
         public NeatArrayWrapper () { }
@@ -274,6 +280,11 @@ namespace UnityTools.EditorTools {
     }
     public class NeatListWrapper<T> {
 
+        public void CopyFrom (List<T> list) {
+            this.list.Clear();
+            this.list.AddRange(list);
+        }
+
         public NeatListWrapper (List<T> list) { this.list = list; }
         public NeatListWrapper () { }
 
@@ -284,6 +295,8 @@ namespace UnityTools.EditorTools {
         public int Count { get { return list.Count; } }
         public T this[int index] { get { return list[index]; } }
         public static implicit operator List<T>(NeatListWrapper<T> c) { return c.list; }
+        
+        
     }
 }
 

@@ -9,7 +9,7 @@ namespace UnityToolsDemo {
     {
         public string scene;
         public void GoToScene () {
-            SceneLoading.LoadSceneAsync (scene, null);
+            SceneLoading.LoadSceneAsync (scene, null, null);
         }
     }
 

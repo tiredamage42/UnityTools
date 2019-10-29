@@ -20,10 +20,10 @@ namespace UnityToolsDemo {
         public void LoadFromSavedObject (SceneItemState savedState) {
             
         }
-        public void WarpTo (Vector3 position, Quaternion rotation) {
-            transform.position = position;
-            transform.rotation = rotation;
-        }
+        // public void WarpTo (Vector3 position, Quaternion rotation) {
+        //     transform.position = position;
+        //     transform.rotation = rotation;
+        // }
 
         public static PrefabPool<SceneItem> pool = new PrefabPool<SceneItem>();
 

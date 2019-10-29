@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using UnityEditor;
     
-namespace UnityTools.EditorTools.Editor {
+using UnityEditor.SceneManagement;
+namespace UnityTools.EditorTools {
 
     // custom class so it can be drawn as asset selector iwithin array
     // [System.Serializable] public class SceneAssetArrayElement : NeatArrayElement { [AssetSelection(typeof(SceneAsset))] public SceneAsset element; }
@@ -46,11 +47,21 @@ namespace UnityTools.EditorTools.Editor {
             
             for (int i = 0; i < scenes.arraySize; i++) {
                 SerializedProperty scene = scenes.GetArrayElementAtIndex(i).FindPropertyRelative(NeatArray.elementName);
+
+
                 buildScenes[i] = new EditorBuildSettingsScene(AssetDatabase.GetAssetPath(scene.objectReferenceValue), true);
             }
 
             EditorBuildSettings.scenes = buildScenes;
         }
+        // public static bool LoadMasterOnPlay
+        // {
+        //     get { return EditorPrefs.GetBool(cEditorPrefLoadMasterOnPlay, false); }
+        //     set { EditorPrefs.SetBool(cEditorPrefLoadMasterOnPlay, value); }
+        // }
+        // const string cEditorPrefLoadMasterOnPlay = "SceneAutoLoader.LoadMasterOnPlay";
+        
+    
 
         void OnGUI () {
 
@@ -58,6 +69,24 @@ namespace UnityTools.EditorTools.Editor {
             
             GUITools.Space(topSpaces);
 
+            bool playMasterOnPlay = EditorScenePlayer.LoadMasterOnPlay;
+
+            GUI.backgroundColor = playMasterOnPlay ? GUITools.blue : GUITools.white;
+            if (GUILayout.Button("Play Master Scene First In Editor")) {
+                EditorScenePlayer.LoadMasterOnPlay = !playMasterOnPlay;
+            }
+            GUI.backgroundColor = GUITools.white;
+
+            if (GUILayout.Button("Open Master Scene")) {
+                EditorSceneManager.OpenScene(EditorBuildSettings.scenes[0].path);
+            }
+            
+
+
+
+            // GUITools.Space(topSpaces);
+
+            
             EditorGUILayout.LabelField("Scenes to build:", GUITools.boldLabel);
 
             UpdateToReflectSettings ();

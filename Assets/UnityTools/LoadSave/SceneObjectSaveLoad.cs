@@ -74,7 +74,7 @@ namespace UnityTools {
     public interface ISaveableObject<S> where S : SceneObjectState
     {
         void LoadFromSavedObject(S savedObject);
-        void WarpTo (Vector3 position, Quaternion rotation);
+        // void WarpTo (Vector3 position, Quaternion rotation);
     }
         
 
@@ -92,7 +92,9 @@ namespace UnityTools {
 
         protected void OnObjectLoad (C loadedObject, ISaveableObject<S> loadedObjectAsSaveableObject, S savedObject) {
 
-            loadedObjectAsSaveableObject.WarpTo(savedObject.position, savedObject.rotation);
+            Debug.Log("Warping To " + (Vector3)savedObject.position);
+            loadedObject.transform.WarpTo(savedObject.position, savedObject.rotation);
+            // loadedObjectAsSaveableObject.WarpTo(savedObject.position, savedObject.rotation);
             loadedObjectAsSaveableObject.LoadFromSavedObject(savedObject);
 
             // load all saveable information to attached scripts, 
@@ -116,7 +118,6 @@ namespace UnityTools {
         {
             SceneManager.sceneLoaded += OnSceneLoaded;
             SceneLoading.onSceneExit += OnSceneExit;
-            
             SaveLoad.onSaveGame += OnSaveGame;
         }
      
@@ -132,7 +133,6 @@ namespace UnityTools {
 
             string objectKey = typeof(C).FullName;
 
-            Debug.Log(objectKey + ": " + (manualSave ? "Manual Save" : "Unloaded Scene") + ": " + scene.name + "... updating running state state");
 
             // get all the active objects in the current scene
             C[] activeObjects = GameObject.FindObjectsOfType<C>();
@@ -142,7 +142,7 @@ namespace UnityTools {
             SaveObjects ( activeObjects, savedObjects, manualSave );
 
             // save the state by scene
-            SaveLoad.UpdateSaveState (SceneKey(scene, objectKey), savedObjects);
+            SaveLoad.gameSaveState.UpdateSaveState (SceneKey(scene, objectKey), savedObjects);
         }
 
 
@@ -152,9 +152,12 @@ namespace UnityTools {
 
         void OnSceneExit (Scene scene) {
 
-            if (GameManager.SceneIsNonSaveable(scene.name))
-                return;
+            // if (GameManager.SceneIsNonSaveable(scene.name))
+            //     return;
 
+            if (GameManager.isInMainMenuScene)
+                return;
+            
             // dont save if we're exiting scene from manual loading another scene
             if (SaveLoad.isLoadingSaveSlot)
                 return;
@@ -171,19 +174,21 @@ namespace UnityTools {
 
         void OnSceneLoaded (Scene scene, LoadSceneMode mode)
         {
-            string objectKey = typeof(C).FullName;
+
+            if (GameManager.isInMainMenuScene)
+                return;
             
+            string objectKey = typeof(C).FullName;
             string sceneKey = SceneKey(scene, objectKey);
 
             // if this scene has saved info for the objects, then load the objects
-            if (SaveLoad.SaveStateContainsKey(sceneKey)) {
-                
+            if (SaveLoad.gameSaveState.SaveStateContainsKey(sceneKey)) {
                 // laod the scene objects states that were saved for this scene
-                List<S> savedObjects = (List<S>)SaveLoad.LoadSavedObject(sceneKey);
+                List<S> savedObjects = (List<S>)SaveLoad.gameSaveState.LoadSaveStateObject(sceneKey);
 
                 // get all the active objects that are default in the current scene
                 C[] activeObjects = GameObject.FindObjectsOfType<C>();
-
+            
                 LoadObjects( activeObjects, savedObjects, SaveLoad.isLoadingSaveSlot );   
             }
         }

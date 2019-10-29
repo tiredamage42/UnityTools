@@ -9,14 +9,16 @@ namespace UnityTools {
 
     public class SceneLoading 
     {
-        public static event Action prepareForSceneLoad, endSceneLoad;
+        public static event Action<string> prepareForSceneLoad;
+        public static event Action endSceneLoad;
+        
         public static event Action<float> onSceneLoadUpdate;
         public static event Action<Scene> onSceneExit;
 
-        static void PrepareForSceneLoad () {
+        static void PrepareForSceneLoad (string targetScene) {
             // show loading progress bar
             if (prepareForSceneLoad != null) {
-                prepareForSceneLoad();
+                prepareForSceneLoad(targetScene);
             }
         }   
         static void EndSceneLoad () {
@@ -26,24 +28,31 @@ namespace UnityTools {
             }
         }
 
-        public static void LoadSceneAsync (string scene, Action<Scene> onSceneLoaded) {
+        public static Scene currentScene { get { return SceneManager.GetActiveScene(); } }
 
-            PrepareForSceneLoad();
+        public static bool LoadSceneAsync (string scene, Action onSceneStartLoad, Action<Scene> onSceneLoaded) {
+            // Debug.Log("PReparing");
+            PrepareForSceneLoad(scene);
 
-            if (onSceneExit != null) onSceneExit(SceneManager.GetActiveScene());
+            if (onSceneExit != null) onSceneExit(currentScene);
             
             AsyncOperation operation = SceneManager.LoadSceneAsync(scene);
             if (operation != null) {
+                if (onSceneStartLoad != null) 
+                    onSceneStartLoad();
+            
                 UpdateManager.instance.StartCoroutine(_LoadSceneAsync(operation, scene, onSceneLoaded));
+                return true;
             }
             else {
                 EndSceneLoad();
+                return false;
             }            
         }
 
         static IEnumerator _LoadSceneAsync(AsyncOperation operation, string scene, Action<Scene> onSceneLoaded)
         {
-            Debug.Log("Loading from scene: " + scene);
+            // Debug.Log("Loading from scene: " + scene);
             
             operation.allowSceneActivation = false;
 
@@ -54,7 +63,7 @@ namespace UnityTools {
                 progress = Mathf.Clamp01(operation.progress / 0.9f);
                 if (onSceneLoadUpdate != null) onSceneLoadUpdate(progress);
 
-                Debug.Log("Load Progress: " + progress);
+                // Debug.Log("Load Progress: " + progress);
 
                 // text.text = "Loading... " + (int)(progress * 100f) + "%";
 
@@ -70,7 +79,7 @@ namespace UnityTools {
 
             EndSceneLoad();
 
-            Debug.Log("Done Loading");
+            // Debug.Log("Done Loading");
         }
     }
 }

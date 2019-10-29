@@ -9,12 +9,10 @@ namespace UnityTools {
     */
     public class UpdateManager : Singleton<UpdateManager>
     {
-        public event Action<float> update;
-        void Update()
-        {
-            if (update != null)
-                update(Time.deltaTime);
-        }
+        public event Action<float> update, fixedUpdate, lateUpdate;
+        void Update() { if (update != null) update(Time.deltaTime); }
+        void FixedUpdate() { if (fixedUpdate != null) fixedUpdate(Time.fixedDeltaTime); }
+        void LateUpdate() { if (lateUpdate != null) lateUpdate(Time.deltaTime); }
     }
 
     public enum UpdateMode { Update, FixedUpdate, LateUpdate, Custom };

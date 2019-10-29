@@ -13,9 +13,7 @@ namespace UnityToolsDemo {
 
         public Item[] items;
 
-        public Type AttachmentType () {
-            return typeof (Inventory);
-        }
+        public Type AttachmentType () { return typeof (Inventory); }
         public object OnSaved () {
             return items;
         }

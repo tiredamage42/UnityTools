@@ -2,6 +2,7 @@
 namespace UnityTools {
     public class FreeCamera : CustomUpdaterMonobehaviour
     {
+
         [Header("Axes")]
         [Action] public Vector2Int look;
         [Action] public Vector3Int move;
@@ -18,6 +19,9 @@ namespace UnityTools {
         void Start () {
             rotX = transform.eulerAngles.x;
             rotY = transform.eulerAngles.y;
+
+
+            GetComponent<Actor>().InitializeActor(() => transform.position, () => transform.forward );
         }
 
         float DecideAxis (int pos, int neg) {

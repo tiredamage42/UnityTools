@@ -10,10 +10,10 @@ namespace UnityToolsDemo {
     public class SaveLoadDemo : MonoBehaviour
     {
         public void SaveGame () {
-            SaveLoad.SaveGame(0);
+            SaveLoad.SaveGameState(0);
         }
         public void LoadGame () {
-            SaveLoad.LoadGame(0);
+            SaveLoad.LoadGameState(0);
         }
     }
 
