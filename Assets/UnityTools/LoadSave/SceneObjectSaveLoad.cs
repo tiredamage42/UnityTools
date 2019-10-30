@@ -33,7 +33,6 @@ namespace UnityTools {
 
         // the saved state of all attached components that needs to be saved/loaded
         public AttachmentState[] attachmentStates;
-
         public sVector3 position;
         public sQuaternion rotation;
 
@@ -48,7 +47,6 @@ namespace UnityTools {
                 attachmentStates[x] = new AttachmentState(saveables[x].AttachmentType(), saveables[x].OnSaved());
             }
         
-
             this.position = c.transform.position;
             this.rotation = c.transform.rotation;
         }
@@ -71,10 +69,8 @@ namespace UnityTools {
         void OnLoaded (object savedAttachmentInfo);
     }
 
-    public interface ISaveableObject<S> where S : SceneObjectState
-    {
-        void LoadFromSavedObject(S savedObject);
-        // void WarpTo (Vector3 position, Quaternion rotation);
+    public interface ISaveableObject<S> where S : SceneObjectState { 
+        void LoadFromSavedObject(S savedObject); 
     }
         
 
@@ -92,15 +88,14 @@ namespace UnityTools {
 
         protected void OnObjectLoad (C loadedObject, ISaveableObject<S> loadedObjectAsSaveableObject, S savedObject) {
 
-            Debug.Log("Warping To " + (Vector3)savedObject.position);
             loadedObject.transform.WarpTo(savedObject.position, savedObject.rotation);
-            // loadedObjectAsSaveableObject.WarpTo(savedObject.position, savedObject.rotation);
             loadedObjectAsSaveableObject.LoadFromSavedObject(savedObject);
 
             // load all saveable information to attached scripts, 
             // maybe a scene item has an inventory or otehr ocmponents thhat need to save their states
             ISaveableAttachment[] saveables = loadedObject.GetComponents<ISaveableAttachment>();
             for (int i = 0; i < saveables.Length; i++) {
+                
                 Type saveableType = saveables[i].AttachmentType();
                 for (int x = 0; x < savedObject.attachmentStates.Length; x++) {
                     if (saveableType == savedObject.attachmentStates[x].type) {
@@ -114,25 +109,21 @@ namespace UnityTools {
         protected abstract void SaveObjects (C[] activeObjects, List<S> savedObjects, bool manualSave);
         protected abstract void LoadObjects (C[] activeObjects, List<S> savedObjects, bool loadingSaveSlot);
         
-        void OnEnable () 
-        {
-            SceneManager.sceneLoaded += OnSceneLoaded;
-            SceneLoading.onSceneExit += OnSceneExit;
-            SaveLoad.onSaveGame += OnSaveGame;
-        }
-     
-        void OnDisable()
-        {
-            SceneManager.sceneLoaded -= OnSceneLoaded;
-            SceneLoading.onSceneExit -= OnSceneExit;
 
-            SaveLoad.onSaveGame -= OnSaveGame;
+        // disabling souldnt be happening, since these saver loader objects are 
+        // persistent throughout the game
+        protected override void Awake() {
+            base.Awake();
+            if (!thisInstanceErrored) {
+                SceneManager.sceneLoaded += OnSceneLoaded;
+                SceneLoading.onSceneExit += OnSceneExit;
+                SaveLoad.onSaveGame += OnSaveGame;
+            }
         }
-
+        
         void SaveObjectsInScene (Scene scene, bool manualSave) {
 
             string objectKey = typeof(C).FullName;
-
 
             // get all the active objects in the current scene
             C[] activeObjects = GameObject.FindObjectsOfType<C>();
@@ -145,15 +136,11 @@ namespace UnityTools {
             SaveLoad.gameSaveState.UpdateSaveState (SceneKey(scene, objectKey), savedObjects);
         }
 
-
         void OnSaveGame (Scene scene) {
             SaveObjectsInScene ( scene, true );
         }
 
         void OnSceneExit (Scene scene) {
-
-            // if (GameManager.SceneIsNonSaveable(scene.name))
-            //     return;
 
             if (GameManager.isInMainMenuScene)
                 return;

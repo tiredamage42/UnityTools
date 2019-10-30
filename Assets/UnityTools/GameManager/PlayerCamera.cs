@@ -4,9 +4,9 @@ namespace UnityTools {
     public class PlayerCamera : MonoBehaviour
     {
         static PlayerCamera _i;
-        public static PlayerCamera instance { get { return Singleton.GetInstance<PlayerCamera>(ref _i); } }
+        static PlayerCamera instance { get { return Singleton.GetInstance<PlayerCamera>(ref _i); } }
         static Camera _camera;
-        public static Camera camera {
+        new public static Camera camera {
             get {
                 if (_camera == null) {
                     if (instance != null) {

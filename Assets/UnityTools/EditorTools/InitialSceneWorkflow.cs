@@ -3,19 +3,25 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
  
 namespace UnityTools.EditorTools {
-    public static class EditorScenePlayer
+
+    /*
+        lets us load a main menu (or initialization) scene to keep our workflow "game-like"
+
+        we can skip to a specified scene specified in the scene build window
+    */
+    public static class InitialSceneWorkflow
     {
-        static string getMasterScene { get { return EditorBuildSettings.scenes[0].path; } }
-        public static bool overrideLoadMasterOnPlay;
+        static string initialScene { get { return EditorBuildSettings.scenes[0].path; } }
+        public static bool disableInitialSceneWorkflow;
     
         public static void OnPlayModeChanged(PlayModeStateChange state)
         {
-            if (!LoadMasterOnPlay)
+            if (!LoadInitialOnPlay)
                 return;
             
             if (state == PlayModeStateChange.EnteredEditMode) {
-                if (overrideLoadMasterOnPlay) {
-                    overrideLoadMasterOnPlay = false;
+                if (disableInitialSceneWorkflow) {
+                    disableInitialSceneWorkflow = false;
                     return;
                 }
                 // User pressed stop -- reload previous scene.
@@ -27,18 +33,18 @@ namespace UnityTools.EditorTools {
                 }
             }
             else if (state == PlayModeStateChange.ExitingEditMode) {
-                if (overrideLoadMasterOnPlay)
+                if (disableInitialSceneWorkflow)
                     return;
                 
-                // User pressed play -- autoload master scene.
+                // User pressed play -- autoload initials scene.
                 PreviousScene = EditorSceneManager.GetActiveScene().path;
                 if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                 {
                     try {
-                        EditorSceneManager.OpenScene(getMasterScene);
+                        EditorSceneManager.OpenScene(initialScene);
                     }
                     catch {
-                        Debug.LogError(string.Format("error: scene not found: {0}", getMasterScene));
+                        Debug.LogError(string.Format("error: scene not found: {0}", initialScene));
                         EditorApplication.isPlaying = false;
                     }
                 }
@@ -49,16 +55,21 @@ namespace UnityTools.EditorTools {
             }
         }
     
-        // Properties are remembered as editor preferences.
-        private const string cEditorPrefLoadMasterOnPlay = "SceneAutoLoader.LoadMasterOnPlay";
-        private const string cEditorPrefPreviousScene = "SceneAutoLoader.PreviousScene";
-    
-        public static bool LoadMasterOnPlay
+        const string cEditorPrefLoadInitialOnPlay = "InitialSceneWorkflow.LoadInitialOnPlay";
+        const string cEditorPrefPreviousScene = "InitialSceneWorkflow.PreviousScene";
+        const string cEditorPrefSkipToScene = "InitialSceneWorkflow.SkipToScene";
+        
+        public static string SkipToScene
         {
-            get { return EditorPrefs.GetBool(cEditorPrefLoadMasterOnPlay, false); }
-            set { EditorPrefs.SetBool(cEditorPrefLoadMasterOnPlay, value); }
+            get { return EditorPrefs.GetString(cEditorPrefSkipToScene, null); }
+            set { EditorPrefs.SetString(cEditorPrefSkipToScene, value); }
         }
-        private static string PreviousScene
+        public static bool LoadInitialOnPlay
+        {
+            get { return EditorPrefs.GetBool(cEditorPrefLoadInitialOnPlay, false); }
+            set { EditorPrefs.SetBool(cEditorPrefLoadInitialOnPlay, value); }
+        }
+        static string PreviousScene
         {
             get { return EditorPrefs.GetString(cEditorPrefPreviousScene, EditorSceneManager.GetActiveScene().path); }
             set { EditorPrefs.SetString(cEditorPrefPreviousScene, value); }

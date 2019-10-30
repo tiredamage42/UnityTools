@@ -10,5 +10,7 @@ namespace UnityTools.Internal {
         public string newGameScene;
         public GameObject playerPrefab;
         public int maxSaveSlots = 6;
+        public ActionsInterfaceController actionsController;
+
     }
 }

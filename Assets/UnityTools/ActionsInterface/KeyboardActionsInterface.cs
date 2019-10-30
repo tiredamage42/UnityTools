@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityTools.EditorTools;
 namespace UnityTools {
+
+    [CreateAssetMenu(menuName="Unity Tools/Action Interface Controllers/Keyboard Actions Controller", fileName="Keyboard_Actions_Controller")]
     public class KeyboardActionsInterface : SimpleUnityInputsInterface
     {
         [NeatArray] public NeatKeyCodeArray actions = new NeatKeyCodeArray(

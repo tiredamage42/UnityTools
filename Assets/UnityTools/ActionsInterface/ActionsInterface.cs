@@ -6,6 +6,9 @@ using System;
 using UnityEditor;
 using UnityTools.EditorTools;
 
+
+using UnityTools.Internal;
+using UnityTools.GameSettingsSystem;
 namespace UnityTools {
     /*
         interface to standardize inputs with systems
@@ -193,17 +196,19 @@ namespace UnityTools {
         }
     }
 
-    public abstract class ActionsInterfaceController : MonoBehaviour {
-        void Awake () {
-            if (
+    public abstract class ActionsInterfaceController : GameSettingsObject {// MonoBehaviour {
+
+        public void InitializeActionsInterface () {
+        // void Awake () {
+            // if (
                 ActionsInterface.InitializeActionsInterface (
                     GetActionDown, GetAction, GetActionUp, GetAxis, 
                     GetMousePos, GetMouseScrollDelta, 
                     GetMouseButtonDown, GetMouseButton, GetMouseButtonUp,
                     MaxControllers(), this
-                )
-            )
-                DontDestroyOnLoad(gameObject);
+                );
+            // )
+                // DontDestroyOnLoad(gameObject);
         }
         protected bool CheckActionIndex (string type, int action, int length) {
             if (action < 0 || action >= length) {
@@ -223,7 +228,7 @@ namespace UnityTools {
         protected abstract bool GetMouseButton (int button, int controller);
         protected abstract bool GetMouseButtonUp (int button, int controller);
         protected abstract int MaxControllers ();
-        
+
         public abstract string ConstructTooltip ();
     }
 
@@ -233,11 +238,23 @@ namespace UnityTools {
     [CustomPropertyDrawer(typeof(ActionAttribute))] 
     public class ActionAttributeDrawer : PropertyDrawer
     {
-        static ActionsInterfaceController _sceneController;
+
+        static GameManagerSettings _settings;
+        static GameManagerSettings settings {
+            get {
+                if (_settings == null) _settings = GameSettings.GetSettings<GameManagerSettings>();
+                return _settings;
+            }
+        }
+ 
+
+        
+        // static ActionsInterfaceController _sceneController;
         static ActionsInterfaceController sceneController {
             get {
-                if (_sceneController == null) _sceneController = GameObject.FindObjectOfType<ActionsInterfaceController>();
-                return _sceneController;
+                return settings.actionsController;
+                // if (_sceneController == null) _sceneController = GameObject.FindObjectOfType<ActionsInterfaceController>();
+                // return _sceneController;
             }
         }
 

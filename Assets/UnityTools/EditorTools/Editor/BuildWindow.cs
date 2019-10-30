@@ -22,7 +22,7 @@ namespace UnityTools.EditorTools {
         [NeatArray] public SceneAssetArray scenes;
         SerializedObject windowSO;
         int topSpaces = 5;
-        
+
         SerializedProperty scenesList { get { return windowSO.FindProperty("scenes").FindPropertyRelative("list"); } }
         void UpdateToReflectSettings() {
 
@@ -39,7 +39,6 @@ namespace UnityTools.EditorTools {
             }
         }
 
-
         void UpdateSettings() {
             SerializedProperty scenes = scenesList;
             
@@ -47,8 +46,6 @@ namespace UnityTools.EditorTools {
             
             for (int i = 0; i < scenes.arraySize; i++) {
                 SerializedProperty scene = scenes.GetArrayElementAtIndex(i).FindPropertyRelative(NeatArray.elementName);
-
-
                 buildScenes[i] = new EditorBuildSettingsScene(AssetDatabase.GetAssetPath(scene.objectReferenceValue), true);
             }
 
@@ -61,32 +58,32 @@ namespace UnityTools.EditorTools {
         // }
         // const string cEditorPrefLoadMasterOnPlay = "SceneAutoLoader.LoadMasterOnPlay";
         
-    
-
         void OnGUI () {
 
             if (windowSO == null) windowSO = new SerializedObject(this);
             
             GUITools.Space(topSpaces);
 
-            bool playMasterOnPlay = EditorScenePlayer.LoadMasterOnPlay;
+            bool playInitialSceneFirst = InitialSceneWorkflow.LoadInitialOnPlay;
 
-            GUI.backgroundColor = playMasterOnPlay ? GUITools.blue : GUITools.white;
-            if (GUILayout.Button("Play Master Scene First In Editor")) {
-                EditorScenePlayer.LoadMasterOnPlay = !playMasterOnPlay;
+            GUI.backgroundColor = playInitialSceneFirst ? GUITools.blue : GUITools.white;
+            if (GUILayout.Button("Play Initial Scene First In Editor")) {
+                InitialSceneWorkflow.LoadInitialOnPlay = !playInitialSceneFirst;
             }
             GUI.backgroundColor = GUITools.white;
 
-            if (GUILayout.Button("Open Master Scene")) {
+            if (GUILayout.Button("Open Master Scene In Editor")) {
                 EditorSceneManager.OpenScene(EditorBuildSettings.scenes[0].path);
             }
+
+            string skipToScene = InitialSceneWorkflow.SkipToScene;
+
+            string skipToScene2 = EditorGUILayout.TextField("Skip To Scene On Play", skipToScene);
+
+            if (skipToScene2 != skipToScene) InitialSceneWorkflow.SkipToScene = skipToScene2;
             
+            GUITools.Space();
 
-
-
-            // GUITools.Space(topSpaces);
-
-            
             EditorGUILayout.LabelField("Scenes to build:", GUITools.boldLabel);
 
             UpdateToReflectSettings ();

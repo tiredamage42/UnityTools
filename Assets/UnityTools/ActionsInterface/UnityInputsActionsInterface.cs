@@ -2,10 +2,21 @@
 using UnityTools.EditorTools;
 namespace UnityTools {
     
+
+    [CreateAssetMenu(menuName="Unity Tools/Action Interface Controllers/UnityInput Actions Controller", fileName="UnityInput_Actions_Controller")]
+    
     public class UnityInputsActionsInterface : SimpleUnityInputsInterface
     {
-        [NeatArray] public NeatStringArray actionButtons;
-        [NeatArray] public NeatStringArray axisNames;
+        [NeatArray] public NeatStringArray actionButtons = new NeatStringArray(
+            new string[] {
+                "Jump", "Submit"
+            }
+        );
+        [NeatArray] public NeatStringArray axisNames = new NeatStringArray(
+            new string[] {
+                "Horizontal", "Vertical", "Mouse X", "Mouse Y"
+            }
+        );
 
         public override string ConstructTooltip () {
             string r = GetType().Name + "\n\nActions:\n";

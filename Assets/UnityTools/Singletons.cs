@@ -27,6 +27,8 @@ namespace UnityTools {
                 Destroy (gameObject);
             }
             else {
+                //populate the instance variable...
+                T i = instance;
                 DontDestroyOnLoad(gameObject);
             }
         }

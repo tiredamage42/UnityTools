@@ -1,8 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
+
 using UnityTools.GameSettingsSystem;
 using UnityTools.Internal;
 using System;
+
+using System.Linq;
+using System.Reflection;
+
+using UnityTools.EditorTools;
 namespace UnityTools {
 
     public class GameManager : Singleton<GameManager>
@@ -14,19 +20,46 @@ namespace UnityTools {
                 return _settings;
             }
         }
+
+        /*
+            start and awake should only happen during the initial scene load
+        */
  
         protected override void Awake() {
             base.Awake();
             if (!thisInstanceErrored) {
                 SceneLoading.prepareForSceneLoad += PrepareForSceneLoad;
                 SceneLoading.endSceneLoad += UnpauseGame;
+
+                if (settings.actionsController != null) settings.actionsController.InitializeActionsInterface();
+
+                // get all types of SaveLoadObjectSceneHandler's
+                // teh scripts in charge of saving the save state for certain scene objects
+                System.Type[] results = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.BaseType != null && t.BaseType.IsGenericType && t.BaseType.GetGenericTypeDefinition() == typeof(SaveLoadObjectSceneHandler<,,>)).ToArray();
+
+                // add tehm to this gameObject
+                for (int i = 0; i < results.Length; i++) {
+                    gameObject.AddComponent(results[i]);
+                }
             }
         }
 
         void Start () {
-            SaveLoad.LoadSettingsOptions();
-        }
+            if (!thisInstanceErrored)
+                SaveLoad.LoadSettingsOptions();
 
+            #if UNITY_EDITOR
+            string skipToScene = InitialSceneWorkflow.SkipToScene;
+            StartCoroutine(SkipToScene(skipToScene));
+            #endif
+        }
+            
+        #if UNITY_EDITOR
+        IEnumerator SkipToScene(string scene) {
+            yield return new WaitForSecondsRealtime(3);
+            SceneLoading.LoadSceneAsync (scene, null, null);
+        }
+        #endif
 
         static void PrepareForSceneLoad (string targetScene) {
             PauseGame();
@@ -35,7 +68,6 @@ namespace UnityTools {
                 DestroyPlayer();
             else 
                 BuildPlayer();
-            
         }
 
 
@@ -107,7 +139,6 @@ namespace UnityTools {
             }
         }
         #endregion
-
 
         public static bool isInMainMenuScene { get { return SceneLoading.currentScene.name == mainMenuScene; } }        
         public const string mainMenuScene = "_MainMenuScene";        
