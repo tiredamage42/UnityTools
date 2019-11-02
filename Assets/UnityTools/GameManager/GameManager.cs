@@ -44,13 +44,25 @@ namespace UnityTools {
             }
         }
 
+        
+        public static int maxSaveSlots { get { return settings.maxSaveSlots; } }
+
+        public static bool isQuitting;
+
+        void OnApplicationQuit () {
+            isQuitting = true;
+        }
+
+
         void Start () {
             if (!thisInstanceErrored)
                 SaveLoad.LoadSettingsOptions();
 
             #if UNITY_EDITOR
             string skipToScene = InitialSceneWorkflow.SkipToScene;
-            StartCoroutine(SkipToScene(skipToScene));
+            if (!string.IsNullOrEmpty(skipToScene)) {
+                StartCoroutine(SkipToScene(skipToScene));
+            }
             #endif
         }
             

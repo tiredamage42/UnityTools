@@ -21,6 +21,9 @@ namespace UnityTools {
     // used for npc's or player
     [System.Serializable] public class Actor : MonoBehaviour, ISaveableObject<ActorState>
     {
+
+        public const string ActorPrefabsObjectName = "ActorPrefabs";
+
         public Vector3 GetPosition () {
             if (getPosition == null) {
                 Debug.LogWarning("Actor: " + gameObject.name + " is not initialized!");
@@ -68,22 +71,32 @@ namespace UnityTools {
             }
         }
 
+        
+
         public bool HasGameValue (string name) {
             MakeValuesDictionaryIfNull();
             return gameValuesDict.ContainsKey(name);
         }
-
-        public float GetGameValueComponent (string name, GameValue.GameValueComponent component) {
-            MakeValuesDictionaryIfNull();
+        public GameValue GetGameValueObject (string name) {
             if (!HasGameValue(name)) {
                 Debug.Log(this.name + " does not have a game value named "+ name);
-                return 0;
+                return null;
             }
-            return gameValuesDict[name].GetValueComponent(component);
+            return gameValuesDict[name];
+        }
+
+        public float GetGameValueComponent (string name, GameValue.GameValueComponent component) {
+            GameValue gv = GetGameValueObject(name);
+            if (gv == null) return 0;
+            return gv.GetValueComponent(component);
         }
         public float GetGameValue (string name) {
             return GetGameValueComponent(name, GameValue.GameValueComponent.Value);
         }
+
+        
+
+
 
         public void LoadFromSavedObject (ActorState savedActor) {
             gameValues.CopyFrom( savedActor.gameValues );
@@ -113,7 +126,7 @@ namespace UnityTools {
                 DontDestroyOnLoad(gameObject);
             }
             else {
-                pool.AddManualInstance(PrefabReferences.GetPrefabReference<Actor>("DemoPrefabs", basePrefabName), this);
+                pool.AddManualInstance(PrefabReferences.GetPrefabReference<Actor>(ActorPrefabsObjectName, basePrefabName), this);
             }
 
             if (gameValuesTemplate != null) {

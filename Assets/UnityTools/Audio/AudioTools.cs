@@ -7,7 +7,7 @@ namespace UnityTools.Audio {
     class PooledAudioSource : MonoBehaviour {
 
         AudioSource _source;
-        public AudioSource source { get { return gameObject.GetOrAddComponent<AudioSource>(ref _source); } }
+        public AudioSource source { get { return gameObject.GetOrAddComponent<AudioSource>(ref _source, true); } }
 
         void Update () {
             source.playOnAwake = false;

@@ -63,7 +63,7 @@ namespace UnityTools.Particles {
     class PooledParticleSystem : MonoBehaviour {
         ParticleSystem ps;
         void Update () {
-            if (!gameObject.GetComponentIfNull<ParticleSystem>(ref ps).IsPlaying()) {
+            if (!gameObject.GetComponentIfNull<ParticleSystem>(ref ps, true).IsPlaying()) {
                 transform.SetParent(null);
                 gameObject.SetActive(false);
             }

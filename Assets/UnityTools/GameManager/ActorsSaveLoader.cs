@@ -43,7 +43,7 @@ namespace UnityToolsDemo {
                     loadedActor = Actor.playerActor;
                 }
                 else {
-                    loadedActor = Actor.pool.GetAvailable(PrefabReferences.GetPrefabReference<Actor>("ActorPrefabs", savedObjects[i].prefabName), null);              
+                    loadedActor = Actor.pool.GetAvailable(PrefabReferences.GetPrefabReference<Actor>(Actor.ActorPrefabsObjectName, savedObjects[i].prefabName), null);              
                 }
 
                 OnObjectLoad (loadedActor, loadedActor, savedObjects[i]);

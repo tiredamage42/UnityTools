@@ -10,7 +10,7 @@ namespace UnityTools.Audio.Internal {
     [ExecuteInEditMode] class TemporaryAudioSource : MonoBehaviour
     {    
         AudioSource _source;
-        public AudioSource source { get { return gameObject.GetOrAddComponent<AudioSource>(ref _source); } }
+        public AudioSource source { get { return gameObject.GetOrAddComponent<AudioSource>(ref _source, true); } }
 
         Object targetObject;
 

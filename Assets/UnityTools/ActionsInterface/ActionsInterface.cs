@@ -46,7 +46,7 @@ namespace UnityTools {
         // action, controller
         static Func<int, bool, int, bool> getActionDown, getAction, getActionUp;
         static Func<int, int, float> getAxis;
-        static Func<int, Vector2> getMousePos, getMouseScrollDelta;
+        static Func<int, Vector2> getMousePos, getMouseScrollDelta, getMouseAxis;
         static Func<int, int, bool> getMouseButtonDown, getMouseButton, getMouseButtonUp;
         
         static object interfaceInitializer;
@@ -58,7 +58,7 @@ namespace UnityTools {
         
         public static bool InitializeActionsInterface (
             Func<int, bool, int, bool> getActionDown, Func<int, bool, int, bool> getAction, Func<int, bool, int, bool> getActionUp, 
-            Func<int, int, float> getAxis, Func<int, Vector2> getMousePos, Func<int, Vector2> getMouseScrollDelta,
+            Func<int, int, float> getAxis, Func<int, Vector2> getMousePos, Func<int, Vector2> getMouseScrollDelta, Func<int, Vector2> getMouseAxis,
             Func<int, int, bool> getMouseButtonDown, Func<int, int, bool> getMouseButton, Func<int, int, bool> getMouseButtonUp, 
             
             int maxControllers, object interfaceInitializer
@@ -75,10 +75,13 @@ namespace UnityTools {
             ActionsInterface.getAction = getAction;
             ActionsInterface.getActionUp = getActionUp;
 
-            ActionsInterface.getAxis = getAxis;
-            ActionsInterface.getMousePos = getMousePos;
 
+            ActionsInterface.getAxis = getAxis;
+
+            ActionsInterface.getMousePos = getMousePos;
             ActionsInterface.getMouseScrollDelta = getMouseScrollDelta;
+            ActionsInterface.getMouseAxis = getMouseAxis;
+
             
             ActionsInterface.getMouseButtonDown = getMouseButtonDown;
             ActionsInterface.getMouseButton = getMouseButton;
@@ -173,6 +176,10 @@ namespace UnityTools {
             if (!IsInitialized() || inputFrozen || (checkOccupied && MouseAxisOccupied(controller))) return Vector2.zero;
             return getMousePos(controller);
         }
+        public static Vector2 GetMouseAxis (int controller=0, bool checkOccupied=true) {
+            if (!IsInitialized() || inputFrozen || (checkOccupied && MouseAxisOccupied(controller))) return Vector2.zero;
+            return getMouseAxis(controller);
+        }
 
         public static Vector2 GetMouseScrollDelta (int controller = 0, bool checkOccupied=true) {
             if (!IsInitialized() || inputFrozen || (checkOccupied && MouseScrollOccupied(controller))) return Vector2.zero;
@@ -203,7 +210,7 @@ namespace UnityTools {
             // if (
                 ActionsInterface.InitializeActionsInterface (
                     GetActionDown, GetAction, GetActionUp, GetAxis, 
-                    GetMousePos, GetMouseScrollDelta, 
+                    GetMousePos, GetMouseScrollDelta, GetMouseAxis, 
                     GetMouseButtonDown, GetMouseButton, GetMouseButtonUp,
                     MaxControllers(), this
                 );
@@ -223,6 +230,7 @@ namespace UnityTools {
         protected abstract bool GetActionUp (int action, bool checkingAxis, int controller);
         protected abstract float GetAxis (int axis, int controller);
         protected abstract Vector2 GetMousePos (int controller);
+        protected abstract Vector2 GetMouseAxis (int controller);
         protected abstract Vector2 GetMouseScrollDelta (int controller);
         protected abstract bool GetMouseButtonDown (int button, int controller);
         protected abstract bool GetMouseButton (int button, int controller);
