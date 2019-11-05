@@ -9,6 +9,9 @@ namespace UnityTools {
 
     public class SceneLoading 
     {
+
+        static SceneLoading sceneLoadingObject = new SceneLoading();
+
         public static event Action<string> prepareForSceneLoad;
         public static event Action endSceneLoad;
         
@@ -16,22 +19,23 @@ namespace UnityTools {
         public static event Action<Scene> onSceneExit;
 
         static void PrepareForSceneLoad (string targetScene) {
-            // show loading progress bar
+            GameManager.PauseGame(sceneLoadingObject);
+            
             if (prepareForSceneLoad != null) {
                 prepareForSceneLoad(targetScene);
             }
         }   
         static void EndSceneLoad () {
-            // hide progress bar ui
             if (endSceneLoad != null) {
                 endSceneLoad();
             }
+            
+            GameManager.UnpauseGame(sceneLoadingObject);
         }
 
         public static Scene currentScene { get { return SceneManager.GetActiveScene(); } }
 
         public static bool LoadSceneAsync (string scene, Action onSceneStartLoad, Action<Scene> onSceneLoaded) {
-            // Debug.Log("PReparing");
             PrepareForSceneLoad(scene);
 
             if (onSceneExit != null) onSceneExit(currentScene);

@@ -8,9 +8,6 @@ namespace UnityTools {
 
     public static class GameObjects 
     {
-
-
-        
         public static void DontDestroyOnLoad (this GameObject g, bool checkIfRootObject) {
             
             if (checkIfRootObject) {
@@ -113,24 +110,24 @@ namespace UnityTools {
             return r;
         }
         public static T GetOrAddComponent<T> (this GameObject g, ref T variable, bool checkDisabled) where T : Component {
-            if ((object)variable == null) variable = g.GetOrAddComponent<T>(checkDisabled);
+            if (variable == null) variable = g.GetOrAddComponent<T>(checkDisabled);
             return variable;
         }
         public static T GetComponentIfNull<T> (this GameObject g, ref T variable, bool checkDisabled) where T : Component {
-            if ((object)variable == null) variable = g.GetComponent<T>(checkDisabled);
+            if (variable == null) variable = g.GetComponent<T>(checkDisabled);
             return variable;
         }
         public static T GetComponentInChildrenIfNull<T> (this GameObject g, ref T variable, bool checkDisabled) where T : Component {
-            if ((object)variable == null) variable = g.GetComponentInChildren<T>(checkDisabled);
+            if (variable == null) variable = g.GetComponentInChildren<T>(checkDisabled);
             return variable;
         }
 
         public static T[] GetComponentsIfNull<T> (this GameObject g, ref T[] variable, bool checkDisabled) where T : Component {
-            if ((object)variable == null || variable.Length == 0) variable = g.GetComponents<T>(checkDisabled);
+            if (variable == null || variable.Length == 0) variable = g.GetComponents<T>(checkDisabled);
             return variable;
         }
         public static T[] GetComponentsInChildrenIfNull<T> (this GameObject g, ref T[] variable, bool checkDisabled) where T : Component {
-            if ((object)variable == null || variable.Length == 0) variable = g.GetComponentsInChildren<T>(checkDisabled);
+            if (variable == null || variable.Length == 0) variable = g.GetComponentsInChildren<T>(checkDisabled);
             return variable;
         }    
 
@@ -140,77 +137,62 @@ namespace UnityTools {
 
 
         public static T[] GetComponents <T> (this Component g, bool checkDisabled) where T : Component {
-            if (checkDisabled) {
-                List<T> r = new List<T>();
-                T[] found = g.GetComponentsInChildren<T>(true);
-                for (int i= 0; i < found.Length; i++) {
-                    if (found[i].gameObject == g) {
-                        r.Add(found[i]);
-                    }
-                }
-                return r.ToArray();
-            }
-            return g.GetComponents<T>();
+            return g.gameObject.GetComponents<T>(checkDisabled);
         }
-
         public static T GetComponent<T> (this Component g, bool checkDisabled) where T : Component {
-            if (checkDisabled) {
-                T[] found = g.GetComponents<T>(true);
-                if (found.Length > 0) {
-                    return found[0];
-                }
-            }
-            return g.GetComponent<T>();
+            return g.gameObject.GetComponent<T>(checkDisabled);
         }
-
-
         public static T GetOrAddComponent<T> (this Component g, bool checkDisabled) where T : Component {
-            T r = g.GetComponent<T>(checkDisabled);
-            if (r == null) r = g.gameObject.AddComponent<T>();
-            return r;
+            return g.gameObject.GetOrAddComponent<T>(checkDisabled);
         }
         public static T GetOrAddComponent<T> (this Component g, ref T variable, bool checkDisabled) where T : Component {
-            if ((object)variable == null) variable = g.GetOrAddComponent<T>(checkDisabled);
-            return variable;
+            return g.gameObject.GetOrAddComponent<T>(ref variable, checkDisabled);
         }
         public static T GetComponentIfNull<T> (this Component g, ref T variable, bool checkDisabled) where T : Component {
-            if ((object)variable == null) variable = g.GetComponent<T>(checkDisabled);
-            return variable;
+            return g.gameObject.GetComponentIfNull<T>(ref variable, checkDisabled);
         }
         public static T GetComponentInChildrenIfNull<T> (this Component g, ref T variable, bool checkDisabled) where T : Component {
-            if ((object)variable == null) variable = g.GetComponentInChildren<T>(checkDisabled);
-            return variable;
+            return g.gameObject.GetComponentInChildrenIfNull<T>(ref variable, checkDisabled);
         }
-
         public static T[] GetComponentsIfNull<T> (this Component g, ref T[] variable, bool checkDisabled) where T : Component {
-            if ((object)variable == null || variable.Length == 0) variable = g.GetComponents<T>(checkDisabled);
-            return variable;
+            return g.gameObject.GetComponentsIfNull<T>(ref variable, checkDisabled);
         }
         public static T[] GetComponentsInChildrenIfNull<T> (this Component g, ref T[] variable, bool checkDisabled) where T : Component {
-            if ((object)variable == null || variable.Length == 0) variable = g.GetComponentsInChildren<T>(checkDisabled);
-            return variable;
+            return g.gameObject.GetComponentsInChildrenIfNull<T>(ref variable, checkDisabled);
+        }
+
+
+
+        public static T[] GetComponents <T> (this MonoBehaviour g, bool checkDisabled) where T : Component {
+            return g.gameObject.GetComponents<T>(checkDisabled);
+        }
+        public static T GetComponent<T> (this MonoBehaviour g, bool checkDisabled) where T : Component {
+            return g.gameObject.GetComponent<T>(checkDisabled);
+        }
+        public static T GetOrAddComponent<T> (this MonoBehaviour g, bool checkDisabled) where T : Component {
+            return g.gameObject.GetOrAddComponent<T>(checkDisabled);
+        }
+        public static T GetOrAddComponent<T> (this MonoBehaviour g, ref T variable, bool checkDisabled) where T : Component {
+            return g.gameObject.GetOrAddComponent<T>(ref variable, checkDisabled);
+        }
+        public static T GetComponentIfNull<T> (this MonoBehaviour g, ref T variable, bool checkDisabled) where T : Component {
+            return g.gameObject.GetComponentIfNull<T>(ref variable, checkDisabled);
+        }
+        public static T GetComponentInChildrenIfNull<T> (this MonoBehaviour g, ref T variable, bool checkDisabled) where T : Component {
+            return g.gameObject.GetComponentInChildrenIfNull<T>(ref variable, checkDisabled);
+        }
+        public static T[] GetComponentsIfNull<T> (this MonoBehaviour g, ref T[] variable, bool checkDisabled) where T : Component {
+            return g.gameObject.GetComponentsIfNull<T>(ref variable, checkDisabled);
+        }
+        public static T[] GetComponentsInChildrenIfNull<T> (this MonoBehaviour g, ref T[] variable, bool checkDisabled) where T : Component {
+            return g.gameObject.GetComponentsInChildrenIfNull<T>(ref variable, checkDisabled);
         }    
 
 
 
 
 
-        static Dictionary<int, Component[]> componentsPerGameObject = new Dictionary<int, Component[]>();
-        public static bool CallMethod (this GameObject g, string callMethod, object[] parameters, out float value) {
 
-            int id = g.GetInstanceID();
-            Component[] components;
-            if (!componentsPerGameObject.TryGetValue(id, out components)) {
-                components = g.GetComponents<Component>();
-                componentsPerGameObject[id] = components;
-            }
-
-            for (int i = 0; i < components.Length; i++)
-                if (SystemTools.TryAndCallMethod ( components[i].GetType(), BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, callMethod, components[i], parameters, out value, i == components.Length - 1, "Run Target: " + g.name))
-                    return true;
-
-            value = 0;
-            return false;
-        }   
+ 
     }
 }

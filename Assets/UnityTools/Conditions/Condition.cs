@@ -6,8 +6,6 @@ using UnityTools.Internal;
 namespace UnityTools {
     
     public enum NumericalCheck { Equals = 0, NotEquals = 1, LessThan = 2, GreaterThan = 3, LessThanEqualTo = 4, GreaterThanEqualTo = 5 };
-    public enum RunTarget { Subject, Target, Reference, Static };
-
     [System.Serializable] public class Conditions : NeatArrayWrapper<Condition> { 
         public static bool ConditionsMet (Conditions conditions, GameObject subject, GameObject target) {
             
@@ -45,21 +43,6 @@ namespace UnityTools {
 
 }
 namespace UnityTools.Internal {
-    [System.Serializable] public class ConditionsParameters : NeatArrayWrapper<ConditionsParameter> { }
-
-    public abstract class ConditionsParameter : ScriptableObject {
-        public abstract object GetParamObject ();
-
-
-        #if UNITY_EDITOR
-        public abstract void DrawGUI (Rect pos);
-        public abstract void DrawGUIFlat (Rect pos);
-        public virtual float GetPropertyHeight () { 
-            return GUITools.singleLineHeight; 
-        }
-        #endif
-    }
-    
     
     [System.Serializable] public class Condition {
 
@@ -71,7 +54,7 @@ namespace UnityTools.Internal {
         public bool useGlobalValueThreshold;
         public string globalValueThresholdName;
         public NumericalCheck numericalCheck;
-        public ConditionsParameters parameters;
+        public MessageParameters parameters;
         public bool showParameters;
 
 
@@ -86,40 +69,16 @@ namespace UnityTools.Internal {
         }
         
         public bool IsTrue (GameObject subject, GameObject target) {
-            if (string.IsNullOrEmpty(callMethod) || string.IsNullOrWhiteSpace(callMethod)) {
-                Debug.LogWarning("Call Method is blank...");
-                return false;
-            }
-
-            GameObject obj = subject;
-
-            switch (runTarget) {
-                case RunTarget.Subject: obj = subject; break;
-                case RunTarget.Target: obj = target; break;
-                case RunTarget.Reference: obj = referenceTarget; break;
-                case RunTarget.Static: obj = null; break;
-            }
-
-            if (obj == null && runTarget != RunTarget.Static) {
-                Debug.LogWarning("RunTarget: " + runTarget.ToString() + " is null, can't call condition method: " + callMethod);
-                return false;
-            }
             
-            object[] suppliedParameters = new object[0];
+            object[] suppliedParameters;
+            GameObject obj;
 
-            if (parameters.Length > 0) {
-
-                List<object> parametersList = new List<object>();
-                for (int i = 0; i < parameters.Length; i++) {
-                    if (parameters[i] != null) 
-                        parametersList.Add(parameters[i].GetParamObject());
-                }
-                suppliedParameters = parametersList.ToArray();
-            }
-
+            if (!Messaging.PrepareForMessageSend(callMethod, runTarget, subject, target, referenceTarget, parameters, out obj, out suppliedParameters))
+                return false;
+        
             float returnValue;
             if (runTarget == RunTarget.Static) {
-                if (!SystemTools.CallStaticMethod(callMethod, suppliedParameters, out returnValue))
+                if (!Messaging.CallStaticMethod(callMethod, suppliedParameters, out returnValue))
                     return false;
             }
             else {

@@ -32,6 +32,8 @@ namespace UnityToolsDemo {
 
         public Conditions conditions;
 
+        public Messages messages;
+
         // public ONamepsac.BaseClassTest baseClassTest;
 
         

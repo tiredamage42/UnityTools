@@ -3,7 +3,7 @@
 using UnityEditor;
 namespace UnityTools.Internal {
 
-    public class NativeType_ConditionParam : ConditionsParameter
+    public class NativeType_MessageParam : MessageParameter
     {
         public enum NativeType { Float, Int, Bool, String };
         public float nValue;

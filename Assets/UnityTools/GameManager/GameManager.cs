@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-
+using System.Collections.Generic;
 using UnityTools.GameSettingsSystem;
 using UnityTools.Internal;
 using System;
@@ -29,8 +29,7 @@ namespace UnityTools {
             base.Awake();
             if (!thisInstanceErrored) {
                 SceneLoading.prepareForSceneLoad += PrepareForSceneLoad;
-                SceneLoading.endSceneLoad += UnpauseGame;
-
+                
                 if (settings.actionsController != null) settings.actionsController.InitializeActionsInterface();
 
                 // get all types of SaveLoadObjectSceneHandler's
@@ -42,6 +41,10 @@ namespace UnityTools {
                     gameObject.AddComponent(results[i]);
                 }
             }
+        }
+
+        void Update () {
+            CheckPauseObjectsForNulls();
         }
 
         
@@ -73,63 +76,138 @@ namespace UnityTools {
         }
         #endif
 
-        static void PrepareForSceneLoad (string targetScene) {
-            PauseGame();
 
-            if (targetScene == mainMenuScene) 
+        public static event Action onPrepareMainMenuLoad, onPrepareMainMenuExit;
+
+        static void PrepareForSceneLoad (string targetScene) {
+        
+            if (targetScene == mainMenuScene) {
+                
+                if (onPrepareMainMenuLoad != null)
+                    onPrepareMainMenuLoad();
+                
                 DestroyPlayer();
-            else 
+                
+            }
+            else {
+
                 BuildPlayer();
+                
+                if (onPrepareMainMenuExit != null)
+                    onPrepareMainMenuExit();
+            } 
+                
         }
 
 
          #region PAUSE_GAME
         public static event System.Action<bool, float> onPauseRoutineStart, onPauseRoutineEnd;
-        public static bool isPaused { get { return instance.paused; } }
-        bool paused;
-        static bool inPauseRoutine, toggleBackAfterRoutine;
+        public static bool isPaused { get { return pauseObjects.Count == 0; } }// instance.paused; } }
+        // bool paused;
+        // static bool inPauseRoutine, toggleBackAfterRoutine;
 
-        public static void PauseGame () {
-            if (!isPaused) TogglePause();
-        }
-        public static void UnpauseGame () {
-            if (isPaused) {
-                if (!inPauseRoutine)
-                    TogglePause();
-                else
-                    toggleBackAfterRoutine = true;
+        // public static void PauseGame () {
+        //     if (!isPaused) TogglePause();
+        // }
+        // public static void UnpauseGame () {
+        //     if (isPaused) {
+        //         if (!inPauseRoutine)
+        //             TogglePause();
+        //         else
+        //             toggleBackAfterRoutine = true;
+        //     }
+        // }
+
+
+        public static event Action<bool> onPause;
+        static List<object> pauseObjects = new List<object>();
+
+        static void CheckPauseObjectsForNulls () {
+
+            bool wasPaused = pauseObjects.Count > 0;
+            for (int i = pauseObjects.Count -1; i >= 0; i--) {
+                if (pauseObjects[i] == null) {
+                    pauseObjects.RemoveAt(i);
+                }
+            }
+            if (wasPaused && pauseObjects.Count == 0) {
+                if (onPause != null) onPause(false);
             }
         }
 
-        IEnumerator TogglePauseCoroutine () {
-            bool newPauseState = !paused;
-            inPauseRoutine = true;
 
-            // state considered paused immediately when toggled
-            if (newPauseState) paused = !paused;
-            
-            if (onPauseRoutineStart != null) onPauseRoutineStart(newPauseState, settings.pauseRoutineDelay);
-            yield return new WaitForSecondsRealtime(settings.pauseRoutineDelay);
-            if (onPauseRoutineEnd != null) onPauseRoutineEnd(newPauseState, settings.pauseRoutineDelay);
-
-            // state considered unpaused after routine ends
-            if (!newPauseState) paused = !paused;
-            inPauseRoutine = false;
-
-            if (toggleBackAfterRoutine && paused) {
-                toggleBackAfterRoutine = false;
-                TogglePause();
+        static void DoPause (object pauseObject) {
+            bool wasEmpty = pauseObjects.Count == 0;
+            pauseObjects.Add(pauseObject);
+            if (wasEmpty) {
+                if (onPause != null) onPause(true);
             }
         }
-            
-        public static void TogglePause () {
-            instance.StartCoroutine(instance.TogglePauseCoroutine());
+        static void DoUnpause (object pauseObject) {
+            pauseObjects.Remove(pauseObject);
+            if (pauseObjects.Count == 0) {
+                if (onPause != null) onPause(false);
+            }
         }
+
+        public static void PauseGame (object pauseObject) {
+            if (pauseObject == null) return;
+            if (!pauseObjects.Contains(pauseObject)) 
+                DoPause(pauseObject);
+        }
+
+        public static void UnpauseGame (object pauseObject) {
+            if (pauseObject == null) return;
+            if (pauseObjects.Contains(pauseObject)) 
+                DoUnpause(pauseObject);
+        }
+
+        public static void TogglePase (object pauseObject) {
+            if (pauseObject == null) return;
+            if (pauseObjects.Contains(pauseObject)) 
+                DoUnpause(pauseObject);
+            else 
+                DoPause(pauseObject);
+        }
+
+        
+
+
+
+        // IEnumerator TogglePauseCoroutine (bool newPauseState) {
+        //     // bool newPauseState = !paused;
+        //     inPauseRoutine = true;
+
+        //     // state considered paused immediately when toggled
+        //     if (newPauseState) paused = !paused;
+            
+        //     if (onPauseRoutineStart != null) onPauseRoutineStart(newPauseState, settings.pauseRoutineDelay);
+        //     yield return new WaitForSecondsRealtime(settings.pauseRoutineDelay);
+        //     if (onPauseRoutineEnd != null) onPauseRoutineEnd(newPauseState, settings.pauseRoutineDelay);
+
+        //     // state considered unpaused after routine ends
+        //     if (!newPauseState) paused = !paused;
+        //     inPauseRoutine = false;
+
+        //     if (toggleBackAfterRoutine && paused) {
+        //         toggleBackAfterRoutine = false;
+        //         TogglePause(false);
+        //     }
+        // }
+
+        
+            
+        // public static void TogglePause (bool newPauseState) {
+
+        //     instance.StartCoroutine(instance.TogglePauseCoroutine(newPauseState));
+        // }
         #endregion
 
 
+
+
         #region PLAYER
-        public static event Action onPlayerCreated, onPlayerDestroyed;
+        // public static event Action onPlayerCreated, onPlayerDestroyed;
         public static bool playerExists { get { return Actor.playerActor != null; } }
         public static Actor playerActor {
             get {
@@ -141,13 +219,13 @@ namespace UnityTools {
         static void BuildPlayer () {
             if (!playerExists) {
                 GameObject.Instantiate(settings.playerPrefab);
-                if (onPlayerCreated != null) onPlayerCreated();
+                // if (onPlayerCreated != null) onPlayerCreated();
             }
         }
         static void DestroyPlayer () {
             if (playerExists) {
                 GameObject.Destroy(playerActor.gameObject);
-                if (onPlayerDestroyed != null) onPlayerDestroyed();
+                // if (onPlayerDestroyed != null) onPlayerDestroyed();
             }
         }
         #endregion
