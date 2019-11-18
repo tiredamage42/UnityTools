@@ -7,7 +7,7 @@ namespace UnityTools {
         
         and run coroutines
     */
-    public class UpdateManager : Singleton<UpdateManager>
+    public class UpdateManager : InitializationSingleTon<UpdateManager>
     {
         public event Action<float> update, fixedUpdate, lateUpdate;
         void Update() { if (update != null) update(Time.deltaTime); }

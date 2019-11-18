@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityTools.EditorTools;
 
 
+using UnityEngine.SceneManagement;
 using UnityTools.Internal;
 using UnityTools.GameSettingsSystem;
 namespace UnityTools {
@@ -52,9 +53,16 @@ namespace UnityTools {
         static object interfaceInitializer;
         static bool inputFrozen;
 
-        static void PrepareForSceneLoad (string targetScene) { FreezeInput(true); }
+        static void PrepareForSceneLoad (string scene, LoadSceneMode mode) { 
+            if (mode != LoadSceneMode.Additive)
+                FreezeInput(true); 
+        }
+        static void EndSceneLoad (string scene, LoadSceneMode mode) {
+            if (mode != LoadSceneMode.Additive)
+                FreezeInput(false);
+        }
         public static void FreezeInput (bool frozen) { inputFrozen = frozen; }
-        public static void UnfreezeInput () { FreezeInput(false); }
+        // public static void UnfreezeInput () { FreezeInput(false); }
         
         public static bool InitializeActionsInterface (
             Func<int, bool, int, bool> getActionDown, Func<int, bool, int, bool> getAction, Func<int, bool, int, bool> getActionUp, 
@@ -89,8 +97,8 @@ namespace UnityTools {
 
             ActionsInterface.maxControllers = maxControllers;
 
-            SceneLoading.prepareForSceneLoad += PrepareForSceneLoad;
-            SceneLoading.endSceneLoad += UnfreezeInput;
+            SceneLoading.onSceneLoadStart += PrepareForSceneLoad;
+            SceneLoading.onSceneLoadEnd += EndSceneLoad;
 
             return true;
         }

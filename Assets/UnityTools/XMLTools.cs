@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-
+﻿
+using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using System.Text;
 using System.Globalization;
 using System.Linq;
-
 
 namespace UnityTools {
 
@@ -23,8 +22,7 @@ namespace UnityTools {
 			xmlSettings.Encoding = Encoding.UTF8;
 			xmlSettings.Indent = true;
 
-			using(XmlWriter writer = CreateXmlWriter(fileName, xmlSettings))
-			{
+			using(XmlWriter writer = CreateXmlWriter(fileName, xmlSettings)) {
                 if (writer != null) {
                     writer.WriteStartDocument(true);
                     writeMethod(writer);
@@ -35,16 +33,13 @@ namespace UnityTools {
 
         public static void WriteSection (string name, XmlWriter writer, XMLWriteMethod writeMethod, string[] attributeNames, string[] attributes) {
             writer.WriteStartElement(name);
-            
             if (attributeNames != null) {
                 for (int i = 0; i < attributeNames.Length; i++) 
                     writer.WriteAttributeString(attributeNames[i], attributes[i]);
             }
-            
             writeMethod(writer);
 			writer.WriteEndElement();
         }
-
 
         public static XmlDocument LoadXML(string fileName)
 		{
@@ -58,19 +53,16 @@ namespace UnityTools {
 				}
                 return doc;
 			}
-			
 			return null;
 		}
         public static XmlDocument LoadXML(TextReader textReader)
 		{
-			
 			if (textReader != null)
 			{
 				XmlDocument doc = new XmlDocument();
 				doc.Load(textReader);
 				return doc;
 			}
-
 			return null;
 		}
 
@@ -82,7 +74,6 @@ namespace UnityTools {
 		{
 			return parent.SelectNodes(name).Cast<XmlNode>();
 		}
-
 		public static string ReadNode(XmlNode node, string defValue = null)
 		{
 			return node != null ? node.InnerText : defValue;
@@ -113,6 +104,5 @@ namespace UnityTools {
         public static T ReadAsEnum<T> (XmlNode node, T defValue) {
             return SystemTools.StringToEnum(node.InnerText, defValue);
         }
-                
     }
 }

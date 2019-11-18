@@ -67,7 +67,7 @@ MonoBehaviour:
   look: {x: 3, y: 4}
   move: {x: 0, y: 2, z: 1}
   negMove: {x: -1, y: -1, z: -1}
-  moveSpeed: 10
+  moveSpeed: 50
   turnSpeed: 50
 --- !u!1 &3441701336091297259
 GameObject:

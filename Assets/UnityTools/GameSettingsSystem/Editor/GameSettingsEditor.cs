@@ -9,9 +9,9 @@ namespace UnityTools.GameSettingsSystem.Internal {
     [InitializeOnLoad] public class GameSettingsEditor {
         static GameSettingsEditor () {
             
-            RefreshSettingsList.RefreshGameSettingsList();
+            GameSettingsList.RefreshGameSettingsList();
 
-            EditorApplication.projectChanged += RefreshSettingsList.RefreshGameSettingsList;
+            EditorApplication.projectChanged += GameSettingsList.RefreshGameSettingsList;
         }
     }
 }

@@ -5,24 +5,29 @@ using System;
 using UnityTools.EditorTools;
 
 namespace UnityTools {
-    [System.Serializable] public class ActorState : SceneObjectState {
-        public string prefabName;
-        public bool isPlayer;
+    [System.Serializable] public class ActorState : SaveObjectState {
         public List<GameValue> gameValues;
-        
         public ActorState (Actor instance) : base (instance)
         {
-            this.prefabName = instance.basePrefabName;
             this.gameValues = instance.gameValues;
-            this.isPlayer = instance.isPlayer;
         }
     }
 
     // used for npc's or player
-    [System.Serializable] public class Actor : MonoBehaviour, ISaveableObject<ActorState>
+    [System.Serializable] public class Actor : Poolable<Actor>, ISaveObject<ActorState>
     {
+        public void LoadFromSavedObject (ActorState savedActor) {
+            gameValues.CopyFrom( savedActor.gameValues );
+        }
 
         public const string ActorPrefabsObjectName = "ActorPrefabs";
+
+        public override string PrefabObjectName() {
+            return ActorPrefabsObjectName;
+        }
+        public override bool IsAvailable () {
+            return true;
+        }
 
         public Vector3 GetPosition () {
             if (getPosition == null) {
@@ -71,8 +76,6 @@ namespace UnityTools {
             }
         }
 
-        
-
         public bool HasGameValue (string name) {
             MakeValuesDictionaryIfNull();
             return gameValuesDict.ContainsKey(name);
@@ -94,16 +97,6 @@ namespace UnityTools {
             return GetGameValueComponent(name, GameValue.GameValueComponent.Value);
         }
 
-        
-
-
-
-        public void LoadFromSavedObject (ActorState savedActor) {
-            gameValues.CopyFrom( savedActor.gameValues );
-        }
-
-        public static PrefabPool<Actor> pool = new PrefabPool<Actor>();
-        public string basePrefabName;
         public static Actor playerActor;
         public bool isPlayer;
 
@@ -118,17 +111,15 @@ namespace UnityTools {
 
         void Awake () {
             if (isPlayer) {
-                if (playerActor != null) {
+                if (playerActor != null && playerActor != this) {
+                    Debug.LogWarning("Copy of player actor in scene, deleting: " + name);
                     Destroy(gameObject);
                     return;
                 }
                 playerActor = this;
                 DontDestroyOnLoad(gameObject);
             }
-            else {
-                pool.AddManualInstance(PrefabReferences.GetPrefabReference<Actor>(ActorPrefabsObjectName, basePrefabName), this);
-            }
-
+            
             if (gameValuesTemplate != null) {
                 if (!initializedWithTemplate) {
                     BuildGameValues(gameValuesTemplate.gameValues);
@@ -142,8 +133,18 @@ namespace UnityTools {
                 gameValues[i].ReInitialize();
             }
         }
-        void OnDisable () {
-            if (isPlayer) {
+    
+
+        protected override void OnEnable() {
+            if (!isPlayer) base.OnEnable();
+        }
+
+
+        protected override void OnDisable() {
+            if (!isPlayer) {
+                base.OnDisable();
+            }
+            else {
                 if (playerActor != null && playerActor == this) {
                     playerActor = null;
                 }

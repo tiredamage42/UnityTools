@@ -57,7 +57,7 @@ namespace UnityTools.GameSettingsSystem.Internal {
             windowObject.Update();
 
             if (GUILayout.Button("Refresh Game Settings")) {
-                RefreshSettingsList.RefreshGameSettingsList();
+                GameSettingsList.RefreshGameSettingsList();
             }
 
             EditorGUILayout.LabelField("Choose Settings:", EditorStyles.boldLabel);

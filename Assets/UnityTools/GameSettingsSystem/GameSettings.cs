@@ -12,7 +12,9 @@ namespace UnityTools.GameSettingsSystem {
         game settings objects in the project, the holder is located in a Resources folder, so we dont
         have to worry about having references to any of our game settings objects during builds
     */
-    [CreateAssetMenu(menuName="Unity Tools/Replacement Game Settings Object", fileName=GameSettings.fileName)]
+
+    // uncomment to make replacement...
+    // [CreateAssetMenu(menuName="Unity Tools/Replacement Game Settings Object", fileName=GameSettings.fileName)]
     public class GameSettings : ScriptableObject
     {
         const string resourcesDirectory = "GameSettingsSystem/";
@@ -95,7 +97,7 @@ namespace UnityTools.GameSettingsSystem {
                 }
                 if (firstTry) {
                     // try and refresh teh settings list if we cant find it
-                    RefreshSettingsList.RefreshGameSettingsList();
+                    GameSettingsList.RefreshGameSettingsList();
                     return GetSettingsInternal<T>(name, false);
                 }   
             }
@@ -153,7 +155,7 @@ namespace UnityTools.GameSettingsSystem {
 
                     if (firstTry) {
                         // try and refresh teh settings list if we cant find it
-                        RefreshSettingsList.RefreshGameSettingsList();
+                        GameSettingsList.RefreshGameSettingsList();
                         return GetSettingsOfTypeInternal<T>(false);
                     }   
                 }   
@@ -189,6 +191,23 @@ namespace UnityTools.GameSettingsSystem {
             return true;
         }
         // only used for editor
+    }
+
+    public abstract class GameSettingsObjectSingleton<T> : GameSettingsObject 
+        where T : GameSettingsObject
+    {
+
+        static T _instance;
+        public static T instance {
+            get {
+                if (_instance == null) {
+                    _instance = GameSettings.GetSettings<T>();
+                }
+                return _instance;
+            }
+        }
+
+
     }
 }
 

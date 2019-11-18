@@ -1,6 +1,5 @@
 ﻿
 
-
 using UnityEngine;
 using UnityTools.EditorTools;
 using UnityTools.GameSettingsSystem;

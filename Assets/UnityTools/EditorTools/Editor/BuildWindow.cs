@@ -1,13 +1,13 @@
-﻿using UnityEngine;
+﻿
+using UnityEngine;
 using UnityEditor;
-    
+using System.Collections.Generic;
 using UnityEditor.SceneManagement;
+
 namespace UnityTools.EditorTools {
 
     // custom class so it can be drawn as asset selector iwithin array
-    // [System.Serializable] public class SceneAssetArrayElement : NeatArrayElement { [AssetSelection(typeof(SceneAsset))] public SceneAsset element; }
     [System.Serializable] public class SceneAssetArrayElement : NeatArrayElement { [AssetSelection(typeof(SceneAsset))] public SceneAsset element; }
-    
     [System.Serializable] public class SceneAssetArray : NeatArrayWrapper<SceneAssetArrayElement> {  }
 
     [System.Serializable] public class BuildWindow : EditorWindow
@@ -30,60 +30,73 @@ namespace UnityTools.EditorTools {
             int l = buildScenes.Length;
 
             SerializedProperty scenes = scenesList;
+
+            int u = 0;
             for (int i = 0; i < l; i++) {
-                if (i >= scenes.arraySize) 
+
+                if (PathContainsBuildSettingsIgnore(buildScenes[i].path))
+                    continue;
+                    
+                if (string.IsNullOrEmpty(buildScenes[i].path))
+                    continue;
+
+                if (u >= scenes.arraySize) 
                     scenes.InsertArrayElementAtIndex(scenes.arraySize);
 
-                SerializedProperty scene = scenes.GetArrayElementAtIndex(i).FindPropertyRelative(NeatArray.elementName);
+                SerializedProperty scene = scenes.GetArrayElementAtIndex(u).FindPropertyRelative(NeatArray.elementName);
                 scene.objectReferenceValue = AssetDatabase.LoadAssetAtPath(buildScenes[i].path, typeof(SceneAsset));
+
+                u++;
             }
         }
 
         void UpdateSettings() {
+
+            EditorBuildSettingsScene[] originalBuildScenes = EditorBuildSettings.scenes;
+            int l = originalBuildScenes.Length;
+
+            List<EditorBuildSettingsScene> buildScenes = new List<EditorBuildSettingsScene>();
+
+            for (int i = 0; i < originalBuildScenes.Length; i++) {
+                if (PathContainsBuildSettingsIgnore(originalBuildScenes[i].path)) {
+                    buildScenes.Add(originalBuildScenes[i]);
+                }
+            }
+            
             SerializedProperty scenes = scenesList;
-            
-            EditorBuildSettingsScene[] buildScenes = new EditorBuildSettingsScene[scenes.arraySize];
-            
             for (int i = 0; i < scenes.arraySize; i++) {
                 SerializedProperty scene = scenes.GetArrayElementAtIndex(i).FindPropertyRelative(NeatArray.elementName);
-                buildScenes[i] = new EditorBuildSettingsScene(AssetDatabase.GetAssetPath(scene.objectReferenceValue), true);
+                if (scene.objectReferenceValue != null) {
+                    buildScenes.Add( new EditorBuildSettingsScene(AssetDatabase.GetAssetPath(scene.objectReferenceValue), true) );
+                }
             }
 
-            EditorBuildSettings.scenes = buildScenes;
+            EditorBuildSettings.scenes = buildScenes.ToArray();
         }
-        // public static bool LoadMasterOnPlay
-        // {
-        //     get { return EditorPrefs.GetBool(cEditorPrefLoadMasterOnPlay, false); }
-        //     set { EditorPrefs.SetBool(cEditorPrefLoadMasterOnPlay, value); }
-        // }
-        // const string cEditorPrefLoadMasterOnPlay = "SceneAutoLoader.LoadMasterOnPlay";
+
+        bool PathContainsBuildSettingsIgnore (string path) {
+            for (int i = BuildSettings.buildWindowIgnorePatterns.Count - 1; i >= 0; i--) {
+                string pattern = BuildSettings.buildWindowIgnorePatterns[i];
+
+                if (string.IsNullOrEmpty(pattern)) {
+                    BuildSettings.buildWindowIgnorePatterns.RemoveAt(i);
+                    continue;
+                }
+                if (path.Contains(pattern)) {
+                    return true;
+                }
+            }
+            return false;
+        }
         
+        Vector2 scrollPos;
         void OnGUI () {
 
             if (windowSO == null) windowSO = new SerializedObject(this);
             
             GUITools.Space(topSpaces);
 
-            bool playInitialSceneFirst = InitialSceneWorkflow.LoadInitialOnPlay;
-
-            GUI.backgroundColor = playInitialSceneFirst ? GUITools.blue : GUITools.white;
-            if (GUILayout.Button("Play Initial Scene First In Editor")) {
-                InitialSceneWorkflow.LoadInitialOnPlay = !playInitialSceneFirst;
-            }
-            GUI.backgroundColor = GUITools.white;
-
-            if (GUILayout.Button("Open Master Scene In Editor")) {
-                EditorSceneManager.OpenScene(EditorBuildSettings.scenes[0].path);
-            }
-
-            string skipToScene = InitialSceneWorkflow.SkipToScene;
-
-            string skipToScene2 = EditorGUILayout.TextField("Skip To Scene On Play", skipToScene);
-
-            if (skipToScene2 != skipToScene) InitialSceneWorkflow.SkipToScene = skipToScene2;
-            
-            GUITools.Space();
-
+            scrollPos = GUILayout.BeginScrollView(scrollPos);
             EditorGUILayout.LabelField("Scenes to build:", GUITools.boldLabel);
 
             UpdateToReflectSettings ();
@@ -95,6 +108,8 @@ namespace UnityTools.EditorTools {
             
             EditorGUILayout.PropertyField(windowSO.FindProperty("scenes"), true);
             
+
+            GUILayout.EndScrollView();
             if (EditorGUI.EndChangeCheck()) {
                 UpdateSettings();
             }

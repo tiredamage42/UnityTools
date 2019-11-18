@@ -3,10 +3,9 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+
 using System.Reflection;
-
-
-using UnityEngine;
+using System.Collections.Generic;
 namespace UnityTools {
 
     public static class SystemTools 
@@ -16,6 +15,34 @@ namespace UnityTools {
         {
             return type.Assembly.GetTypes().Where(t => (t != type || includeSelf) && type.IsAssignableFrom(t)).ToArray();
         }
+
+        public static Type[] FindAllDerivedTypes(this Type type)
+        {
+            Assembly assembly = Assembly.LoadFrom(type.Assembly.Location);
+            Type[] types = assembly.GetTypes();
+            List<Type> results = new List<Type>();
+            GetAllDerivedTypesRecursively(types, type, ref results);
+            return results.Where( t => !t.IsAbstract ).ToArray();
+        }
+
+        static void GetAllDerivedTypesRecursively(Type[] types, Type type1, ref List<Type> results) {
+            if (type1.IsGenericType)
+                GetDerivedFromGeneric(types, type1, ref results);
+            else
+                GetDerivedFromNonGeneric(types, type1, ref results);
+        }
+        static void GetDerivedFromGeneric(Type[] types, Type type, ref List<Type> results) {
+            var derivedTypes = types.Where(t => t.BaseType != null && t.BaseType.IsGenericType && t.BaseType.GetGenericTypeDefinition() == type);
+            results.AddRange(derivedTypes);
+            foreach (Type derivedType in derivedTypes)
+                GetAllDerivedTypesRecursively(types, derivedType, ref results);
+        }
+        static void GetDerivedFromNonGeneric(Type[] types, Type type, ref List<Type> results) {
+            var derivedTypes = types.Where(t => t != type && type.IsAssignableFrom(t));
+            results.AddRange(derivedTypes);
+            foreach (Type derivedType in derivedTypes)
+                GetAllDerivedTypesRecursively(types, derivedType, ref results);
+        } 
 
         /*
             gets a string hash code that will persist between runs
@@ -31,21 +58,17 @@ namespace UnityTools {
                 
                 // int hash1 = 5381;
                 int hash1 = (5381 << 16) + 5381;
-                
                 int hash2 = hash1;
-
                 // for (int i = 0; i < str.Length && str[i] != '\0'; i += 2)
                 for (int i = 0; i < str.Length; i += 2)
                 {
                     hash1 = ((hash1 << 5) + hash1) ^ str[i];
-
                     // if (i == str.Length - 1 || str[i+1] == '\0')
                     if (i == str.Length - 1)
                         break;
 
                     hash2 = ((hash2 << 5) + hash2) ^ str[i + 1];
                 }
-
                 return hash1 + (hash2 * 1566083941);
             }
         }
@@ -54,8 +77,8 @@ namespace UnityTools {
 		{
 			if(string.IsNullOrEmpty(value))
 				return defValue;
-			
-			try {
+            
+            try {
 				return (T)Enum.Parse(typeof(T), value, true);
 			}
 			catch {

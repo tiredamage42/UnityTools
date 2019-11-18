@@ -1,21 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿
 using UnityEngine;
-
 using UnityTools.Internal;
-using UnityTools.GameSettingsSystem;
 namespace UnityTools {
 
-    public class GameTime : Singleton<GameTime>
+    public class GameTime : InitializationSingleTon<GameTime>
     {
-        static GameTimeSettings _settings;
-        static GameTimeSettings settings {
-            get {
-                if (_settings == null) _settings = GameSettings.GetSettings<GameTimeSettings>();
-                return _settings;
-            }
-        }
-
         public static float timeDilation { get { return instance.currentTimeDilation; } }
         public static bool timeDilated { get { return instance.timeDilationInProgress; } }
                 
@@ -48,17 +37,16 @@ namespace UnityTools {
             }
         }
         
-        // Start is called before the first frame update
         void Start()
         {
-            currentTimeDilation = settings.baseTimeDilation;
+            currentTimeDilation = GameTimeSettings.instance.baseTimeDilation;
             UpdateScales();
         }
 
         void Update()
         {
             if (timeDilationInProgress) UpdateTimeDilation(Time.unscaledDeltaTime);
-            else currentTimeDilation = settings.baseTimeDilation;
+            else currentTimeDilation = GameTimeSettings.instance.baseTimeDilation;
             UpdateScales();
         }
     
@@ -70,8 +58,8 @@ namespace UnityTools {
             
         void UpdateScales () {
             Time.timeScale = currentTimeDilation * (GameManager.isPaused ? 0 : 1);
-            Time.fixedDeltaTime = settings.actualFixedTimeStep * currentTimeDilation;
-            Time.maximumDeltaTime = settings.maxTimeStep * currentTimeDilation;  
+            Time.fixedDeltaTime = GameTimeSettings.instance.actualFixedTimeStep * currentTimeDilation;
+            Time.maximumDeltaTime = GameTimeSettings.instance.maxTimeStep * currentTimeDilation;  
         }
             
         bool SmoothTime (float orig, float target, float unscaledDeltaTime){
@@ -87,11 +75,10 @@ namespace UnityTools {
             return timeT >= 1.0f;
         }
 
-
         void UpdateTimeDilation (float unscaledDeltaTime) {
             //going towards time dilation
             if (timeDilationPhase == TimeDilationPhase.StartingDilation) {
-                if (SmoothTime (settings.baseTimeDilation, timeDilationTarget, unscaledDeltaTime)) {
+                if (SmoothTime (GameTimeSettings.instance.baseTimeDilation, timeDilationTarget, unscaledDeltaTime)) {
                     EndTimeDilationPhase(TimeDilationPhase.InDilation);
                 }        
             }
@@ -107,16 +94,11 @@ namespace UnityTools {
             }
             //going to normal
             else if (timeDilationPhase == TimeDilationPhase.EndingDilation) {
-                if (SmoothTime (timeDilationTarget, settings.baseTimeDilation, unscaledDeltaTime)) {
+                if (SmoothTime (timeDilationTarget, GameTimeSettings.instance.baseTimeDilation, unscaledDeltaTime)) {
                     EndTimeDilation();
                 }
             }
         }
-
-        
-
-
-        
     
         void EndTimeDilationPhase(TimeDilationPhase nextPhase) {
             currentTimeDilation = timeDilationTarget;
@@ -125,7 +107,7 @@ namespace UnityTools {
         }
 
         void EndTimeDilation () {
-            currentTimeDilation = settings.baseTimeDilation;
+            currentTimeDilation = GameTimeSettings.instance.baseTimeDilation;
             timeDilationInProgress = false;
         }    
     }

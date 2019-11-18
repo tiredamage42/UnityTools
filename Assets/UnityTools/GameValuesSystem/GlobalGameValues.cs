@@ -62,6 +62,7 @@ namespace UnityTools {
         [NeatArray] public GameValueArray gameValues;
 
 
+        #if UNITY_EDITOR
         public static void DrawGlobalValueSelector (Rect pos, SerializedProperty prop) {
             if (globalGameValueSelector == null) {
                 globalGameValueSelector = new GlobalGameValueSelector();
@@ -70,8 +71,11 @@ namespace UnityTools {
         }
 
         static GlobalGameValueSelector globalGameValueSelector;
+        #endif
     }
 
+    #if UNITY_EDITOR
+        
     public class GlobalGameValueSelector {
         string[] elements;
         
@@ -150,4 +154,5 @@ namespace UnityTools {
         }
 
     }
+    #endif
 }

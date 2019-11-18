@@ -51,7 +51,7 @@ namespace UnityTools {
         public static SaveState settingsSaveState = new SaveState();
         
 
-        public static event Action<Scene> onSaveGame;
+        public static event Action<List<string>> onSaveGame;
         public static bool isLoadingSaveSlot;
         
         static string GetGameStatePath (int slot, string extension) {
@@ -79,13 +79,20 @@ namespace UnityTools {
                 return;
             }
             Debug.Log("Saving game");
-            // keep track of the scene we were in when saving
-            Scene currentScene = SceneLoading.currentScene;
-            
-            // let everyone know we're saving
-            if (onSaveGame != null) onSaveGame(currentScene);
 
-            SystemTools.SaveToFile(new GameSaveStateInfo(currentScene.name), GetGameSaveInfoPath(slot));
+            
+
+            // TODO: pass in list of all currently loaded scenes
+
+            // Scene[] allActiveLoadedScenes = SceneLoading.allCurrentLoadedScenes;
+            // let everyone know we're saving
+            if (onSaveGame != null) onSaveGame(SceneLoading.currentLoadedScenes);
+
+            // TODO: make this the scene player is currently part of
+            // keep track of the scene we were in when saving
+            string playerScene = SceneLoading.playerScene;
+            
+            SystemTools.SaveToFile(new GameSaveStateInfo(playerScene), GetGameSaveInfoPath(slot));
             SystemTools.SaveToFile(gameSaveState.saveState, GetGameSavePath(slot));
         }
 
@@ -113,11 +120,11 @@ namespace UnityTools {
             string sceneFromSave = savedStateInfo.sceneName;
             
             // load the actual save state
-            Action onSceneStartLoad = () => gameSaveState.Reinitialize( (Dictionary<string, object>)SystemTools.LoadFromFile(savePath) );
+            Action<LoadSceneMode> onSceneStartLoad = (mode) => gameSaveState.Reinitialize( (Dictionary<string, object>)SystemTools.LoadFromFile(savePath) );
             
-            Action<Scene> onSceneLoaded = (s) => isLoadingSaveSlot = false;
+            Action<string, LoadSceneMode> onSceneLoaded = (s, mode) => isLoadingSaveSlot = false;
             
-            if (!SceneLoading.LoadSceneAsync(sceneFromSave, onSceneStartLoad, onSceneLoaded)) {
+            if (!SceneLoading.LoadSceneAsync(sceneFromSave, onSceneStartLoad, onSceneLoaded, LoadSceneMode.Single, false)) {
                 isLoadingSaveSlot = false;
             }
         }

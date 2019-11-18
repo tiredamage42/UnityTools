@@ -204,6 +204,8 @@ namespace UnityTools.EditorTools {
     */
     [System.Serializable] public class NeatArrayElement { };
 
+    #if UNITY_EDITOR
+
     [CustomPropertyDrawer(typeof(NeatArrayElement), true)] 
     public class NeatArrayElementDrawer : PropertyDrawer {
         public override void OnGUI(Rect pos, SerializedProperty prop, GUIContent label) {
@@ -213,6 +215,7 @@ namespace UnityTools.EditorTools {
             return GUITools.singleLineHeight;
         }
     }
+    #endif
 
     public class NeatArray {
         public const string elementName = "element";

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-
 using UnityEngine.SceneManagement;
 using UnityTools;
 namespace UnityToolsDemo {

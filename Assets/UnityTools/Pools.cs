@@ -91,4 +91,64 @@ namespace UnityTools {
             return r;
         }
     }
+
+
+    public abstract class Poolable : MonoBehaviour {
+        public abstract string PrefabObjectName ();
+        public string basePrefabName;
+    }
+
+
+    public abstract class Poolable<T> : Poolable where T : Poolable<T> {
+        public static PrefabPool<T> pool = new PrefabPool<T>();
+        public static List<T> activeInstances = new List<T>();
+
+        public static List<T> GetInstancesNotInPool () {
+            List<T> r = new List<T>();
+            for (int i = 0; i < activeInstances.Count; i++) {
+                if (!activeInstances[i].isInPool) {
+                    r.Add(activeInstances[i]);
+                }
+            }
+            return r;
+        }
+
+        public abstract bool IsAvailable ();
+        public static List<T> GetActiveAndAvailableInstances () {
+            List<T> r = new List<T>();
+            for (int i = 0; i < activeInstances.Count; i++) {
+                if (activeInstances[i].IsAvailable()) {
+                    r.Add(activeInstances[i]);
+                }
+            }
+            return r;
+        }
+
+        protected virtual void OnEnable () {
+            if (isInPool) activeInstances.Add(this as T);
+        }
+        protected virtual void OnDisable () {
+            if (isInPool) activeInstances.Remove(this as T);
+        }
+        
+        bool isInPool;
+        
+        public void AddInstanceToPool (bool disable) {
+            if (isInPool) {
+                Debug.LogWarning(name + " (" + typeof(T).FullName + ") is already in pool...");
+                return;
+            }
+            isInPool = true;
+            pool.AddManualInstance(PrefabReferences.GetPrefabReference<T>(PrefabObjectName(), basePrefabName), this as T);
+            if (gameObject.activeSelf) {
+                if (disable) {
+                    gameObject.SetActive(false);
+                }
+                else {
+                    activeInstances.Add(this as T);
+                }
+            }
+            
+        }
+    }
 }

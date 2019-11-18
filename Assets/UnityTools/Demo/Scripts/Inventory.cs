@@ -5,7 +5,9 @@ using System;
 using UnityTools;
 namespace UnityToolsDemo {
 
-    public class Inventory : MonoBehaviour, ISaveableAttachment {
+    // on disable: unequip equipped things, and send them to pool
+
+    public class Inventory : MonoBehaviour, ISaveAttachment {
         [System.Serializable] public class Item {
             public string name;
             public int amount;
