@@ -8,20 +8,41 @@ using UnityTools.EditorTools;
 using UnityTools.GameSettingsSystem;
 using UnityTools.InitializationSceneWorkflow;
 
+using UnityTools.FastTravelling;
+
 namespace UnityTools.Internal {
     
     // [CreateAssetMenu(menuName="Unity Tools/Internal/Game Manager Settings", fileName="UnityTools_GameManagerSettings")]
     public class GameManagerSettings : GameSettingsObjectSingleton<GameManagerSettings> {
-        public FastTravelComponenet newGameSpawn;
+        
+        // if (Physics.Raycast(pos, Vector3.down, out hit, settings.groundCheckDistance, settings.groundCheckMask, QueryTriggerInteraction.Ignore)) 
+        //             pos = hit.point;
+        //     }
+        //     if (stickToNavMesh) {
+        //         NavMeshHit hit;
+        //         if (NavMesh.SamplePosition(pos, out hit, settings.navmeshCheckDistance, NavMesh.AllAreas))
+        //             pos = hit.position;
 
+        [Header("Environment")]
+        public float groundCheckDistance = 5;
+        public LayerMask environmentMask = Physics.DefaultRaycastLayers; 
+        public float navmeshCheckDistance = 2;
+        
+        
+        [NeatArray] public NeatGameObjectArray initialPrefabSpawns;
+
+        public int maxSaveSlots = 6;
+        public GameObject playerPrefab;
+        public ActionsInterfaceController actionsController;
+        public FastTravelLocation newGameSpawn;
+        
         // #if UNITY_EDITOR
+
+        [Header("EDITOR: ")]
         [Tooltip("Use To Skip To A Certain Spawn Automatically After Starting Initial Scene in Editor")]
-        public FastTravelComponenet editorSkipToSpawn;
+        public FastTravelLocation editorSkipToSpawn;
         // #endif
 
-        public GameObject playerPrefab;
-        public int maxSaveSlots = 6;
-        public ActionsInterfaceController actionsController;
     }
 
 

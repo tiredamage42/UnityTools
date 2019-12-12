@@ -29,18 +29,18 @@ namespace UnityTools.EditorTools {
             return _hiddenContent;
         } }
         static GUIContent _addContent;
-        protected static GUIContent addContent { get { 
+        public static GUIContent addContent { get { 
             if (_addContent == null) _addContent = BuiltInIcons.GetIcon("Toolbar Plus", "Add New Element"); 
             return _addContent;
         } }
         static GUIContent _deleteContent;
-        protected static GUIContent deleteContent { get { 
+        public static GUIContent deleteContent { get { 
             if (_deleteContent == null) _deleteContent = BuiltInIcons.GetIcon("Toolbar Minus", "Delete Element"); 
             return _deleteContent;
         } }
 
-        const string displayedName = "displayed";
-        protected const string listName = "list";
+        // const string displayedName = "displayed";
+        public const string listName = "list";
 
         void MakeSureSizeIsOK (SerializedProperty prop, int enforceSize) {
             
@@ -60,11 +60,10 @@ namespace UnityTools.EditorTools {
         }
 
         protected bool DrawDisplayedToggle (Rect pos, SerializedProperty prop) {
-            SerializedProperty displayed = prop.FindPropertyRelative(displayedName);
-            if (GUITools.IconButton(pos.x, pos.y, displayed.boolValue ? isShownContent : hiddenContent, GUITools.white)){
-                displayed.boolValue = !displayed.boolValue;
+            if (GUITools.IconButton(pos.x, pos.y, prop.isExpanded ? isShownContent : hiddenContent, GUITools.white)){
+                prop.isExpanded = !prop.isExpanded;
             }
-            return displayed.boolValue;
+            return prop.isExpanded;
         }
 
         protected void DrawArrayTitle (Rect pos, SerializedProperty prop, GUIContent label, float xOffset) {
@@ -130,7 +129,9 @@ namespace UnityTools.EditorTools {
         public override void OnGUI(Rect pos, SerializedProperty prop, GUIContent label)
         {
             NeatArrayAttribute att = attribute as NeatArrayAttribute;
-
+            int origIndentLevel = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0;
+            
             float indent1, indent2, indent2Width;
             bool displayedValue;
             StartArrayDraw ( pos, ref prop, ref label, out indent1, out indent2, out indent2Width, out displayedValue );
@@ -163,7 +164,7 @@ namespace UnityTools.EditorTools {
                     }
                     
                     SerializedProperty p = prop.GetArrayElementAtIndex(i);
-                    EditorGUI.PropertyField(pos, p, true);
+                    EditorGUI.PropertyField(pos, p, GUITools.noContent, true);
 
                     pos.y += EditorGUI.GetPropertyHeight(p, true);
                 }
@@ -175,11 +176,14 @@ namespace UnityTools.EditorTools {
                     OnDeleteElement(p);
 
                     if (p.propertyType == SerializedPropertyType.ObjectReference) {
-                        prop.DeleteArrayElementAtIndex(indexToDelete);
+                        if ((prop.objectReferenceValue) != null) {
+                            prop.DeleteArrayElementAtIndex(indexToDelete);
+                        }
                     }
                     prop.DeleteArrayElementAtIndex(indexToDelete);
                 }
             }
+            EditorGUI.indentLevel = origIndentLevel;
 
             EditorGUI.EndProperty();
         }
@@ -193,7 +197,7 @@ namespace UnityTools.EditorTools {
         }
     
         public override float GetPropertyHeight(SerializedProperty prop, GUIContent label) {
-            return CalculateHeight(prop.FindPropertyRelative(listName), prop.FindPropertyRelative(displayedName).boolValue) + GUITools.singleLineHeight * .25f;
+            return CalculateHeight(prop.FindPropertyRelative(listName), prop.isExpanded) + GUITools.singleLineHeight * .25f;
         }
     }
     #endif
@@ -237,7 +241,9 @@ namespace UnityTools.EditorTools {
     
     [Serializable] public class NeatStringList : NeatListWrapper<string> { public NeatStringList() : base() { } public NeatStringList(List<string> list) : base(list) { } }
     [Serializable] public class NeatStringArray : NeatArrayWrapper<string> { public NeatStringArray() : base() { } public NeatStringArray(string[] list) : base(list) { } }
+    [Serializable] public class NeatStringList2D { [NeatArray] public NeatStringList[] list; }
     
+
     [Serializable] public class NeatIntList : NeatListWrapper<int> { public NeatIntList() : base() { } public NeatIntList(List<int> list) : base(list) { } }
     [Serializable] public class NeatIntArray : NeatArrayWrapper<int> { public NeatIntArray() : base() { } public NeatIntArray(int[] list) : base(list) { } }
     
@@ -265,9 +271,27 @@ namespace UnityTools.EditorTools {
     public class NeatArrayWrapper<T> {
 
         public void CopyFrom (T[] list) {
-            System.Array.Resize(ref this.list, list.Length);
+            if (this.list.Length != list.Length)
+                System.Array.Resize(ref this.list, list.Length);
+            
             for (int i = 0; i < list.Length; i++)
                 this.list[i] = list[i];
+        }
+        public void CopyFrom (List<T> list) {
+            if (this.list.Length != list.Count)
+                System.Array.Resize(ref this.list, list.Count);
+            for (int i = 0; i < list.Count; i++)
+                this.list[i] = list[i];
+        }
+        public void CopyFrom<K> (Dictionary<K, T> list) {
+            if (this.list.Length != list.Count)
+                System.Array.Resize(ref this.list, list.Count);
+            
+            int i = 0;
+            foreach (var k in list.Keys) {
+                this.list[i] = list[k];
+                i++;
+            }
         }
         
         public NeatArrayWrapper (T[] list) { this.list = list; }
@@ -275,26 +299,38 @@ namespace UnityTools.EditorTools {
 
         public T GetRandom(T defaultValue) { return list.GetRandom<T>(defaultValue); }
         
-        public T[] list;
+        public T[] list = new T[0];
         public int Length { get { return list.Length; } }
         public T this[int index] { get { return list[index]; } }
-        public bool displayed;
+        // public bool displayed;
         public static implicit operator T[](NeatArrayWrapper<T> c) { return c.list; }
     }
+
     public class NeatListWrapper<T> {
 
         public void CopyFrom (List<T> list) {
             this.list.Clear();
             this.list.AddRange(list);
         }
+        public void CopyFrom (T[] list) {
+            this.list.Clear();
+            this.list.AddRange(list);
+        }
+        public void CopyFrom<K> (Dictionary<K, T> list) {
+            this.list.Clear();
+            foreach (var k in list.Keys)
+                this.list.Add(list[k]);
+        }
+            
+
 
         public NeatListWrapper (List<T> list) { this.list = list; }
         public NeatListWrapper () { }
 
         public T GetRandom(T defaultValue) { return list.GetRandom<T>(defaultValue); }
             
-        public List<T> list;
-        public bool displayed;
+        public List<T> list = new List<T>();
+        // public bool displayed;
         public int Count { get { return list.Count; } }
         public T this[int index] { get { return list[index]; } }
         public static implicit operator List<T>(NeatListWrapper<T> c) { return c.list; }

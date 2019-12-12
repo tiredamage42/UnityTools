@@ -2,13 +2,10 @@
 using System;
 using UnityEngine;
 
-#if UNITY_EDITOR
 using UnityEditor;
-#endif
 
 using Object = UnityEngine.Object;
 
-// namespace CustomEditorTools {
 namespace UnityTools.EditorTools {
 
     /*
@@ -18,18 +15,23 @@ namespace UnityTools.EditorTools {
     */    
     public class AssetSelectionAttribute : PropertyAttribute {
         public Type type;   
+        public bool useName;
         public virtual List<AssetSelectorElement> OnAssetsLoaded (List<AssetSelectorElement> originals) { return originals; }
-        public AssetSelectionAttribute(Type type) { this.type = type; }
+        public AssetSelectionAttribute(Type type, bool useName=false) { 
+            this.type = type; 
+            this.useName = useName;
+        }
     }
 
     public class AssetSelectorElement {
 
         public Object asset;
         public string displayName;
+        public string assetName { get { return asset != null ? asset.name : null; } }
 
-        public AssetSelectorElement(Object asset) {
+        public AssetSelectorElement(Object asset, string typeName) {
             this.asset = asset;
-            this.displayName = asset != null ? asset.name : "[ None ]";
+            this.displayName = asset != null ? asset.name : "[ Null ]";
         }    
     }
 
@@ -41,130 +43,195 @@ namespace UnityTools.EditorTools {
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
             
-            if (property.propertyType != SerializedPropertyType.ObjectReference) {
-                Debug.LogWarning("Field :: " + property.displayName + " is not an object reference type, cannot draw with asset selector");
-                EditorGUI.PropertyField(position, property, label);
-                return;
-            }
-
             AssetSelectionAttribute att = attribute as AssetSelectionAttribute;
-            Type type = att.type;// SerializedProperties.GetType(property);
+            Type type = att.type;
             
-            AssetSelector.Draw(type, position, property, label, att.OnAssetsLoaded);
+            if (att.useName) {
+                if (property.propertyType != SerializedPropertyType.String) {
+                    Debug.LogWarning("Field :: " + property.displayName + " is not an string type, cannot draw names with asset selector");
+                    EditorGUI.PropertyField(position, property, label);
+                    return;
+                }
+                AssetSelector.DrawName(type, position, property, label, att.OnAssetsLoaded);
+            }
+            else {
+
+                if (property.propertyType != SerializedPropertyType.ObjectReference) {
+                    Debug.LogWarning("Field :: " + property.displayName + " is not an object reference type, cannot draw with asset selector");
+                    EditorGUI.PropertyField(position, property, label);
+                    return;
+                }
+                AssetSelector.Draw(type, position, property, label, att.OnAssetsLoaded);
+            }
         }
     }
 
     public class AssetSelector {
         static Dictionary<Type, AssetSelector> allAssetSelectors = new Dictionary<Type, AssetSelector> ();
-        static AssetSelector GetAssetSelector (Type type, Func<List<AssetSelectorElement>, List<AssetSelectorElement>> onAssetsLoaded) {
-                    
+        static AssetSelector GetSelector (Type type) {
             AssetSelector selector;
             if (allAssetSelectors.TryGetValue(type, out selector)) {
                 if (selector != null) {
                     return selector;
                 }
             }
-            allAssetSelectors[type] = new AssetSelector(type, onAssetsLoaded);
+            allAssetSelectors[type] = new AssetSelector(type);
             return allAssetSelectors[type];
         }
 
-        public static void Draw (Type type, SerializedProperty property, GUIContent gui, Func<List<AssetSelectorElement>, List<AssetSelectorElement>> onAssetsLoaded) {
-            GetAssetSelector(type, onAssetsLoaded).Draw(property, gui, onAssetsLoaded);
+        public delegate List<AssetSelectorElement> OnAssetsLoaded (List<AssetSelectorElement> assets);
+
+        public static void Draw (Type type, SerializedProperty prop, GUIContent gui, OnAssetsLoaded onAssetsLoaded) {
+            Draw(type, prop.objectReferenceValue, gui, onAssetsLoaded, 
+                (picked) => {
+                    prop.objectReferenceValue = picked;
+                    prop.serializedObject.ApplyModifiedProperties();
+                } 
+            );
+                
         }
-        public static void Draw (Type type, Rect position, SerializedProperty property, GUIContent gui, Func<List<AssetSelectorElement>, List<AssetSelectorElement>> onAssetsLoaded) {
-            GetAssetSelector(type, onAssetsLoaded).Draw(position, property, gui, onAssetsLoaded);
+        public static void Draw (Type type, Rect pos, SerializedProperty prop, GUIContent gui, OnAssetsLoaded onAssetsLoaded) {
+            Draw(type, pos, prop.objectReferenceValue, gui, onAssetsLoaded, 
+                (picked) => {
+                    prop.objectReferenceValue = picked; 
+                    prop.serializedObject.ApplyModifiedProperties();
+                }         
+            );
         }
-        public static Object Draw (Type type, Rect position, Object current, GUIContent gui, Func<List<AssetSelectorElement>, List<AssetSelectorElement>> onAssetsLoaded) {
-            return GetAssetSelector(type, onAssetsLoaded).Draw(position, current, gui, onAssetsLoaded);
+        public static void Draw (Type type, Rect pos, Object current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Action<Object> onPicked) {
+            GetSelector(type).Draw(pos, current, gui, onAssetsLoaded, onPicked);
         }
-        public static Object Draw (Type type, Object current, GUIContent gui, Func<List<AssetSelectorElement>, List<AssetSelectorElement>> onAssetsLoaded) {
-            return GetAssetSelector(type, onAssetsLoaded).Draw(current, gui, onAssetsLoaded);
+        public static void Draw (Type type, Object current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Action<Object> onPicked) {
+            GetSelector(type).Draw(current, gui, onAssetsLoaded, onPicked);
         }
 
+        public static void DrawName (Type type, SerializedProperty prop, GUIContent gui, OnAssetsLoaded onAssetsLoaded) {
+            DrawName(type, prop.stringValue, gui, onAssetsLoaded, 
+                (picked) => {
+                    prop.stringValue = picked ;
+                    prop.serializedObject.ApplyModifiedProperties();    
+                }
+            );
+        }
+        public static void DrawName (Type type, Rect pos, SerializedProperty prop, GUIContent gui, OnAssetsLoaded onAssetsLoaded) {
+            DrawName(type, pos, prop.stringValue, gui, onAssetsLoaded, 
+                (picked) => {
+                    prop.stringValue = picked;
+                    prop.serializedObject.ApplyModifiedProperties();
+                } 
+            );
+        }
+        public static void DrawName (Type type, Rect pos, string current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Action<string> onPicked) {
+            GetSelector(type).DrawName(pos, current, gui, onAssetsLoaded, onPicked);
+        }
+        public static void DrawName (Type type, string current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Action<string> onPicked) {
+            GetSelector(type).DrawName(current, gui, onAssetsLoaded, onPicked);
+        }
+
+        const string nullString = "[ Null ]";
         Type type;
-        string[] allNames;
-        List<AssetSelectorElement> elements;
-        
-        GUIContent _resetButtonContent;
-        GUIContent resetButtonContent {
+        static GUIContent _pingGUI;
+        static GUIContent pingGUI {
             get {
-                if (_resetButtonContent == null) _resetButtonContent = BuiltInIcons.GetIcon("ViewToolZoom", "Update Asset References");// new GUIContent("", "Update Asset References");
-                return _resetButtonContent;
+                if (_pingGUI == null) _pingGUI = BuiltInIcons.GetIcon("ViewToolMove", "Select Asset");
+                return _pingGUI;
             }
         }
-        public AssetSelector (Type type, Func<List<AssetSelectorElement>, List<AssetSelectorElement>> onAssetsLoaded) {
+        public AssetSelector (Type type) {
             this.type = type;
-            UpdateAssetReferences( false, onAssetsLoaded );
         }
 
-        public void UpdateAssetReferences (bool logToConsole, Func<List<AssetSelectorElement>, List<AssetSelectorElement>> onAssetsLoaded) {
-            elements = BuildElements(logToConsole);
-            if (onAssetsLoaded != null) {
-                elements = onAssetsLoaded(elements);
-            }
-            elements.Insert(0, new AssetSelectorElement(null));
-
-            allNames = new string[elements.Count];
-            for (int i = 0; i < elements.Count; i++) 
-                allNames[i] = elements[i].displayName;
-        }
-
-        List<AssetSelectorElement> BuildElements(bool logToConsole) {
+        List<AssetSelectorElement> BuildElements(OnAssetsLoaded onAssetsLoaded, bool addNull, bool logToConsole) {
             List<Object> assets = AssetTools.FindAssetsByType(type, logToConsole);
 
             List<AssetSelectorElement> r = new List<AssetSelectorElement>();
-            for (int i = 0; i < assets.Count; i++) {
-                r.Add(new AssetSelectorElement(assets[i]));
-            }
+            
+            for (int i = 0; i < assets.Count; i++)
+                r.Add(new AssetSelectorElement(assets[i], type.Name));
+            
+            if (onAssetsLoaded != null)
+                r = onAssetsLoaded(r);
+            
+            if (addNull)
+                r.Insert(0, new AssetSelectorElement(null, type.Name));
+                
             return r;
         }
 
-        // TODO: include headers and attributes
-        public void Draw (SerializedProperty property, GUIContent gui, Func<List<AssetSelectorElement>, List<AssetSelectorElement>> onAssetsLoaded) {
-            property.objectReferenceValue = Draw( property.objectReferenceValue, gui, onAssetsLoaded );
-        }
-
-        public void Draw (Rect position, SerializedProperty property, GUIContent gui, Func<List<AssetSelectorElement>, List<AssetSelectorElement>> onAssetsLoaded) {
-            property.objectReferenceValue = Draw(position, property.objectReferenceValue, gui, onAssetsLoaded);
-        }
-        
-        int GetActiveIndex (Object current) {
+        void BuildMenu<T> (T current, OnAssetsLoaded onAssetsLoaded, Action<T> onPicked, Func<AssetSelectorElement, T> getObj) where T : class {
+            List<AssetSelectorElement> elements = BuildElements(onAssetsLoaded, true, logToConsole: false);
+            GenericMenu menu = new GenericMenu();
             for (int i =0 ; i < elements.Count; i++) {
-                if (elements[i].asset == current) return i;
+                T e = getObj (elements[i]);
+                menu.AddItem (new GUIContent(elements[i].displayName), e == current, () => onPicked(e));
             }
-            return -1;
+            menu.ShowAsContext();
         }
-
-        public Object Draw (Rect pos, Object current, GUIContent gui, Func<List<AssetSelectorElement>, List<AssetSelectorElement>> onAssetsLoaded) {
-            
-            float buttonStart = pos.width - GUITools.iconButtonWidth;
-
-            //draw field
-            int selected = EditorGUI.Popup (new Rect(pos.x, pos.y, buttonStart, pos.height), gui.text, GetActiveIndex(current), allNames);
-            
-            // draw reset button
-            if (GUITools.IconButton(pos.x + buttonStart, pos.y, resetButtonContent, GUITools.white)){
-            
-                UpdateAssetReferences(true, onAssetsLoaded);
+        void DrawLabel (ref float x, float y, GUIContent gui) {
+            if (!string.IsNullOrEmpty(gui.text)) {
+                EditorGUI.LabelField(new Rect(x, y, EditorGUIUtility.labelWidth, GUITools.singleLineHeight), gui);
+                x += EditorGUIUtility.labelWidth;
             }
-            
-            return selected < 0 ? null : elements[selected].asset;
+        }
+        void DrawLabel (GUIContent gui) {
+            if (!string.IsNullOrEmpty(gui.text)) 
+                EditorGUILayout.LabelField(gui, GUILayout.Width(EditorGUIUtility.labelWidth));
         }
         
-        public Object Draw (Object current, GUIContent gui, Func<List<AssetSelectorElement>, List<AssetSelectorElement>> onAssetsLoaded) {
-            EditorGUILayout.BeginHorizontal();
-            
-            //draw field
-            int selected = EditorGUILayout.Popup (gui, GetActiveIndex(current), allNames);
+        
+        bool DrawButton (float x, Rect pos, GUIContent gui) {
+            return GUITools.Button(x, pos.y, pos.width - ((x - pos.x) + GUITools.iconButtonWidth), GUITools.singleLineHeight, gui, GUITools.popup);
+        }
 
-            // draw reset button
-            if (GUITools.IconButton(resetButtonContent, GUITools.white)){    
-                UpdateAssetReferences(true, onAssetsLoaded);
+        GUIContent GetGUI (Object current) { return new GUIContent(current != null ? current.name : nullString); }
+        GUIContent GetGUI (string current) { return new GUIContent(current != null ? current : nullString); }
+
+        void Draw (Rect pos, Object current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Action<Object> onPicked) {    
+            float x = pos.x;
+            DrawLabel (ref x, pos.y, gui);
+            if (DrawButton (x, pos, GetGUI(current)))
+                BuildMenu (current, onAssetsLoaded, onPicked, (e) => e.asset);
+            if (GUITools.IconButton(pos.x + (pos.width - GUITools.iconButtonWidth), pos.y, pingGUI))
+                EditorGUIUtility.PingObject(current);
+        }
+
+        void Draw (Object current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Action<Object> onPicked) {
+            EditorGUILayout.BeginHorizontal();
+            DrawLabel(gui);            
+            if (GUITools.Button(GetGUI(current), GUITools.popup))
+                BuildMenu (current, onAssetsLoaded, onPicked, (e) => e.asset);
+            if (GUITools.IconButton(pingGUI))
+                EditorGUIUtility.PingObject(current);   
+            EditorGUILayout.EndHorizontal();
+        }
+        void PingAssetWithName (string name, OnAssetsLoaded onAssetsLoaded) {
+            if (name != null) {
+                List<AssetSelectorElement> elements = BuildElements(onAssetsLoaded, false, logToConsole: false);
+                for (int i =0 ; i < elements.Count; i++) {
+                    if (elements[i].asset.name == name) {
+                        EditorGUIUtility.PingObject(elements[i].asset);
+                        break;
+                    }
+                }
             }
-            
+        }
+        void DrawName (Rect pos, string current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Action<string> onPicked) {
+            float x = pos.x;
+            DrawLabel (ref x, pos.y, gui);
+            if (DrawButton (x, pos, GetGUI(current)))
+                BuildMenu (current, onAssetsLoaded, onPicked, (e) => e.assetName);
+            if (GUITools.IconButton(pos.x + (pos.width - GUITools.iconButtonWidth), pos.y, pingGUI)) 
+                PingAssetWithName(current, onAssetsLoaded);
+        }
+        void DrawName (string current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Action<string> onPicked) {
+            EditorGUILayout.BeginHorizontal();
+            DrawLabel(gui);
+            if (GUITools.Button(GetGUI(current), GUITools.popup))
+                BuildMenu (current, onAssetsLoaded, onPicked, (e) => e.assetName);
+            if (GUITools.IconButton( pingGUI )) 
+                PingAssetWithName(current, onAssetsLoaded);
             EditorGUILayout.EndHorizontal();
             
-            return selected < 0 ? null : elements[selected].asset;
         }
     }
 #endif

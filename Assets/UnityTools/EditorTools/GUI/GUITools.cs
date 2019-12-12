@@ -96,10 +96,10 @@ namespace UnityTools.EditorTools {
             get {
                 if (_popup == null) {
                     _popup = new GUIStyle(EditorStyles.popup);
-                    _popup.normal.background = (Texture2D)BuiltInIcons.GetIcon("mini popup@2x", "").image;
-                    _popup.focused.background = (Texture2D)BuiltInIcons.GetIcon("mini popup focus@2x", "").image;
-                    _popup.normal.textColor = liteGray;
-                    _popup.focused.textColor = liteGray;
+                    // _popup.normal.background = (Texture2D)BuiltInIcons.GetIcon("mini popup@2x", "").image;
+                    // _popup.focused.background = (Texture2D)BuiltInIcons.GetIcon("mini popup focus@2x", "").image;
+                    // _popup.normal.textColor = liteGray;
+                    // _popup.focused.textColor = liteGray;
 
                 }
                 return _popup;
@@ -135,10 +135,29 @@ namespace UnityTools.EditorTools {
             }
             return value;
         }
+        public static bool DrawToggleButton (bool value, GUIContent content, float x, float y) {
+            return DrawToggleButton(value, content, x, y, blue, white);
+        }
         public static bool DrawToggleButton (SerializedProperty prop, GUIContent content, float x, float y, Color32 onColor, Color32 offColor) {
             prop.boolValue = DrawToggleButton (prop.boolValue, content, x, y, onColor, offColor);
             return prop.boolValue;
         }
+
+        public static bool DrawToggleButton (SerializedProperty prop, GUIContent content, float x, float y) {
+            return DrawToggleButton (prop, content, x, y, blue, white);
+        }
+
+
+        public static bool DrawToggleButton (bool value, GUIContent content, float x, float y, float w, float h, GUIStyle style) {
+            if (Button(x, y, w, h, content, value ? blue : white, style, black ))
+                value = !value;
+            return value;
+        }
+        public static bool DrawToggleButton (SerializedProperty prop, GUIContent content, float x, float y, float w, float h, GUIStyle style) {
+            prop.boolValue = DrawToggleButton (prop.boolValue, content, x, y, w, h, style);
+            return prop.boolValue;
+        }
+
             
         public static void DrawIconPrefixedField (float x, float y, float w, float h, SerializedProperty prop, GUIContent content, Color32 color) {
             IconButton(x, y, content, color);
@@ -153,11 +172,15 @@ namespace UnityTools.EditorTools {
         public static void Label (Rect rect, GUIContent content, Color32 color, GUIStyle style) {
             Color32 textCol = style.normal.textColor;
             style.normal.textColor = color;
-            
             GUI.Label(rect, content, style);
-            
             style.normal.textColor = textCol;
             
+        }
+        public static void Label (GUIContent content, Color32 color, GUIStyle style, params GUILayoutOption[] opts) {
+            Color32 textCol = style.normal.textColor;
+            style.normal.textColor = color;
+            EditorGUILayout.LabelField(content, style, opts);
+            style.normal.textColor = textCol;
         }
 
 
@@ -180,10 +203,19 @@ namespace UnityTools.EditorTools {
         public static bool IconButton (float x, float y, GUIContent content, Color32 color) {            
             return Button(x, y, iconButtonWidth, EditorGUIUtility.singleLineHeight, content, color, toolbarButton, black);
         }
+        public static bool IconButton (float x, float y, GUIContent content) {            
+            return IconButton(x, y, content, white);
+        }
         public static bool IconButton (GUIContent content, Color32 color) {
             return Button(content, color, toolbarButton, black, iconButtonOptions);
         }
+        public static bool IconButton (GUIContent content) {
+            return IconButton(content, white);
+        }
 
+        public static bool Button (float x, float y, float w, float h, GUIContent content, GUIStyle style) {
+            return Button (x, y, w, h, content, white, style, black);
+        }
         public static bool Button (float x, float y, float w, float h, GUIContent content, Color32 color, GUIStyle style, Color32 textColor) {
             SetRect(x, y, w, h);
             Color32 textCol = style.normal.textColor;
@@ -195,6 +227,10 @@ namespace UnityTools.EditorTools {
             style.normal.textColor = textCol;
             return pressed;
         }
+        public static bool Button (GUIContent content, GUIStyle style, params GUILayoutOption[] layoutOptions) {
+            return Button (content, white, style, black, layoutOptions);
+        }
+
         public static bool Button (GUIContent content, Color32 color, GUIStyle style, Color32 textColor, params GUILayoutOption[] layoutOptions) {
             Color32 textCol = style.normal.textColor;
             style.normal.textColor = textColor;

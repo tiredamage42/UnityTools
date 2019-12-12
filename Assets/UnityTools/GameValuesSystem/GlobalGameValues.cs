@@ -48,7 +48,7 @@ namespace UnityTools {
             Debug.LogWarning("Global Value: '" + name + "' does not exist");
             return null;
         }
-        public static float GetGlobalValueComponent (string name, GameValue.GameValueComponent component) {
+        public static float GetGlobalValueComponent (string name, GameValueComponent component) {
             GameValue gv = GetGameValue(name);
             if (gv == null)
                 return 0;
@@ -56,7 +56,7 @@ namespace UnityTools {
             return gv.GetValueComponent(component);
         }
         public static float GetGlobalValue (string name) {
-            return GetGlobalValueComponent(name, GameValue.GameValueComponent.Value);
+            return GetGlobalValueComponent(name, GameValueComponent.Value);
         }
         
         [NeatArray] public GameValueArray gameValues;

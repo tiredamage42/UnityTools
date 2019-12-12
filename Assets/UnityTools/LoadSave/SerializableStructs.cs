@@ -5,6 +5,7 @@ namespace UnityTools {
     [System.Serializable] public struct sVector2 {
         public float x, y;
         public sVector2 (Vector2 v) { this.x = v.x; this.y = v.y; }
+        public sVector2 (float x, float y) { this.x = x; this.y = y; }
         public static implicit operator Vector2 (sVector2 v) => new Vector2(v.x, v.y);
         public static implicit operator sVector2 (Vector2 v) => new sVector2(v);
     }

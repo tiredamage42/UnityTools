@@ -3,18 +3,20 @@ using UnityEngine;
 namespace UnityTools {
     public class Singleton {
         public static T GetOrBuildInstance<T> (ref T variable, bool checkDisabled) where T : MonoBehaviour {
-            if ((object)variable == null) {
+            if (variable == null) {
                 variable = GameObjects.FindObjectOfType<T>(checkDisabled);
-                if ((object)variable == null)   
+                if (variable == null) {
+                    Debug.Log("Manually Adding " + typeof(T).Name + " Singleton");
                     variable = new GameObject(typeof(T).Name + "_singleton").AddComponent<T>();
+                }
             }
             return variable;
         }
 
         public static T GetInstance <T> (ref T variable, bool checkDisabled) where T : MonoBehaviour {
-            if ((object)variable == null) {
+            if (variable == null) {
                 variable = GameObjects.FindObjectOfType<T>(checkDisabled);
-                if ((object)variable == null) Debug.LogWarning("No instance of " + typeof(T).FullName + " in the scene");
+                if (variable == null) Debug.LogWarning("No instance of " + typeof(T).FullName + " in the scene");
             }
 
             return variable;

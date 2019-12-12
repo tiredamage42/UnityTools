@@ -11,7 +11,7 @@ namespace UnityToolsDemo {
     /*
         used for testing
     */
-    [CreateAssetMenu(menuName="Unity Tools/Demo Sample Object")]
+    // [CreateAssetMenu(menuName="Unity Tools/Demo Sample Object")]
     public class SampleObject : ScriptableObject
     {
         // [NeatArray] public PreviewedAudioAssetArray audioClipsAssets;
@@ -25,9 +25,8 @@ namespace UnityToolsDemo {
 
         // public ParticlesFX particlesFX, particlesFX2;
 
-        // [NeatArray] public GameValueArray gameValues;
-
-        // [NeatArray] public GameValueModifierArray modifiers;
+        [NeatArray] public GameValueArray gameValues;
+        [NeatArray] public GameValueModifierArray modifiers;
         // [NeatArray] public GameValueModifierArray2D modifiers2d;
 
         public Conditions conditions;

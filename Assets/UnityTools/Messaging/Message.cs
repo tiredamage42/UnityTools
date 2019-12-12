@@ -9,7 +9,7 @@ namespace UnityTools {
     
     [System.Serializable] public class Messages : NeatArrayWrapper<Message> { 
         
-        public void Invoke (Messages messages, GameObject subject, GameObject target) {
+        public static void Invoke (Messages messages, GameObject subject, GameObject target) {
             if (messages == null) 
                 return;
 
@@ -26,8 +26,8 @@ namespace UnityTools.Internal {
         public RunTarget runTarget;
         public GameObject referenceTarget;
         public string callMethod;
-        public MessageParameters parameters;
-        public bool showParameters;
+        public Parameters parameters;
+        // public bool showParameters;
 
 
         public void Invoke (GameObject subject, GameObject target) {
@@ -48,7 +48,8 @@ namespace UnityTools.Internal {
     }
 
     #if UNITY_EDITOR
-    [CustomPropertyDrawer(typeof(Messages))] class MessagesDrawer : NeatArrayWithMessageParametersInElements { }
+    // [CustomPropertyDrawer(typeof(Messages))] class MessagesDrawer : NeatArrayWithMessageParametersInElements { }
+    [CustomPropertyDrawer(typeof(Messages))] class MessagesDrawer : NeatArrayAttributeDrawer { }
 
     /*
         DRAW A SINGLE CONDITION:

@@ -1,5 +1,7 @@
 ﻿using UnityEditor;
 
+
+using UnityTools.EditorTools;
 namespace UnityTools.GameSettingsSystem.Internal {
     /*
         update the game settings holder every time the project changes, to keep track of all the
@@ -8,10 +10,7 @@ namespace UnityTools.GameSettingsSystem.Internal {
     */
     [InitializeOnLoad] public class GameSettingsEditor {
         static GameSettingsEditor () {
-            
-            GameSettingsList.RefreshGameSettingsList();
-
-            EditorApplication.projectChanged += GameSettingsList.RefreshGameSettingsList;
+            UnityToolsEditor.AddProjectChangeListener(GameSettingsList.RefreshGameSettingsList);
         }
     }
 }

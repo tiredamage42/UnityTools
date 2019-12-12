@@ -23,16 +23,14 @@ namespace UnityTools.Audio {
         static ComponentPool<PooledAudioSource> pool = new ComponentPool<PooledAudioSource>();
 
         public static AudioSource PlayClip (ExtendedAudioClip clip, float fadeDuration, Vector3 position) {
-            AudioSource source = pool.GetAvailable().source;
-            source.transform.position = position;
+            AudioSource source = pool.GetAvailable(null, true, position, Quaternion.identity).source;
             if (source.Play(clip, fadeDuration)) {
                 return source;
             }
             return null;
         }
         public static AudioSource PlayClip (ExtendedAudioClip clip, float fadeDuration, Transform parent, Vector3 localPosition) {
-            AudioSource source = pool.GetAvailable().source;
-            source.transform.SetParent(parent, localPosition);
+            AudioSource source = pool.GetAvailable(parent, true, localPosition, Quaternion.identity).source;
             if (source.Play(clip, fadeDuration)) {
                 return source;
             }

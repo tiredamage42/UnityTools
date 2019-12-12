@@ -21,7 +21,7 @@ namespace UnityTools.Internal {
             GameObject subject, 
             GameObject target, 
             GameObject referenceTarget,
-            MessageParameters parameters,
+            Parameters parameters,
             out GameObject obj,
             out object[] suppliedParameters
         ) {
@@ -54,7 +54,7 @@ namespace UnityTools.Internal {
                     obj = null; 
                     break;
                 case RunTarget.Player: 
-                    obj = GameManager.playerActor.gameObject; 
+                    obj = GameManager.player.gameObject; 
                     break;
             }
 

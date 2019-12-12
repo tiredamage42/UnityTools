@@ -23,14 +23,15 @@ namespace UnityTools.Internal {
         }
         protected void DrawEnd (ref Rect pos, SerializedProperty prop, float origX, float origWidth, SerializedProperty runTargetProp) {
             
-            bool showParameters = GUITools.DrawToggleButton(prop.FindPropertyRelative("showParameters"), new GUIContent("P", "Show Parameters"), pos.x, pos.y, GUITools.blue, GUITools.white);
+            prop.isExpanded = GUITools.DrawToggleButton(prop.isExpanded, new GUIContent("P", "Show Parameters"), pos.x, pos.y, GUITools.blue, GUITools.white);
+            
             pos.x += GUITools.iconButtonWidth;
             
             if (runTargetProp.enumValueIndex == (int)RunTarget.Reference) {
                 DrawReferenceTarget ( ref pos, prop, origX, origWidth);
             }
             
-            DrawParameters (ref pos, prop, showParameters, origX, origWidth);
+            DrawParameters (ref pos, prop, prop.isExpanded, origX, origWidth);
         }
         void DrawReferenceTarget (ref Rect pos, SerializedProperty prop, float origX, float origWidth) {
             pos.y += GUITools.singleLineHeight;
@@ -59,7 +60,7 @@ namespace UnityTools.Internal {
                     pos.x += GUITools.iconButtonWidth;
                     pos.width -= GUITools.iconButtonWidth;
 
-                    MessageParametersDrawer.DrawFlat(pos, paramsProp);
+                    ParametersDrawer.DrawFlat(pos, paramsProp);
                 }
             }
         }
@@ -68,7 +69,8 @@ namespace UnityTools.Internal {
             
             float h = GUITools.singleLineHeight;
 
-            if (prop.FindPropertyRelative("showParameters").boolValue) {
+            if (prop.isExpanded) {
+            
                 h += EditorGUI.GetPropertyHeight(prop.FindPropertyRelative("parameters"), true);
             }
             else {

@@ -57,9 +57,17 @@ namespace UnityTools {
         Vector3 timeDilationSpeeds;
             
         void UpdateScales () {
-            Time.timeScale = currentTimeDilation * (GameManager.isPaused ? 0 : 1);
-            Time.fixedDeltaTime = GameTimeSettings.instance.actualFixedTimeStep * currentTimeDilation;
-            Time.maximumDeltaTime = GameTimeSettings.instance.maxTimeStep * currentTimeDilation;  
+            float s = currentTimeDilation * (GameManager.isPaused ? 0 : 1);
+            if (Time.timeScale != s)
+                Time.timeScale = s;
+
+            float fs = GameTimeSettings.instance.actualFixedTimeStep * currentTimeDilation;
+            if (Time.fixedDeltaTime != fs)
+                Time.fixedDeltaTime = fs;
+            
+            float ms = GameTimeSettings.instance.maxTimeStep * currentTimeDilation;
+            if (Time.maximumDeltaTime != ms)
+                Time.maximumDeltaTime = ms;
         }
             
         bool SmoothTime (float orig, float target, float unscaledDeltaTime){

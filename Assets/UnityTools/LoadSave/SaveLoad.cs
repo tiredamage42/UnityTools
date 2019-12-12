@@ -135,13 +135,13 @@ namespace UnityTools {
         public static void LoadSettingsOptions () {
             string savePath = GetGameSettingsOptionsPath();
             if (!File.Exists(savePath)) return;
-            Debug.Log("Starting Settings Load");
+            // Debug.Log("Starting Settings Load");
             settingsSaveState.Reinitialize( (Dictionary<string, object>)SystemTools.LoadFromFile(savePath) );
             if (onSettingsOptionsLoaded != null) onSettingsOptionsLoaded();
         }
         // call when we're done editng any settings, or when we're quittin ghte application
         public static void SaveSettingsOptions () {
-            Debug.Log("Saving Settings");
+            // Debug.Log("Saving Settings");
             // let everyone know we're saving settings
             if (onSaveSettingsOptions != null) onSaveSettingsOptions();
             SystemTools.SaveToFile(settingsSaveState.saveState, GetGameSettingsOptionsPath());

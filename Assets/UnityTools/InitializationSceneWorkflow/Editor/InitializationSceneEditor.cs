@@ -21,10 +21,8 @@ namespace UnityTools.InitializationSceneWorkflow.Internal {
             BuildSettings.AddBuildWindowIgnorePattern(InitializationScenes.mainInitializationScene);
             BuildSettings.AddBuildWindowIgnorePattern(InitializationScenes.initializationSceneKey);
             
+            UnityToolsEditor.AddProjectChangeListener(RefreshScenesList);
 
-            RefreshScenesList();
-
-            EditorApplication.projectChanged += RefreshScenesList;
             EditorApplication.playModeStateChanged += OnPlayModeChanged;
         }        
 
@@ -63,29 +61,28 @@ namespace UnityTools.InitializationSceneWorkflow.Internal {
             int c = initializationScenes.Count;
 
             instance.initializationSceneNames = new string[c];
-            instance.initializationScenePaths = new string[c];
+            string[] initializationScenePaths = new string[c];
 
             for (int i = 0; i < c; i++) {
                 string path = AssetDatabase.GetAssetPath(initializationScenes[i]);
-                instance.initializationScenePaths[i] = path;
+                initializationScenePaths[i] = path;
                 instance.initializationSceneNames[i] = Path.GetFileNameWithoutExtension(path);
             }
 
-            AddScenesToBuildSettings(instance);
+            AddScenesToBuildSettings(instance, initializationScenePaths);
 
             EditorUtility.SetDirty(instance);
         }  
 
-        static void AddScenesToBuildSettings (InitializationScenes instance) {
+        static void AddScenesToBuildSettings (InitializationScenes instance, string[] initializationScenePaths) {
             EditorBuildSettingsScene[] buildScenes = EditorBuildSettings.scenes;
             
             List<EditorBuildSettingsScene> finalScenes = new List<EditorBuildSettingsScene>();
             
             finalScenes.Add(new EditorBuildSettingsScene(instance.mainInitializationScenePath, true));
             
-            for (int i = 0; i < instance.initializationScenePaths.Length; i++) 
-                finalScenes.Add(new EditorBuildSettingsScene(instance.initializationScenePaths[i], true));
-            
+            for (int i = 0; i < initializationScenePaths.Length; i++) 
+                finalScenes.Add(new EditorBuildSettingsScene(initializationScenePaths[i], true));
             
             
             // add all non initialization scenes that were already in the build settings...
@@ -141,14 +138,15 @@ namespace UnityTools.InitializationSceneWorkflow.Internal {
                 
                 // User pressed play -- autoload initials scene.
 
-                string prevScenesKey = "";
-                for (int i = 0; i < EditorSceneManager.sceneCount; i++) {
-                    prevScenesKey += EditorSceneManager.GetSceneAt(i).path + (i == EditorSceneManager.sceneCount -1 ? string.Empty : splitKeyS);
-                }
-
-                PreviousScene = prevScenesKey;// EditorSceneManager.GetActiveScene().path;
                 if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                 {
+                    string prevScenesKey = "";
+                    for (int i = 0; i < EditorSceneManager.sceneCount; i++) {
+                        prevScenesKey += EditorSceneManager.GetSceneAt(i).path + (i == EditorSceneManager.sceneCount -1 ? string.Empty : splitKeyS);
+                    }
+
+                    PreviousScene = prevScenesKey;
+                    
                     try {
                         EditorSceneManager.OpenScene(InitializationScenes.instance.mainInitializationScenePath);
                     }
@@ -165,13 +163,6 @@ namespace UnityTools.InitializationSceneWorkflow.Internal {
         }
     
         const string cEditorPrefPreviousScene = "InitialSceneWorkflow.PreviousScene";
-
-        // const string cEditorPrefLoadInitialOnPlay = "InitialSceneWorkflow.LoadInitialOnPlay";
-        // public static bool LoadInitialOnPlay
-        // {
-        //     get { return EditorPrefs.GetBool(cEditorPrefLoadInitialOnPlay, false); }
-        //     set { EditorPrefs.SetBool(cEditorPrefLoadInitialOnPlay, value); }
-        // }
         static string PreviousScene
         {
             get { return EditorPrefs.GetString(cEditorPrefPreviousScene, EditorSceneManager.GetActiveScene().path); }

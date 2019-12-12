@@ -10,5 +10,14 @@ namespace UnityTools {
     {
         [NeatArray] public GameValueArray gameValues;
     }
+
+
+    
+    [System.Serializable] public class GameValuesTemplateArrayElement : NeatArrayElement { 
+        [AssetSelection(typeof(GameValuesTemplate))] public GameValuesTemplate element; 
+    }
+    [System.Serializable] public class GameValuesTemplateArray : NeatArrayWrapper<GameValuesTemplateArrayElement> {
+
+    }
 }
 

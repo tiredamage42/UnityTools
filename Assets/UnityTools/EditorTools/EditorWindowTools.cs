@@ -74,6 +74,17 @@ namespace UnityTools.EditorTools {
         public static T OpenWindowNextToInspector<T> (string title) where T : EditorWindow {
             return EditorWindow.GetWindow<T>(title, true, Type.GetType("UnityEditor.InspectorWindow,UnityEditor.dll"));
         }
+
+        public static void FocusSceneViewOnMouseOver () {
+            if (SceneView.sceneViews.Count > 0) {
+                EditorWindow sceneView = (EditorWindow)SceneView.sceneViews[0];
+                if (EditorWindow.focusedWindow != sceneView) {
+                    if (EditorWindow.mouseOverWindow && EditorWindow.mouseOverWindow == sceneView) {
+                        sceneView.Focus();
+                    }                
+                }
+            }
+        }
     }
 }
 #endif

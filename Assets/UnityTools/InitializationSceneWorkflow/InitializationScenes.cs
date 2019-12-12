@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 namespace UnityTools.InitializationSceneWorkflow {
 
 
-    [CreateAssetMenu(menuName="Initialization Scenes Workflow/Initialization Scenes Collection", fileName="InitializationScenes")]
+    // [CreateAssetMenu(menuName="Initialization Scenes Workflow/Initialization Scenes Collection", fileName="InitializationScenes")]
     public class InitializationScenes : GameSettingsObjectSingleton<InitializationScenes>
     {
         
@@ -25,7 +25,7 @@ namespace UnityTools.InitializationSceneWorkflow {
             set {_bypassInitializationSceneLoad = value;}
         }
         public string mainInitializationScenePath;
-        public string[] initializationScenePaths;
+        // public string[] initializationScenePaths;
 #endif
 
         public override bool ShowInGameSettingsWindow() {
@@ -34,12 +34,16 @@ namespace UnityTools.InitializationSceneWorkflow {
         public static void LoadInitializationScene () {
             SceneLoading.LoadSceneAsync (mainInitializationScene, null, OnInitialSceneLoaded, LoadSceneMode.Single, false);
         }
-        static void OnInitialSceneLoaded (string scene, LoadSceneMode mode) {
-            if (instance != null) {
-                for (int i = 0; i < instance.initializationSceneNames.Length; i++) {
-                    SceneLoading.LoadSceneAsync (instance.initializationSceneNames[i], null, null, LoadSceneMode.Additive, false);
-                }
+
+        public static void LoadAdditionalInitializationScenes () {
+            if (instance == null)
+                return;
+            for (int i = 0; i < instance.initializationSceneNames.Length; i++) {
+                SceneLoading.LoadSceneAsync (instance.initializationSceneNames[i], null, null, LoadSceneMode.Additive, false);
             }
+        }
+        static void OnInitialSceneLoaded (string scene, LoadSceneMode mode) {
+        //     LoadAdditionalInitializationScenes();
         }
         public string[] initializationSceneNames;
         public const string mainInitializationScene = "_MainMenuScene";

@@ -1,11 +1,16 @@
-﻿// using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityTools {
     public static class Collections 
     {
-        
+        public static T GetRandom<T> (this List<T> a) where T : class {
+            return a.GetRandom<T>(null);
+        }
+        public static T GetRandom<T> (this T[] a) where T : class {
+            return a.GetRandom<T>(null);
+        }
+
         public static T GetRandom<T> (this List<T> a, T defaultValue) {
             int c = a.Count;
             if (c == 0) return defaultValue;
@@ -20,11 +25,24 @@ namespace UnityTools {
         }
 
         public static T[] MakeCopy <T> (this T[] s) {
-            T[] t = new T[s.Length];
-            for (int i = 0; i < s.Length; i++) {
-                t[i] = s[i];
-            }
-            return t;
+            return (T[])s.Clone();
         }
+        public static List<T> MakeCopy <T> (this List<T> s) {
+            return new List<T>(s);
+        }
+        public static T Last <T> (this List<T> s, T defaultValue) {
+            int c = s.Count;
+            if (c == 0)
+                return defaultValue;
+            return s[c - 1];
+        }
+        public static T Last <T> (this List<T> s) where T : class {
+            return s.Last<T>(null);
+        }
+        public static T AddNew <T> (this List<T> s, T item) {
+            s.Add(item);
+            return item;
+        }
+
     }
 }

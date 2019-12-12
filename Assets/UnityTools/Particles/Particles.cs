@@ -49,13 +49,11 @@ namespace UnityTools.Particles {
             ps.gameObject.AddComponent<PooledParticleSystem>();
         }
         public static ParticleSystem Play (ParticlesFX particlesFX, Vector3 position, Quaternion rotation, float scaleMultiplier) {
-            ParticleSystem ps = pool.GetAvailable(particlesFX.particle, OnParticleSystemPrefabCreate);
-            ps.transform.SetTransform(position, rotation);
+            ParticleSystem ps = pool.GetAvailable(particlesFX.particle, null, true, position, rotation, OnParticleSystemPrefabCreate, null);
             return ps.Play(particlesFX, scaleMultiplier);
         }
         public static ParticleSystem Play (ParticlesFX particlesFX, Transform parent, Vector3 localPosition, Quaternion localRotation, float scaleMultiplier) {
-            ParticleSystem ps = pool.GetAvailable(particlesFX.particle, OnParticleSystemPrefabCreate);
-            ps.transform.SetParent(parent, localPosition, localRotation);
+            ParticleSystem ps = pool.GetAvailable(particlesFX.particle, parent, true, localPosition, localRotation, OnParticleSystemPrefabCreate, null);
             return ps.Play(particlesFX, scaleMultiplier);
         }
     }

@@ -33,9 +33,9 @@ namespace UnityTools {
             EditorGUI.BeginProperty(pos, label, prop);
             float w = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = 50;
-            EditorGUI.PropertyField(new Rect(pos.x, pos.y, pos.width, EditorGUIUtility.singleLineHeight), prop.FindPropertyRelative("name"), true);
+            EditorGUI.PropertyField(new Rect(pos.x, pos.y, pos.width, GUITools.singleLineHeight), prop.FindPropertyRelative("name"), true);
             EditorGUIUtility.labelWidth = w;
-            EditorGUI.PropertyField(new Rect(pos.x, pos.y + EditorGUIUtility.singleLineHeight, pos.width, EditorGUIUtility.singleLineHeight), prop.FindPropertyRelative("transform"), true);
+            EditorGUI.PropertyField(new Rect(pos.x, pos.y + GUITools.singleLineHeight, pos.width, GUITools.singleLineHeight), prop.FindPropertyRelative("transform"), true);
             EditorGUI.EndProperty();
         }
 

@@ -3,12 +3,28 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
+using System.Linq;
 using UnityEngine.SceneManagement;
 
 namespace UnityTools {
 
     public class SceneLoading 
     {
+        static Func<string, List<MonoBehaviour>, List<MonoBehaviour>> filterObjectsForScene;
+        public static void SetObjectsSceneFilter (Func<string, List<MonoBehaviour>, List<MonoBehaviour>> filterObjectsForScene) {
+            SceneLoading.filterObjectsForScene = filterObjectsForScene;
+        }
+
+        public static List<C> FilterObjectsForScene<C> (string scene, List<C> objects) where C : MonoBehaviour {
+            if (filterObjectsForScene == null) 
+                return objects;
+            
+            return filterObjectsForScene(scene, objects.Cast<MonoBehaviour>().ToList()).Cast<C>().ToList();
+        }
+
+
+
+
         public static event Action<string, LoadSceneMode> onSceneLoadStart;
         public static event Action<string, float, LoadSceneMode> onSceneLoadUpdate;
         public static event Action<string, LoadSceneMode> onSceneLoadEnd;
@@ -179,16 +195,18 @@ namespace UnityTools {
             currentLoadedScenes.Add(scene);
             
             operation.allowSceneActivation = true;
+            
+
             // let the scene activate for frame
 
             // SceneManager.onSceneLoaded gets called here...
             yield return null;
             
             // now scene is considered "loaded"
-
+                
             if (loadSceneMode == LoadSceneMode.Single)
                 SetActiveScene(scene);
-                
+            
             if (fakedMode == LoadSceneMode.Single)
                 SetPlayerScene(scene);
      

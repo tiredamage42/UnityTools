@@ -22,7 +22,6 @@ namespace UnityToolsDemo {
         }
 
         public SimpleShakeInfo position, rotation;
-
         TransformShake<SimpleShaker, SimpleShakeInfo> transformShake = new TransformShake<SimpleShaker, SimpleShakeInfo>();
 
         void OnPositionShakeEnd () {

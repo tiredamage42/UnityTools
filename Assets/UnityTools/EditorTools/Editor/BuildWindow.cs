@@ -105,6 +105,7 @@ namespace UnityTools.EditorTools {
             EditorGUI.BeginChangeCheck();
             
             windowSO.Update();
+
             
             EditorGUILayout.PropertyField(windowSO.FindProperty("scenes"), true);
             

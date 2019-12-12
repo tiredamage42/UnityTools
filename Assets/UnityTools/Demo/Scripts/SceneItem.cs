@@ -1,46 +1,41 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-using UnityTools.GameSettingsSystem;
-using UnityEngine.SceneManagement;
+﻿using UnityEngine;
 using UnityTools;
 namespace UnityToolsDemo {
 
-    [System.Serializable] public class SceneItemState : SaveObjectState {
-        // public string prefabName;
-        
-        public SceneItemState (SceneItem instance) : base (instance)
-        {
-            // this.prefabName = instance.basePrefabName;
+    [System.Serializable] public class SceneItemState : ObjectAttachmentState {
+        public SceneItemState (SceneItem instance) { 
+
         }
     }
 
-    public class SceneItem : Poolable<SceneItem>, ISaveObject<SceneItemState> {
-        public void LoadFromSavedObject (SceneItemState savedState) {
-            
+    public class SceneItem : DynamicObjectScript<SceneItem>, IObjectAttachment {
+        
+        public int InitializationPhase () {
+            return 0;
         }
 
-        public override bool IsAvailable () {
-            return true; //!isequipped to actor....
+        public void InitializeDefault () {
+                     
         }
 
-        public override string PrefabObjectName() {
-            return "DemoPrefabs";
+        public void Strip () {
+        
         }
 
-        // public void WarpTo (Vector3 position, Quaternion rotation) {
-        //     transform.position = position;
-        //     transform.rotation = rotation;
-        // }
+        
+        void Awake () {
+            dynamicObject.AddAvailabilityForLoadCheck(
+                () => true // not is equipped to inventory....
+            );
+        }
 
-        // public static PrefabPool<SceneItem> pool = new PrefabPool<SceneItem>();
-        // public string basePrefabName;
+        public ObjectAttachmentState GetState () {
+            return new SceneItemState (this);
+        }
 
+        public void LoadState (ObjectAttachmentState state) {
+            SceneItemState itemState = state as SceneItemState; 
 
-        // void OnEnable () 
-        // {
-        //     pool.AddManualInstance(PrefabReferences.GetPrefabReference<SceneItem>("DemoPrefabs", basePrefabName), this);
-        // }   
+        }
     }
 }
