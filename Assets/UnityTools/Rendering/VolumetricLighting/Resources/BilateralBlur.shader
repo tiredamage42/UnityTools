@@ -15,7 +15,7 @@
 
 		#define PI 3.1415927
 
-		#include "../../Resources/Shaders/Stack/ImgFX.hlsl"
+		#include "../../PostProcessStack/Resources/ImgFX.hlsl"
 
         UNITY_DECLARE_TEX2D(_CameraDepthTexture);        
         UNITY_DECLARE_TEX2D(_MainTex);
