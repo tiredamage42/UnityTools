@@ -233,6 +233,8 @@ MonoBehaviour:
   prefabRef:
     collection: DemoPrefabs
     name: Gun
+  usesAlias: 0
+  aliasUsed: 
 --- !u!114 &3011372693158309066
 MonoBehaviour:
   m_ObjectHideFlags: 0

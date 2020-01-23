@@ -18,26 +18,26 @@ namespace UnityTools.EditorTools {
     public class NeatArrayAttributeDrawer : PropertyDrawer
     {
 
-        static GUIContent _isShownContent;
-        protected static GUIContent isShownContent { get { 
-            if (_isShownContent == null) _isShownContent = BuiltInIcons.GetIcon("animationvisibilitytoggleon", "Hide"); 
-            return _isShownContent;
-        } }
-        static GUIContent _hiddenContent;
-        protected static GUIContent hiddenContent { get { 
-            if (_hiddenContent == null) _hiddenContent = BuiltInIcons.GetIcon("animationvisibilitytoggleoff", "Show"); 
-            return _hiddenContent;
-        } }
-        static GUIContent _addContent;
-        public static GUIContent addContent { get { 
-            if (_addContent == null) _addContent = BuiltInIcons.GetIcon("Toolbar Plus", "Add New Element"); 
-            return _addContent;
-        } }
-        static GUIContent _deleteContent;
-        public static GUIContent deleteContent { get { 
-            if (_deleteContent == null) _deleteContent = BuiltInIcons.GetIcon("Toolbar Minus", "Delete Element"); 
-            return _deleteContent;
-        } }
+        // static GUIContent _isShownContent;
+        // protected static GUIContent isShownContent { get { 
+        //     if (_isShownContent == null) _isShownContent = BuiltInIcons.GetIcon("animationvisibilitytoggleon", "Hide"); 
+        //     return _isShownContent;
+        // } }
+        // static GUIContent _hiddenContent;
+        // protected static GUIContent hiddenContent { get { 
+        //     if (_hiddenContent == null) _hiddenContent = BuiltInIcons.GetIcon("animationvisibilitytoggleoff", "Show"); 
+        //     return _hiddenContent;
+        // } }
+        // static GUIContent _addContent;
+        // public static GUIContent addContent { get { 
+        //     if (_addContent == null) _addContent = BuiltInIcons.GetIcon("Toolbar Plus", "Add New Element"); 
+        //     return _addContent;
+        // } }
+        // static GUIContent _deleteContent;
+        // public static GUIContent deleteContent { get { 
+        //     if (_deleteContent == null) _deleteContent = BuiltInIcons.GetIcon("Toolbar Minus", "Delete Element"); 
+        //     return _deleteContent;
+        // } }
 
         // const string displayedName = "displayed";
         public const string listName = "list";
@@ -60,63 +60,65 @@ namespace UnityTools.EditorTools {
         }
 
         protected bool DrawDisplayedToggle (Rect pos, SerializedProperty prop) {
-            if (GUITools.IconButton(pos.x, pos.y, prop.isExpanded ? isShownContent : hiddenContent, GUITools.white)){
+            if (GUITools.IconButton(pos.x, pos.y, prop.isExpanded ? BuiltInIcons.GetIcon("animationvisibilitytoggleon", "Hide") : BuiltInIcons.GetIcon("animationvisibilitytoggleoff", "Show"), GUITools.white)){
                 prop.isExpanded = !prop.isExpanded;
             }
             return prop.isExpanded;
         }
 
-        protected void DrawArrayTitle (Rect pos, SerializedProperty prop, GUIContent label, float xOffset) {
+        static GUIStyle _tooltipStyle;
+        static GUIStyle tooltipStyle {
+            get {
+                if (_tooltipStyle == null) {
+                    _tooltipStyle = new GUIStyle(GUITools.label);
+                    _tooltipStyle.fontStyle = FontStyle.Italic;
+                }
+                return _tooltipStyle;
+            }
+        }
+
+        void DrawArrayTitle (Rect pos, int arraySize, string label, string tooltip, float xOffset) {
             
-            label.text += " [" + prop.arraySize + "]";
-            pos.x = xOffset;
-            GUITools.Label(pos, label, GUITools.black, GUITools.boldLabel);
-        }
+            
+            // label += " [" + arraySize + "] ";
+            // GUITools.Label(new Rect ( xOffset, pos.y, pos.width, pos.height), new GUIContent(label), GUITools.black, GUITools.boldLabel);
 
-        protected virtual void OnAddNewElement (SerializedProperty newElement) {
-
+            // if (!string.IsNullOrEmpty(tooltip)) {
+            //     GUIContent ttGUI = new GUIContent(tooltip);
+            //     // float ttWidth = tooltipStyle.CalcSize(ttGUI).x;
+            //     // GUITools.Label(new Rect(pos.x + pos.width - ttWidth, pos.y, ttWidth, pos.height), ttGUI, GUITools.black, tooltipStyle);
+            //     GUITools.Label(new Rect(xOffset, pos.y + EditorGUIUtility.singleLineHeight, pos.width, pos.height), ttGUI, GUITools.black, tooltipStyle);
+            // }
         }
-        protected virtual void OnDeleteElement (SerializedProperty deleteElement) {
-        
-        }
-
 
         protected void DrawAddElement (Rect pos, SerializedProperty prop, float indent1, bool displayedValue) {
             GUI.enabled = displayedValue;
-            if (GUITools.IconButton(indent1, pos.y, addContent, displayedValue ? GUITools.green : GUITools.white)) {
+            if (GUITools.IconButton(indent1, pos.y, BuiltInIcons.GetIcon("Toolbar Plus", "Add New Element"), displayedValue ? GUITools.green : GUITools.white)) {
                 prop.InsertArrayElementAtIndex(prop.arraySize);
                 SerializedProperty p = prop.GetArrayElementAtIndex(prop.arraySize - 1);
                 if (p.propertyType == SerializedPropertyType.ObjectReference) {
                     p.objectReferenceValue = null;
                 }
-
-                OnAddNewElement (p);
             }
             GUI.enabled = true;
         }
 
-        protected void StartArrayDraw (Rect pos, ref SerializedProperty prop, ref GUIContent label, out float indent1, out float indent2, out float indent2Width, out bool displayedValue) {
+        protected void StartArrayDraw (Rect pos, ref SerializedProperty prop, out float indent1, out float indent2, out float indent2Width, out bool displayedValue) {
             indent1 = pos.x + GUITools.iconButtonWidth;
             indent2 = indent1 + GUITools.iconButtonWidth;
             indent2Width = pos.width - GUITools.iconButtonWidth * 2;
             
-            EditorGUI.BeginProperty(pos, label, prop);
-
             displayedValue = DrawDisplayedToggle ( pos, prop );
 
             // the property we want to draw is the list child
             prop = prop.FindPropertyRelative(listName);
 
-            DrawBox ( pos, prop, ref label, indent1, displayedValue );
+            DrawBox ( pos, prop, indent1, displayedValue );
         }
 
-        protected void DrawBox (Rect pos, SerializedProperty prop, ref GUIContent label, float indent1, bool displayedValue) {
-            string lbl = label.text;
-            string tooltip = label.tooltip;
+        protected void DrawBox (Rect pos, SerializedProperty prop, float indent1, bool displayedValue) {
             
             float h = CalculateHeight(prop, displayedValue);
-            label.text = lbl;
-            label.tooltip = tooltip;
             
             pos.x = indent1;
             pos.width -= GUITools.iconButtonWidth;
@@ -134,29 +136,47 @@ namespace UnityTools.EditorTools {
             
             float indent1, indent2, indent2Width;
             bool displayedValue;
-            StartArrayDraw ( pos, ref prop, ref label, out indent1, out indent2, out indent2Width, out displayedValue );
+
+
+            string lbl = label.text;
+            
+            StartArrayDraw ( pos, ref prop, out indent1, out indent2, out indent2Width, out displayedValue );
 
             if (att != null) {
                 MakeSureSizeIsOK(prop, att.enforceSize);
             }
-            
             if (att == null || att.enforceSize < 0) {
-
                 DrawAddElement ( pos, prop, indent1, displayedValue );
             }
 
             float xOffset = (att == null || att.enforceSize < 0 ? indent2 : indent1) + GUITools.toolbarDividerSize;
 
-            DrawArrayTitle ( pos, prop, label, xOffset );
+            // DrawArrayTitle ( pos, prop.arraySize, lbl, att != null ? att.tooltip : string.Empty, xOffset );
+
+            string tooltip = att != null ? att.tooltip : string.Empty;
+            lbl += " [" + prop.arraySize + "] ";
+            GUITools.Label(new Rect ( xOffset, pos.y, pos.width, pos.height), new GUIContent(lbl), GUITools.black, GUITools.boldLabel);
+
+            bool showsTooltip = false;
+            if (displayedValue && !string.IsNullOrEmpty(tooltip)) {
+                showsTooltip = true;
+                GUIContent ttGUI = new GUIContent(tooltip);
+                // float ttWidth = tooltipStyle.CalcSize(ttGUI).x;
+                // GUITools.Label(new Rect(pos.x + pos.width - ttWidth, pos.y, ttWidth, pos.height), ttGUI, GUITools.black, tooltipStyle);
+                GUITools.Label(new Rect(xOffset, pos.y + EditorGUIUtility.singleLineHeight, pos.width, pos.height), ttGUI, GUITools.black, tooltipStyle);
+            }
+
+
             
             if (displayedValue) {
                 int indexToDelete = -1;
 
                 pos.x = xOffset;
-                pos.y += GUITools.singleLineHeight;
+                pos.y += GUITools.singleLineHeight * (showsTooltip ? 2 : 1);
                 pos.width = indent2Width - GUITools.toolbarDividerSize * 2;
                 pos.height = EditorGUIUtility.singleLineHeight;
 
+                GUIContent deleteContent = BuiltInIcons.GetIcon("Toolbar Minus", "Delete Element"); 
                 for (int i = 0; i < prop.arraySize; i++) {
                     if (att == null || att.enforceSize < 0) {
                         if (GUITools.IconButton(indent1, pos.y, deleteContent, GUITools.red))
@@ -173,8 +193,6 @@ namespace UnityTools.EditorTools {
 
                     SerializedProperty p = prop.GetArrayElementAtIndex(indexToDelete);
                     
-                    OnDeleteElement(p);
-
                     if (p.propertyType == SerializedPropertyType.ObjectReference) {
                         if ((prop.objectReferenceValue) != null) {
                             prop.DeleteArrayElementAtIndex(indexToDelete);
@@ -184,13 +202,15 @@ namespace UnityTools.EditorTools {
                 }
             }
             EditorGUI.indentLevel = origIndentLevel;
-
-            EditorGUI.EndProperty();
         }
 
         protected float CalculateHeight (SerializedProperty prop, bool displayed) {
             if (!displayed) return GUITools.singleLineHeight;
-            float h = GUITools.singleLineHeight;
+
+            NeatArrayAttribute att = attribute as NeatArrayAttribute;
+            string tooltip = att != null ? att.tooltip : string.Empty;
+            
+            float h = GUITools.singleLineHeight * (string.IsNullOrEmpty(tooltip) ? 1 : 2);
             int arraySize = prop.arraySize;
             for (int i = 0; i < arraySize; i++) h += EditorGUI.GetPropertyHeight(prop.GetArrayElementAtIndex(i), true);
             return h;
@@ -228,8 +248,13 @@ namespace UnityTools.EditorTools {
     //the actual attribute
     public class NeatArrayAttribute : PropertyAttribute { 
         public int enforceSize;
+        public string tooltip;
         public NeatArrayAttribute () {
             enforceSize = -1;
+        }
+        public NeatArrayAttribute (string tooltip) {
+            enforceSize = -1;
+            this.tooltip = tooltip;
         }
         public NeatArrayAttribute(int enforceSize) {
             this.enforceSize = enforceSize;
@@ -269,73 +294,30 @@ namespace UnityTools.EditorTools {
     [Serializable] public class NeatKeyCodeArray : NeatArrayWrapper<KeyCode> { public NeatKeyCodeArray() : base() { } public NeatKeyCodeArray(KeyCode[] list) : base(list) { } }
 
     public class NeatArrayWrapper<T> {
-
-        public void CopyFrom (T[] list) {
-            if (this.list.Length != list.Length)
-                System.Array.Resize(ref this.list, list.Length);
-            
-            for (int i = 0; i < list.Length; i++)
-                this.list[i] = list[i];
-        }
-        public void CopyFrom (List<T> list) {
-            if (this.list.Length != list.Count)
-                System.Array.Resize(ref this.list, list.Count);
-            for (int i = 0; i < list.Count; i++)
-                this.list[i] = list[i];
-        }
-        public void CopyFrom<K> (Dictionary<K, T> list) {
-            if (this.list.Length != list.Count)
-                System.Array.Resize(ref this.list, list.Count);
-            
-            int i = 0;
-            foreach (var k in list.Keys) {
-                this.list[i] = list[k];
-                i++;
-            }
-        }
-        
+        public void CopyFrom (T[] list) { list.MakeCopy(ref this.list); }
+        public void CopyFrom (List<T> list) { list.MakeCopy(ref this.list); }
+        public void CopyFrom<K> (Dictionary<K, T> list) { list.MakeCopy(ref this.list); }
         public NeatArrayWrapper (T[] list) { this.list = list; }
         public NeatArrayWrapper () { }
-
         public T GetRandom(T defaultValue) { return list.GetRandom<T>(defaultValue); }
-        
         public T[] list = new T[0];
         public int Length { get { return list.Length; } }
         public T this[int index] { get { return list[index]; } }
-        // public bool displayed;
         public static implicit operator T[](NeatArrayWrapper<T> c) { return c.list; }
     }
 
     public class NeatListWrapper<T> {
 
-        public void CopyFrom (List<T> list) {
-            this.list.Clear();
-            this.list.AddRange(list);
-        }
-        public void CopyFrom (T[] list) {
-            this.list.Clear();
-            this.list.AddRange(list);
-        }
-        public void CopyFrom<K> (Dictionary<K, T> list) {
-            this.list.Clear();
-            foreach (var k in list.Keys)
-                this.list.Add(list[k]);
-        }
-            
-
-
+        public void CopyFrom (List<T> list) { list.MakeCopy(ref this.list); }
+        public void CopyFrom (T[] list) { list.MakeCopy(ref this.list); }
+        public void CopyFrom<K> (Dictionary<K, T> list) { list.MakeCopy(ref this.list); }        
         public NeatListWrapper (List<T> list) { this.list = list; }
         public NeatListWrapper () { }
-
         public T GetRandom(T defaultValue) { return list.GetRandom<T>(defaultValue); }
-            
         public List<T> list = new List<T>();
-        // public bool displayed;
         public int Count { get { return list.Count; } }
         public T this[int index] { get { return list[index]; } }
         public static implicit operator List<T>(NeatListWrapper<T> c) { return c.list; }
-        
-        
     }
 }
 

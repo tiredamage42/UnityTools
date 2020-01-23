@@ -16,7 +16,7 @@ namespace UnityTools.Audio.Internal {
 
         static void InitializeAudioSourceExtensions () {
             if (!isUpdating) {
-                UpdateManager.instance.update += UpdateFadingSources;
+                UpdateManager.update += UpdateFadingSources;
                 isUpdating = true;
             }
         }

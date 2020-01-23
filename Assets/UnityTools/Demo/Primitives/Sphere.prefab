@@ -125,6 +125,9 @@ MonoBehaviour:
   prefabRef:
     collection: Primitives
     name: Sphere
+  renderers: []
+  usesAlias: 0
+  aliasUsed: 
 --- !u!114 &2451082230535050376
 MonoBehaviour:
   m_ObjectHideFlags: 0

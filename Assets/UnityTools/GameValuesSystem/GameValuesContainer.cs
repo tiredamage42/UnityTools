@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityTools.EditorTools;
 using System;
 
+
+using UnityTools.DevConsole;
 /*
     
     perks shouldnt adjust inventory for now...
@@ -55,7 +57,7 @@ namespace UnityTools {
         public GameValuesUnloadedState (Dictionary<string, GameValue> values) {
             this.values = new List<GameValue>();
             foreach (var k in values.Keys)
-                this.values.Add(values[k].GetSaveVersion());
+                this.values.Add(values[k]);
         }
     }
     public class GameValuesContainer : MonoBehaviour, IObjectAttachment {
@@ -64,12 +66,16 @@ namespace UnityTools {
             return -2;
         }
 
+        void Awake () {
+            gameValues = new Dictionary<string, GameValue>();
+            RebuildValuesFromTemplate();
+        }
         public void InitializeDefault () {
-            RebuildValuesFromTemplate();           
+            ReinitializeValues();
         }
 
         public void Strip () {
-            BuildOrClearDictionary(0);
+
         }
 
 
@@ -81,15 +87,9 @@ namespace UnityTools {
 
         public void LoadState (ObjectAttachmentState state) {
             GameValuesUnloadedState valuesState = state as GameValuesUnloadedState; 
-            // BuildOrClearDictionary(valuesState.values.Count);
             for (int i = 0; i< valuesState.values.Count; i++) 
                 gameValues[valuesState.values[i].name] = valuesState.values[i];
         }
-
-        // void Awake () {
-        //     BuildOrClearDictionary(0);
-        //     RebuildValuesFromTemplate();
-        // }
 
         void RebuildValuesFromTemplate () {
             for (int i = 0; i < templates.Length; i++) {
@@ -100,42 +100,98 @@ namespace UnityTools {
         [NeatArray] public GameValuesTemplateArray templates;        
         Dictionary<string, GameValue> gameValues;
 
-        void BuildOrClearDictionary (int count) {
-            if (gameValues == null)
-                gameValues = new Dictionary<string, GameValue>(count);
-            else {
-                foreach (var k in gameValues.Keys)
-                    gameValues[k].OnDispose(GameValueDisposal.Remove);
-                gameValues.Clear();
-            }
-        }
-
-        public void ReinitializeValues (bool removeModifiers) {
+        
+        public void ReinitializeValues () {
             foreach (var k in gameValues.Keys)
-                gameValues[k].ReInitialize(removeModifiers);
+                gameValues[k].ReInitialize();
         }
 
-        public void AddModifiers (GameValueModifier[] modifiers, int count, string description, bool assertPermanent, GameObject subject, GameObject target) {
-            GameValue.AddModifiers(gameValues, modifiers, count, description, assertPermanent, subject, target);
-        }
-        public void RemoveModifiers (GameValueModifier[] modifiers, int count, string description) {
-            GameValue.RemoveModifiers(gameValues, modifiers, count, description);
+        
+        [Command("gvmod", "modify game value [Base, BaseMod, Ranged], [Set, Add, Multiply]", "Game Values", true)]    
+        public bool ModifyValue (string name, GameValueModifierComponent component, GameValueModifierBehavior behavior, float value) {
+            GameValue gv = GetGameValueObject(name);
+            if (gv == null) 
+                return false;
+            return gv.ModifyValue(component, behavior, value);
         }
 
-        public void AddGameValues (GameValuesTemplate[] templates, bool logRepeat=true) {
+
+        public bool SetBaseValue (string name, float value) {
+            GameValue gv = GetGameValueObject(name);
+            if (gv == null) 
+                return false;
+            return gv.SetBaseValue(value);
+        }
+        
+        public bool AddToBaseValue (string name, float value) {
+            GameValue gv = GetGameValueObject(name);
+            if (gv == null) 
+                return false;
+            return gv.AddToBaseValue(value);
+        }
+        
+        public bool MultiplyBaseValue (string name, float value) {
+            GameValue gv = GetGameValueObject(name);
+            if (gv == null) 
+                return false;
+            return gv.MultiplyBaseValue(value);
+        }
+        
+        public bool AddToBaseModifier (string name, float value) {
+            GameValue gv = GetGameValueObject(name);
+            if (gv == null) 
+                return false;
+            return gv.AddToBaseModifier(value);
+        }
+    
+        // careful with stacking....
+        // to remove multiply by reciprocal of orinal mutliplier value
+        
+        public bool MultiplyBaseModifier (string name, float value) {
+            GameValue gv = GetGameValueObject(name);
+            if (gv == null) 
+                return false;
+            return gv.MultiplyBaseModifier(value);
+        }
+        
+
+        public bool SetRangedValue (string name, float value) {
+            GameValue gv = GetGameValueObject(name);
+            if (gv == null) 
+                return false;
+            return gv.SetRangedValue(value);
+        }
+
+        
+        public bool AddToRangedValue (string name, float value) {
+            GameValue gv = GetGameValueObject(name);
+            if (gv == null) 
+                return false;
+            return gv.AddToRangedValue(value);
+        }
+
+        public bool MultiplyRangedValue (string name, float value) {
+            GameValue gv = GetGameValueObject(name);
+            if (gv == null) 
+                return false;
+            return gv.MultiplyRangedValue(value);
+        }
+
+
+        void AddGameValues (GameValuesTemplate[] templates, bool logRepeat=true) {
             for (int i = 0; i < templates.Length; i++) 
                 AddGameValues(templates[i], logRepeat);
         }
-        public void AddGameValues (GameValuesTemplate template, bool logRepeat=true) {
+        void AddGameValues (GameValuesTemplate template, bool logRepeat=true) {
             if (template != null)
                 AddGameValues(template.gameValues, logRepeat);
         }
-        public void AddGameValues (GameValue[] template, bool logRepeat=true) {
+        void AddGameValues (GameValue[] template, bool logRepeat=true) {
             for (int i = 0; i < template.Length; i++)
                 AddGameValue(template[i], logRepeat);
         }
 
-        public void AddGameValue (GameValue template, bool logRepeat=true) {
+        void AddGameValue (GameValue template, bool logRepeat=true) {
             string k = template.name;
             if (gameValues.ContainsKey(k)) {
                 Debug.LogWarning(this.name + ": adding duplicate game value named: '" + k + "'... only original will be used");
@@ -143,29 +199,6 @@ namespace UnityTools {
             else {
                 gameValues[k] = new GameValue(template);
             }
-        }
-
-        public void RemoveGameValues (GameValuesTemplate[] templates) {
-            for (int i = 0; i < templates.Length; i++) 
-                RemoveGameValues(templates[i]);
-        }
-        public void RemoveGameValues (GameValuesTemplate template) {
-            if (template != null)
-                RemoveGameValues(template.gameValues);
-        }
-        public void RemoveGameValues (GameValue[] template) {
-            for (int i = 0; i < template.Length; i++)
-                RemoveGameValue(template[i]);
-        }
-        public void RemoveGameValue (string name) {
-            if (HasGameValue(name)) {
-                GameValue gv = gameValues[name];
-                gameValues.Remove(name);
-                gv.OnDispose(GameValueDisposal.Remove);
-            }
-        }
-        public void RemoveGameValue (GameValue template) {
-            RemoveGameValue(template.name);
         }
 
         public bool HasGameValue (string name) {
@@ -179,23 +212,20 @@ namespace UnityTools {
             }
             return gameValues[name];
         }
-        public float GetGameValueComponent (string name, GameValueComponent component) {
+
+
+        [Command("gvvalue", "get game value value", "Game Values", true)]    
+        public float GetGameValue (string name) {
             GameValue gv = GetGameValueObject(name);
             if (gv == null) return 0;
-            return gv.GetValueComponent(component);
+            return gv.GetValue();
         }
-
-        public float GetGameValue (string name) {
-            return GetGameValueComponent(name, GameValueComponent.Value);
-        }
-
-        void Update () {
-            if (GameManager.isPaused)
-                return;
             
-            float deltaTime = Time.deltaTime;
-            foreach (var k in gameValues.Keys) 
-                gameValues[k].UpdateModifiers(deltaTime);
+        [Command("gvbasevalue", "get game value base value", "Game Values", true)]    
+        public float GetBaseGameValue (string name) {
+            GameValue gv = GetGameValueObject(name);
+            if (gv == null) return 0;
+            return gv.GetBaseValue();
         }
     }
 }

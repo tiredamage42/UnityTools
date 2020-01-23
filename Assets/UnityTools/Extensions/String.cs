@@ -1,4 +1,6 @@
-﻿namespace UnityTools {
+﻿
+using System.Globalization;
+namespace UnityTools {
     public static class StringExtensions
     {
         const char lineBreak = '\n';
@@ -34,6 +36,18 @@
                 if (input[i] == lineBreak) lines++;
             }
             return lines;
+        }
+
+        public static string LargeNumberToString(this int num)
+        {
+            if (num > 999999999 || num < -999999999 )
+                return num.ToString("0,,,.###B", CultureInfo.InvariantCulture);
+            else if (num > 999999 || num < -999999 )
+                return num.ToString("0,,.##M", CultureInfo.InvariantCulture);
+            else if (num > 999 || num < -999)
+                return num.ToString("0,.#K", CultureInfo.InvariantCulture);
+            else
+                return num.ToString(CultureInfo.InvariantCulture);
         }
     }
 }

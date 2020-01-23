@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
-
 using System.Collections.Generic;
 namespace UnityTools {
-
     public class TerrainTools
     {
         public static int CalculateChunksInTerrain (Terrain terrain, float chunkSize) {
@@ -11,9 +9,7 @@ namespace UnityTools {
             return (chunkResF - chunkResI > 0 ? chunkResI + 1 : chunkResI);
         }
             
-        public static Dictionary<Vector2Int, Terrain> SplitTerrainIntoChunks(
-            Terrain split, float chunkSize, int heightsRes, int alphasRes, int detailsRes
-        )
+        public static Dictionary<Vector2Int, Terrain> SplitTerrainIntoChunks(Terrain split, float chunkSize, int heightsRes, int alphasRes, int detailsRes)
         {
             if (split == null) {
                 Debug.LogWarning("splitTerrain == null");
@@ -232,12 +228,6 @@ namespace UnityTools {
                 }
             }
         }
-
-
-
-
-
-
 
 
         static float GetAverage (float[,] originalHeightMap, int x, int y, int resolution, int reach) {

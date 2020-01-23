@@ -34,8 +34,8 @@ namespace UnityTools.Internal {
 
     #if UNITY_EDITOR
 
-    [CustomPropertyDrawer(typeof(Parameters))] 
-    public class ParametersDrawer : NeatArrayAttributeDrawer
+    // [CustomPropertyDrawer(typeof(Parameters))] 
+    public class ParametersDrawer// : NeatArrayAttributeDrawer
     {
         static float paramsLabelW;
         
@@ -54,7 +54,7 @@ namespace UnityTools.Internal {
         
         public static void DrawFlat (Rect pos, SerializedProperty prop) {
             // the property we want to draw is the list child
-            prop = prop.FindPropertyRelative(listName);
+            prop = prop.FindPropertyRelative(NeatArrayAttributeDrawer.listName);
 
             float paramsSpace = pos.width - paramsLabelW;
 
@@ -90,7 +90,7 @@ namespace UnityTools.Internal {
         }
 
 
-        static void DrawParamGUIFlat(Rect pos, SerializedProperty paramProp) {
+        public static void DrawParamGUIFlat(Rect pos, SerializedProperty paramProp) {
             string valueName = null;
             switch ((Parameter.NativeType)paramProp.FindPropertyRelative("type").enumValueIndex) {
                 case Parameter.NativeType.Float:  valueName = "fValue"; break;
@@ -103,65 +103,78 @@ namespace UnityTools.Internal {
 
         }
 
-        static void DrawParamGUI(Rect pos, SerializedProperty paramProp) {
+        // static void DrawParamGUI(Rect pos, SerializedProperty paramProp) {
             
-            float typeWidth = 50;
-            float hWidth = pos.width - typeWidth;
+        //     float typeWidth = 50;
+        //     float hWidth = pos.width - typeWidth;
 
-            pos.width = typeWidth;
-            EditorGUI.PropertyField(pos, paramProp.FindPropertyRelative("type"), GUITools.noContent, true);
-            pos.x += pos.width;
+        //     pos.width = typeWidth;
+        //     EditorGUI.PropertyField(pos, paramProp.FindPropertyRelative("type"), GUITools.noContent, true);
+        //     pos.x += pos.width;
 
-            pos.width = hWidth;
-            DrawParamGUIFlat (pos, paramProp);                
-        }
+        //     pos.width = hWidth;
+        //     DrawParamGUIFlat (pos, paramProp);                
+        // }
 
         
-        public override void OnGUI(Rect pos, SerializedProperty prop, GUIContent label)
-        {
+        // public override void OnGUI(Rect pos, SerializedProperty prop, GUIContent label)
+        // {
 
-            float indent1, indent2, indent2Width;
-            bool displayedValue;
-            StartArrayDraw ( pos, ref prop, ref label, out indent1, out indent2, out indent2Width, out displayedValue );
+        //     float indent1, indent2, indent2Width;
+        //     bool displayedValue;
+        //     StartArrayDraw ( pos, ref prop, out indent1, out indent2, out indent2Width, out displayedValue );
 
-            DrawAddElement ( pos, prop, indent1, displayedValue );
+        //     DrawAddElement ( pos, prop, indent1, displayedValue );
             
-            float xOffset = indent2 + GUITools.toolbarDividerSize;
-            DrawArrayTitle ( pos, prop, label, xOffset );
+        //     float xOffset = indent2 + GUITools.toolbarDividerSize;
+        //     DrawArrayTitle ( pos, prop.arraySize, label.text, label.tooltip, xOffset );
             
-            if (displayedValue) {
-                Object baseObject = prop.serializedObject.targetObject;
+        //     if (displayedValue) {
+        //         Object baseObject = prop.serializedObject.targetObject;
                 
                 
-                pos.x = xOffset;
-                pos.y = pos.y + GUITools.singleLineHeight;
-                pos.width = (indent2Width) - GUITools.toolbarDividerSize;
+        //         pos.x = xOffset;
+        //         pos.y = pos.y + GUITools.singleLineHeight;
+        //         pos.width = (indent2Width) - GUITools.toolbarDividerSize;
 
-                int indexToDelete = -1;
+        //         int indexToDelete = -1;
 
-                for (int i = 0; i < prop.arraySize; i++) {
+        //         for (int i = 0; i < prop.arraySize; i++) {
 
-                    if (GUITools.IconButton(indent1, pos.y, deleteContent, GUITools.red))
-                        indexToDelete = i;
+        //             if (GUITools.IconButton(indent1, pos.y, deleteContent, GUITools.red))
+        //                 indexToDelete = i;
                     
-                    DrawParamGUI(pos, prop.GetArrayElementAtIndex(i));
+        //             DrawParamGUI(pos, prop.GetArrayElementAtIndex(i));
                     
-                    pos.y += GUITools.singleLineHeight;
-                }
+        //             pos.y += GUITools.singleLineHeight;
+        //         }
 
-                if (indexToDelete != -1) {
-                    prop.DeleteArrayElementAtIndex(indexToDelete);                    
-                }
-            }
+        //         if (indexToDelete != -1) {
+        //             prop.DeleteArrayElementAtIndex(indexToDelete);                    
+        //         }
+        //     }
 
-            EditorGUI.EndProperty();
-        }
+        //     EditorGUI.EndProperty();
+        // }
     }
 
     [CustomPropertyDrawer(typeof(Parameter))] 
     class ParameterDrawer : PropertyDrawer {
         public override float GetPropertyHeight(SerializedProperty prop, GUIContent label) {
             return GUITools.singleLineHeight;
+        }
+        public override void OnGUI(Rect pos, SerializedProperty prop, GUIContent label)
+        {
+            float typeWidth = 50;
+            float hWidth = pos.width - typeWidth;
+
+            pos.width = typeWidth;
+            EditorGUI.PropertyField(pos, prop.FindPropertyRelative("type"), GUITools.noContent, true);
+            pos.x += pos.width;
+
+            pos.width = hWidth;
+            ParametersDrawer.DrawParamGUIFlat (pos, prop);     
+
         }
     }
     

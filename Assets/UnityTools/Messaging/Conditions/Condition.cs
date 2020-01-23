@@ -7,7 +7,10 @@ namespace UnityTools {
     
     public enum NumericalCheck { Equals = 0, NotEquals = 1, LessThan = 2, GreaterThan = 3, LessThanEqualTo = 4, GreaterThanEqualTo = 5 };
     [System.Serializable] public class Conditions : NeatArrayWrapper<Condition> { 
-        public static bool ConditionsMet (Conditions conditions, GameObject subject, GameObject target) {
+
+        
+        public static bool ConditionsMet (Conditions conditions, Dictionary<string, object> checkObjects) {
+        // public static bool ConditionsMet (Conditions conditions, GameObject subject, GameObject target) {
             
             if (conditions == null || conditions.Length == 0) return true;
             
@@ -17,7 +20,8 @@ namespace UnityTools {
 
             for (int i = 0; i < conditions.Length; i++) {
                 
-                bool conditionMet = falseUntilNextOr ? false : conditions[i].IsTrue( subject, target );
+                // bool conditionMet = falseUntilNextOr ? false : conditions[i].IsTrue( subject, target );
+                bool conditionMet = falseUntilNextOr ? false : conditions[i].IsTrue( checkObjects );
 
                 if (isOr)
                     met = met || conditionMet;
@@ -48,13 +52,17 @@ namespace UnityTools.Internal {
 
         public bool or;
         public RunTarget runTarget;
+
+
+        public bool trueIfSubjectNull;
+        public string runtimeSubjectName;
         public GameObject referenceTarget;
         public string callMethod;
         public float threshold; // or check against global game values
         public bool useGlobalValueThreshold;
         public string globalValueThresholdName;
         public NumericalCheck numericalCheck;
-        public Parameters parameters;
+        [NeatArray] public Parameters parameters;
 
 
         protected bool CheckValue (float value, float threshold) {
@@ -67,22 +75,28 @@ namespace UnityTools.Internal {
             return false;
         }
         
-        public bool IsTrue (GameObject subject, GameObject target) {
-            
+        // public bool IsTrue (GameObject subject, GameObject target) {
+        public bool IsTrue (Dictionary<string, object> checkObjects) {
             object[] suppliedParameters;
-            GameObject obj;
 
-            if (!Messaging.PrepareForMessageSend(callMethod, runTarget, subject, target, referenceTarget, parameters, out obj, out suppliedParameters))
-                return false;
+            
+            // GameObject obj;
+            // if (!Messaging.PrepareForMessageSend(callMethod, runTarget, subject, target, referenceTarget, parameters, out obj, out suppliedParameters))
+            object obj;
+            if (!Messaging.PrepareForMessageSend(callMethod, runTarget, checkObjects, runtimeSubjectName, referenceTarget, parameters, out obj, out suppliedParameters))
+                return trueIfSubjectNull;
+                // return false;
         
             float returnValue;
             if (runTarget == RunTarget.Static) {
                 if (!Messaging.CallStaticMethod(callMethod, suppliedParameters, out returnValue))
-                    return false;
+                    return trueIfSubjectNull;
+                    // return false;
             }
             else {
                 if (!obj.CallMethod ( callMethod, suppliedParameters, out returnValue))
-                    return false;
+                    return trueIfSubjectNull;
+                    // return false;
             }   
 
             float checkThreshold = threshold;

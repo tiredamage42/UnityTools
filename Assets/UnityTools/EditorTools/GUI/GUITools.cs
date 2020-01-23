@@ -129,34 +129,89 @@ namespace UnityTools.EditorTools {
         public const int iconButtonWidth = 24;
         public const int littleButtonSize = 12;
 
-        public static bool DrawToggleButton (bool value, GUIContent content, float x, float y, Color32 onColor, Color32 offColor) {
-            if (IconButton(x, y, content, value ? onColor : offColor)) {
+
+        public static bool DrawIconToggle (bool value, GUIContent content, float x, float y) {
+            return DrawIconToggle(value, content, x, y, blue, white);
+        }
+        public static bool DrawIconToggle (bool value, GUIContent content, float x, float y, Color32 onColor, Color32 offColor) {
+            if (IconButton(x, y, content, value ? onColor : offColor)) 
                 value = !value;
-            }
             return value;
         }
-        public static bool DrawToggleButton (bool value, GUIContent content, float x, float y) {
-            return DrawToggleButton(value, content, x, y, blue, white);
+        public static bool DrawIconToggle (bool value, GUIContent content) {
+            return DrawIconToggle(value, content, blue, white);
         }
-        public static bool DrawToggleButton (SerializedProperty prop, GUIContent content, float x, float y, Color32 onColor, Color32 offColor) {
-            prop.boolValue = DrawToggleButton (prop.boolValue, content, x, y, onColor, offColor);
+        public static bool DrawIconToggle (bool value, GUIContent content, Color32 onColor, Color32 offColor) {
+            if (IconButton(content, value ? onColor : offColor)) 
+                value = !value;
+            return value;
+        }
+        public static bool DrawIconToggle (SerializedProperty prop, GUIContent content, float x, float y) {
+            return DrawIconToggle (prop, content, x, y, blue, white);
+        }
+        public static bool DrawIconToggle (SerializedProperty prop, GUIContent content, float x, float y, Color32 onColor, Color32 offColor) {
+            prop.boolValue = DrawIconToggle (prop.boolValue, content, x, y, onColor, offColor);
+            return prop.boolValue;
+        }
+        public static bool DrawIconToggle (SerializedProperty prop, GUIContent content) {
+            return DrawIconToggle (prop, content, blue, white);
+        }
+        public static bool DrawIconToggle (SerializedProperty prop, GUIContent content, Color32 onColor, Color32 offColor) {
+            prop.boolValue = DrawIconToggle (prop.boolValue, content, onColor, offColor);
             return prop.boolValue;
         }
 
-        public static bool DrawToggleButton (SerializedProperty prop, GUIContent content, float x, float y) {
-            return DrawToggleButton (prop, content, x, y, blue, white);
-        }
 
 
-        public static bool DrawToggleButton (bool value, GUIContent content, float x, float y, float w, float h, GUIStyle style) {
-            if (Button(x, y, w, h, content, value ? blue : white, style, black ))
+
+
+
+
+
+
+
+
+
+
+        public static bool DrawToggleButton (bool value, GUIContent content, float x, float y, float w, float h, GUIStyle style, Color32 onColor, Color32 offColor) {
+            if (Button(x, y, w, h, content, value ? onColor : offColor, style, black ))
                 value = !value;
             return value;
+        }
+        public static bool DrawToggleButton (SerializedProperty prop, GUIContent content, float x, float y, float w, float h, GUIStyle style, Color32 onColor, Color32 offColor) {
+            prop.boolValue = DrawToggleButton (prop.boolValue, content, x, y, w, h, style, onColor, offColor);
+            return prop.boolValue;
+        }
+        
+        public static bool DrawToggleButton (bool value, GUIContent content, float x, float y, float w, float h, GUIStyle style) {
+            return DrawToggleButton(value, content, x, y, w, h, style, blue, white);
         }
         public static bool DrawToggleButton (SerializedProperty prop, GUIContent content, float x, float y, float w, float h, GUIStyle style) {
-            prop.boolValue = DrawToggleButton (prop.boolValue, content, x, y, w, h, style);
+            return DrawToggleButton (prop, content, x, y, w, h, style, blue, white);
+        }
+
+
+        public static bool DrawToggleButton (bool value, GUIContent content, GUIStyle style, Color32 onColor, Color32 offColor) {
+            if (Button(content, value ? onColor : offColor, style, black ))
+                value = !value;
+            return value;
+        }
+        public static bool DrawToggleButton (SerializedProperty prop, GUIContent content, GUIStyle style, Color32 onColor, Color32 offColor) {
+            prop.boolValue = DrawToggleButton (prop.boolValue, content, style, onColor, offColor);
             return prop.boolValue;
         }
+        
+        public static bool DrawToggleButton (bool value, GUIContent content, GUIStyle style) {
+            return DrawToggleButton(value, content, style, blue, white);
+        }
+        public static bool DrawToggleButton (SerializedProperty prop, GUIContent content, GUIStyle style) {
+            return DrawToggleButton (prop, content, style);
+        }
+        
+
+        
+
+
 
             
         public static void DrawIconPrefixedField (float x, float y, float w, float h, SerializedProperty prop, GUIContent content, Color32 color) {
@@ -272,6 +327,12 @@ namespace UnityTools.EditorTools {
             SetSize(w, h);
         }
 
+        public static void StringFieldWithDefault (SerializedProperty prop, string defaultString) {
+            string s = prop.stringValue;
+            if (string.IsNullOrEmpty(s) || string.IsNullOrWhiteSpace(s)) prop.stringValue = defaultString;
+            EditorGUILayout.PropertyField(prop, GUITools.noContent);
+        }
+
         public static void StringFieldWithDefault (float x, float y, float w, float h, SerializedProperty prop, string defaultString) {
             string s = prop.stringValue;
             if (string.IsNullOrEmpty(s) || string.IsNullOrWhiteSpace(s)) prop.stringValue = defaultString;
@@ -283,6 +344,21 @@ namespace UnityTools.EditorTools {
             SetRect(x, y, w, h);
             return EditorGUI.TextField(_rect, GUITools.noContent, value);
         }
+
+
+
+
+        public static float PropertyFieldAndHeightChange (Rect pos, SerializedProperty prop, string propName) {
+            SerializedProperty p = prop.FindPropertyRelative(propName);
+            EditorGUI.PropertyField(pos, p, true);
+            return pos.y + EditorGUI.GetPropertyHeight(p, true);
+        }
+
+
+
+
+
+
     }
 }
 

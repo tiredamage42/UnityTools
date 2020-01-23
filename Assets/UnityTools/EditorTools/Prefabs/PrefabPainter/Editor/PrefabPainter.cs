@@ -132,7 +132,7 @@ namespace UnityTools.EditorTools.Internal {
             Vector3 up = alignNormal ? hitNormal : Vector3.up;
             preview.up = up;
             preview.Rotate(previewRot, Space.Self);
-            preview.position = GameManager.UnIntersectColliderGroup(previewCols, preview.position, up);
+            preview.position = PhysicsTools.UnIntersectColliderGroup(previewCols, preview.position, up);
             preview.position += previewPos;
 
             GUI.enabled = false;
@@ -355,7 +355,7 @@ namespace UnityTools.EditorTools.Internal {
 
             Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
             RaycastHit hit;
-            if (Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, GameManager.environmentMask))
+            if (Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, PhysicsTools.environmentMask))
             {
                 hitPos = hit.point;
                 hitNormal = hit.normal;
@@ -393,7 +393,7 @@ namespace UnityTools.EditorTools.Internal {
         
         void FinishSpawnAtPosition (GameObject prefab, Vector3 spawnPos, ref int i, ref int undoID) {
             RaycastHit hit;
-            if (!Physics.Raycast(spawnPos + hitNormal * 5, -hitNormal, out hit, 50, GameManager.environmentMask))
+            if (!Physics.Raycast(spawnPos + hitNormal * 5, -hitNormal, out hit, 50, PhysicsTools.environmentMask))
                 return;
             
             Vector3 pos, rot;
@@ -417,7 +417,7 @@ namespace UnityTools.EditorTools.Internal {
             instance.up = up;
             instance.Rotate(rotation, Space.Self);
             instance.localScale *= sizeMultiplier;
-            instance.position = GameManager.UnIntersectColliderGroup(instance.GetComponentsInChildren<Collider>(), instance.position, up);
+            instance.position = PhysicsTools.UnIntersectColliderGroup(instance.GetComponentsInChildren<Collider>(), instance.position, up);
             instance.position += position;
             instance.gameObject.AddComponent<PrefabPainted>();
             return instance.gameObject;

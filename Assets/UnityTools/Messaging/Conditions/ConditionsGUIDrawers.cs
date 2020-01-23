@@ -4,7 +4,7 @@ using UnityTools.EditorTools;
 
 namespace UnityTools.Internal {
     #if UNITY_EDITOR
-    [CustomPropertyDrawer(typeof(Conditions))] class ConditionsDrawer : NeatArrayAttributeDrawer { }
+    // [CustomPropertyDrawer(typeof(Conditions))] class ConditionsDrawer : NeatArrayAttributeDrawer { }
     
 
     /*
@@ -24,14 +24,13 @@ namespace UnityTools.Internal {
                 return _useGlobalValueGUI;
             }
         }
-        
+
         public override void OnGUI(Rect pos, SerializedProperty prop, GUIContent label)
         {
             EditorGUI.BeginProperty(pos, label, prop);
 
             float origX = pos.x;
             float origWidth = pos.width;
-
 
             SerializedProperty runTargetProp = DrawRunTargetAndCallMethod (ref pos, prop, 125);
 
@@ -46,26 +45,27 @@ namespace UnityTools.Internal {
 
             if (useGlobalValueThreshold) {
                 pos.width = 100;
-        
                 GlobalGameValues.DrawGlobalValueSelector (pos, prop.FindPropertyRelative("globalValueThresholdName"));
-
+                pos.x += 75;
             }
             else {
-
                 pos.width = 60;
                 EditorGUI.PropertyField(pos, prop.FindPropertyRelative("threshold"), GUITools.noContent, true);
+                pos.x += pos.width;
             }
-            pos.x += pos.width;
-
 
             GUITools.DrawToolbarDivider(pos.x, pos.y);
             pos.x += GUITools.toolbarDividerSize;
             
-            useGlobalValueThreshold = GUITools.DrawToggleButton(useGlobalValueThresholdProp, useGlobalValueGUI, pos.x, pos.y, GUITools.blue, GUITools.white);
+            GUITools.DrawIconToggle(useGlobalValueThresholdProp, useGlobalValueGUI, pos.x, pos.y);
+            pos.x += GUITools.iconButtonWidth;
+
+            SerializedProperty trueIfSubjectNullProp = prop.FindPropertyRelative("trueIfSubjectNull");
+            GUITools.DrawIconToggle(trueIfSubjectNullProp, new GUIContent("[?]", "Consider True If Subject Is Null Or Method Check Fails"), pos.x, pos.y);
             pos.x += GUITools.iconButtonWidth;
             
             SerializedProperty orProp = prop.FindPropertyRelative("or");
-            orProp.boolValue = GUITools.DrawToggleButton(orProp.boolValue, new GUIContent(orProp.boolValue ? "||" : "&&"), pos.x, pos.y, GUITools.white, GUITools.white);
+            GUITools.DrawIconToggle(orProp, new GUIContent(orProp.boolValue ? "||" : "&&"), pos.x, pos.y, GUITools.white, GUITools.white);
             pos.x += GUITools.iconButtonWidth;
 
             DrawEnd(ref pos, prop, origX, origWidth, runTargetProp);

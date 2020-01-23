@@ -8,7 +8,8 @@ using System;
 using UnityEditor;
 using UnityTools.EditorTools;
 namespace UnityTools.Internal {
-    public enum RunTarget { Subject, Target, Reference, Static, Player };
+    // public enum RunTarget { Subject, Target, Reference, Static, Player };
+    public enum RunTarget { Subject, Reference, Static, Player };
 
     
 
@@ -18,16 +19,20 @@ namespace UnityTools.Internal {
         public static bool PrepareForMessageSend (
             string callMethod, 
             RunTarget runTarget, 
-            GameObject subject, 
-            GameObject target, 
+            Dictionary<string, object> runtimeSubjects,
+            string runtimeSubjectName,
+            // GameObject subject, 
+            // GameObject target, 
             GameObject referenceTarget,
             Parameters parameters,
-            out GameObject obj,
+            // out GameObject obj,
+            out object obj,
+            
             out object[] suppliedParameters
         ) {
 
             suppliedParameters = new object[0];
-            obj = subject;
+            obj = null;// subject;
 
             if (string.IsNullOrEmpty(callMethod) || string.IsNullOrWhiteSpace(callMethod)) {
                 Debug.LogWarning("Call Method is blank...");
@@ -41,12 +46,20 @@ namespace UnityTools.Internal {
 
 
             switch (runTarget) {
-                case RunTarget.Subject: 
-                    obj = subject; 
+                case RunTarget.Subject:
+                    if (!runtimeSubjects.TryGetValue(runtimeSubjectName, out obj)) {
+                        Debug.LogWarning("Supplied Runtime Subjects for '" + callMethod + "', does not include key: '" + runtimeSubjectName + "'");
+                        return false;
+                    }
                     break;
-                case RunTarget.Target: 
-                    obj = target; 
-                    break;
+
+                // case RunTarget.Subject: 
+                //     obj = subject; 
+                //     break;
+                // case RunTarget.Target: 
+                //     obj = target; 
+                //     break;
+                
                 case RunTarget.Reference: 
                     obj = referenceTarget; 
                     break;
@@ -59,7 +72,10 @@ namespace UnityTools.Internal {
             }
 
             if (obj == null && runTarget != RunTarget.Static) {
-                Debug.LogWarning("RunTarget: " + runTarget.ToString() + " is null, can't call method: " + callMethod);
+                if (runTarget == RunTarget.Subject) 
+                    Debug.LogWarning("RunTarget: " + runTarget.ToString() + " [" + runtimeSubjectName + "] is null, can't call method: " + callMethod);
+                else 
+                    Debug.LogWarning("RunTarget: " + runTarget.ToString() + " is null, can't call method: " + callMethod);
                 return false;
             }
             
@@ -97,26 +113,65 @@ namespace UnityTools.Internal {
             }
             return components;
         }
+
+
+        static GameObject GetGameObjectFromObject (object o) {
+            GameObject go = o as GameObject;
+            if (go == null) {
+                Component c = o as Component;
+                if (c != null) 
+                    go = c.gameObject;
+            }
+            return go;
+        }
+
+        static readonly BindingFlags messagingFlags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
+
         
-        public static bool CallMethod (this GameObject g, string callMethod, object[] parameters, out float value) {
+        // public static bool CallMethod (this GameObject g, string callMethod, object[] parameters, out float value) {
+        public static bool CallMethod (this object o, string callMethod, object[] parameters, out float value) {
 
-            Component[] components = GetComponentsForGameObject(g);
-            
-            for (int i = 0; i < components.Length; i++)
-                if (TryAndCallMethod ( components[i].GetType(), BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, callMethod, components[i], parameters, out value, i == components.Length - 1, "Run Target: " + g.name))
+            GameObject go = GetGameObjectFromObject(o);
+            if (go != null) {
+                Component[] components = GetComponentsForGameObject(go);
+                int l = components.Length;
+                string debugPrefix = "Run Target: " + go.name;
+                for (int i = 0; i < l; i++)
+                    if (TryAndCallMethod ( components[i].GetType(), messagingFlags, callMethod, components[i], parameters, out value, i == l - 1, debugPrefix))
+                        return true;
+            }
+            else {
+                if (TryAndCallMethod ( o.GetType(), messagingFlags, callMethod, o, parameters, out value, true, "Run Target: " + o.ToString()))
                     return true;
-
+            }
             value = 0;
             return false;
         }
-        public static bool CallMethod (this GameObject g, string callMethod, object[] parameters) {
 
-            Component[] components = GetComponentsForGameObject(g);
-            
-            for (int i = 0; i < components.Length; i++)
-                if (TryAndCallMethod ( components[i].GetType(), BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, callMethod, components[i], parameters, i == components.Length - 1, "Run Target: " + g.name))
+        // public static bool CallMethod (this GameObject g, string callMethod, object[] parameters) {            
+        public static bool CallMethod (this object o, string callMethod, object[] parameters) {            
+        
+            // Component[] components = GetComponentsForGameObject(g);
+            // for (int i = 0; i < components.Length; i++)
+            //     if (TryAndCallMethod ( components[i].GetType(), BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, callMethod, components[i], parameters, i == components.Length - 1, "Run Target: " + g.name))
+            //         return true;
+
+            // return false;
+
+
+            GameObject go = GetGameObjectFromObject(o);
+            if (go != null) {
+                Component[] components = GetComponentsForGameObject(go);
+                int l = components.Length;
+                string debugPrefix = "Run Target: " + go.name;
+                for (int i = 0; i < l; i++)
+                    if (TryAndCallMethod ( components[i].GetType(), messagingFlags, callMethod, components[i], parameters, i == l - 1, debugPrefix))
+                        return true;
+            }
+            else {
+                if (TryAndCallMethod ( o.GetType(), messagingFlags, callMethod, o, parameters, true, "Run Target: " + o.ToString()))
                     return true;
-
+            }
             return false;
         }  
 
@@ -200,11 +255,6 @@ namespace UnityTools.Internal {
             if (debugError) LogError ( errorPrefix, callMethod, parameters);
             return false;
         }
-
-
-
-        
-    
 
 
         public static bool TryAndCallMethod (Type type, BindingFlags flags, string callMethod, object instance, object[] parameters, out float value, bool debugError, string errorPrefix) {

@@ -11,17 +11,18 @@ namespace UnityTools {
     public class RandomPrefabChoice : ScriptableObject
     {
         public RandomPrefabChoices choices;
-        public PrefabReference GetRandomPrefabChoice (GameObject subject, GameObject target) {
-            return choices.GetRandomPrefabChoice(subject, target);
+        public PrefabReference GetRandomPrefabChoice (Dictionary<string, object> runtimeSubjects) {
+            return choices.GetRandomPrefabChoice(runtimeSubjects);
         }
     }
 
     [Serializable] public class RandomPrefabChoices {
         [NeatArray] public RandomPrefabArray choices;
-        public PrefabReference GetRandomPrefabChoice (GameObject subject, GameObject target) {
+        public PrefabReference GetRandomPrefabChoice (Dictionary<string, object> runtimeSubjects) {
+        
             List<PrefabReference> refs = new List<PrefabReference>();
             for (int i = 0; i < choices.Length; i++) {
-                if (Conditions.ConditionsMet(choices[i].conditions, subject, target)) {
+                if (Conditions.ConditionsMet(choices[i].conditions, runtimeSubjects)) {        
                     refs.Add(choices[i].prefab);
                 }
             }
@@ -33,13 +34,12 @@ namespace UnityTools {
     [Serializable] public class RandomPrefabArray : NeatArrayWrapper<RandomPrefab> { }
     [Serializable] public class RandomPrefab {
         public PrefabReference prefab;
-        public Conditions conditions;
+        [NeatArray] public Conditions conditions;
     }
 
     #if UNITY_EDITOR
 
-    [CustomPropertyDrawer(typeof(RandomPrefabChoices))]
-    class RandomPrefabChoicesDrawer : PropertyDrawer {
+    [CustomPropertyDrawer(typeof(RandomPrefabChoices))] class RandomPrefabChoicesDrawer : PropertyDrawer {
         public override void OnGUI(Rect pos, SerializedProperty prop, GUIContent label) {
             EditorGUI.PropertyField(pos, prop.FindPropertyRelative("choices"), label, true);
         }

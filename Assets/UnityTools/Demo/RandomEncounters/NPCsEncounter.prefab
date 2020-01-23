@@ -48,10 +48,6 @@ MonoBehaviour:
     prefab:
       collection: NPCs
       name: NPC0
-  spawnOptions:
-    ground: 0
-    navigate: 0
-    uncollide: 0
 --- !u!1 &2641994269591188941
 GameObject:
   m_ObjectHideFlags: 0
@@ -101,6 +97,9 @@ MonoBehaviour:
   prefabRef:
     collection: RandomEncounters
     name: NPCsEncounter
+  renderers: []
+  usesAlias: 0
+  aliasUsed: 
 --- !u!114 &2641994269591188940
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -161,7 +160,3 @@ MonoBehaviour:
     prefab:
       collection: NPCs
       name: NPC1
-  spawnOptions:
-    ground: 0
-    navigate: 0
-    uncollide: 0

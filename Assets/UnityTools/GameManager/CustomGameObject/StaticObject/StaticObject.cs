@@ -1,5 +1,4 @@
 ﻿
-
 /*
     same as the dynamic object system, just to save states for static objects that wont 
     move, be removed, or added to scenes.
@@ -28,11 +27,12 @@ namespace UnityTools {
                 activeObjects[scene].Remove(this);
         }
         public void Load(ObjectState state) {
-            state.loadedVersion = this;
+            SetLoadedVersion(state);
             LoadAttachedStates(state);        
         }
         public ObjectState GetState () {
             ObjectState state = new ObjectState();
+            SetLoadedVersion(state);
             GetAttachedStates (state);
             return state;
         }   

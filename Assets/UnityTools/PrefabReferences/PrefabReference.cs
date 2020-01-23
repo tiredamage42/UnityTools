@@ -12,6 +12,8 @@ namespace UnityTools {
         public string collection;
         public string name;
 
+        public bool isEmpty { get { return string.IsNullOrEmpty(collection) || string.IsNullOrEmpty(name); } }
+
         public PrefabReference (string collection, string name) {
             this.collection = collection;
             this.name = name;
@@ -43,13 +45,7 @@ namespace UnityTools {
                         for (int i = 0; i < refObject.prefabs.Length; i++) {
                             if (refObject.prefabs[i] != null) {
                                 string name = refObject.prefabs[i].name;
-                                menu.AddItem (
-                                    new GUIContent(name), name == reference.name, () => onPrefabPicked(name)
-                                    // () => {
-                                    //     reference.name = name;
-                                    //     // nameProp.serializedObject.ApplyModifiedProperties();
-                                    // }
-                                );
+                                menu.AddItem (new GUIContent(name), name == reference.name, () => onPrefabPicked(name));
                             }
                         }
                         menu.ShowAsContext();
@@ -85,6 +81,7 @@ namespace UnityTools {
                     PrefabReferenceCollection refObject = GameSettings.GetSettings<PrefabReferenceCollection>(objProp.stringValue);
                     if (refObject != null) {
                         GenericMenu menu = new GenericMenu();
+                        
                         for (int i = 0; i < refObject.prefabs.Length; i++) {
                             if (refObject.prefabs[i] != null) {
                                 string name = refObject.prefabs[i].name;

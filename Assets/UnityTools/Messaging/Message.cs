@@ -9,12 +9,15 @@ namespace UnityTools {
     
     [System.Serializable] public class Messages : NeatArrayWrapper<Message> { 
         
-        public static void Invoke (Messages messages, GameObject subject, GameObject target) {
+
+        public void Invoke (Messages messages, Dictionary<string, object> runtimeSubjects) {
+        // public static void Invoke (Messages messages, GameObject subject, GameObject target) {
             if (messages == null) 
                 return;
 
             for (int i = 0; i < messages.Length; i++)
-                messages[i].Invoke( subject, target );
+                messages[i].Invoke( runtimeSubjects );
+                // messages[i].Invoke( subject, target );
         }
     }
 
@@ -25,17 +28,23 @@ namespace UnityTools.Internal {
 
         public RunTarget runTarget;
         public GameObject referenceTarget;
+        public string runtimeSubjectName;
+
         public string callMethod;
-        public Parameters parameters;
+        [NeatArray] public Parameters parameters;
         // public bool showParameters;
 
 
-        public void Invoke (GameObject subject, GameObject target) {
+        // public void Invoke (GameObject subject, GameObject target) {
+        public void Invoke (Dictionary<string, object> runtimeSubjects) {
             
             object[] suppliedParameters;
-            GameObject obj;
 
-            if (!Messaging.PrepareForMessageSend(callMethod, runTarget, subject, target, referenceTarget, parameters, out obj, out suppliedParameters))
+            // GameObject obj;
+            // if (!Messaging.PrepareForMessageSend(callMethod, runTarget, subject, target, referenceTarget, parameters, out obj, out suppliedParameters))
+
+            object obj;
+            if (!Messaging.PrepareForMessageSend(callMethod, runTarget, runtimeSubjects, runtimeSubjectName, referenceTarget, parameters, out obj, out suppliedParameters))
                 return;
         
             if (runTarget == RunTarget.Static) {
@@ -49,13 +58,12 @@ namespace UnityTools.Internal {
 
     #if UNITY_EDITOR
     // [CustomPropertyDrawer(typeof(Messages))] class MessagesDrawer : NeatArrayWithMessageParametersInElements { }
-    [CustomPropertyDrawer(typeof(Messages))] class MessagesDrawer : NeatArrayAttributeDrawer { }
+    // [CustomPropertyDrawer(typeof(Messages))] class MessagesDrawer : NeatArrayAttributeDrawer { }
 
     /*
         DRAW A SINGLE CONDITION:
     */
-    [CustomPropertyDrawer(typeof(Message))] 
-    class MessageDrawer : FieldWithMessageDrawer {
+    [CustomPropertyDrawer(typeof(Message))] class MessageDrawer : FieldWithMessageDrawer {
         
         public override void OnGUI(Rect pos, SerializedProperty prop, GUIContent label)
         {

@@ -2,13 +2,16 @@
 using UnityEngine;
 using UnityEditor;
 using UnityTools.EditorTools;
+
+using System.Collections.Generic;
 namespace UnityTools {
     [System.Serializable] public class PrefabChoiceOrReference {
         public RandomPrefabChoice prefabChoice;
         public PrefabReference prefab;
-        public PrefabReference GetPrefab (GameObject subject, GameObject target) {
+        public PrefabReference GetPrefab (Dictionary<string, object> runtimeSubjects) {
+
             if (prefabChoice != null)
-                return prefabChoice.GetRandomPrefabChoice(subject, target);
+                return prefabChoice.GetRandomPrefabChoice(runtimeSubjects);
             return prefab;
         }
     }

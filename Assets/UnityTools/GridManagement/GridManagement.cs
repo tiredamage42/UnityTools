@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace UnityTools {
 
@@ -19,9 +17,5 @@ namespace UnityTools {
                 (int)(pos.z / gridSize) - (pos.z < 0 ? 1 : 0)
             );
         }
-
-
-
-
     }
 }

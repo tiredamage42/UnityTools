@@ -1,15 +1,11 @@
-﻿using UnityEngine;
-using UnityEditor;
-
-namespace UnityTools.EditorTools {
-
+﻿
 #if UNITY_EDITOR
+namespace UnityTools.EditorTools {
     public class BuiltInIcons
     {
-        public static GUIContent GetIcon (string name, string tooltip) {
-            return new GUIContent(EditorGUIUtility.IconContent(name, tooltip).image, tooltip);
+        public static UnityEngine.GUIContent GetIcon (string name, string tooltip) {
+            return new UnityEngine.GUIContent(UnityEditor.EditorGUIUtility.IconContent(name, tooltip).image, tooltip);
 		}
-
         public static readonly string[] allIcons = new string[] {
             
             "ClothInspector.PaintValue",
@@ -41,6 +37,7 @@ namespace UnityTools.EditorTools {
             "TreeEditor.LeafRotate",
             "TreeEditor.LeafTranslate On",
             "TreeEditor.LeafRotate On",
+
             "Animation.AddEvent",
             "Animation.AddKeyframe",
             "Animation.NextKey",
@@ -61,10 +58,12 @@ namespace UnityTools.EditorTools {
             "WaitSpin09",
             "WaitSpin10",
             "WaitSpin11",
+
             "lightMeter/redLight",
             "lightMeter/orangeLight",
             "lightMeter/lightRim",
             "lightMeter/greenLight",
+            
             "PlayButtonProfile On",
             "PlayButton On",
             "PlayButtonProfile",
@@ -530,9 +529,7 @@ namespace UnityTools.EditorTools {
             "AvatarInspector/BodySilhouette",
         };
         public static readonly int iconsCount = allIcons.Length;
-
-
+        
     }
-
-#endif
 }
+#endif

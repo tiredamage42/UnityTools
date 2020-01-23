@@ -36,7 +36,7 @@ namespace UnityTools {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
             float w = EditorGUIUtility.labelWidth;
 
-            EditorGUI.BeginProperty(position, label, property);
+            // EditorGUI.BeginProperty(position, label, property);
 
             EditorGUI.LabelField(position, label);
 
@@ -53,7 +53,7 @@ namespace UnityTools {
 
             EditorGUI.PropertyField(new Rect(position.x + lblOffset + (slw-10), position.y, wLhalf - (slw-10), position.height), property.FindPropertyRelative("speed"), GUITools.noContent, true);
             
-            EditorGUI.EndProperty();
+            // EditorGUI.EndProperty();
         }
     }
 

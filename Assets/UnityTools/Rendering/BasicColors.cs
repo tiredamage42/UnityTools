@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using System;
 using UnityEditor;
 using UnityTools.EditorTools;
@@ -36,21 +34,8 @@ namespace UnityTools {
     
     #if UNITY_EDITOR
     
-    [CustomPropertyDrawer(typeof(BasicColorDefs))] 
-    public class BasicColorDefsDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(BasicColorDefs))] class BasicColorDefsDrawer : PropertyDrawer
     {
-
-        static GUIContent _isShownContent;
-        protected static GUIContent isShownContent { get { 
-            if (_isShownContent == null) _isShownContent = BuiltInIcons.GetIcon("animationvisibilitytoggleon", "Hide"); 
-            return _isShownContent;
-        } }
-        static GUIContent _hiddenContent;
-        protected static GUIContent hiddenContent { get { 
-            if (_hiddenContent == null) _hiddenContent = BuiltInIcons.GetIcon("animationvisibilitytoggleoff", "Show"); 
-            return _hiddenContent;
-        } }
-
         protected const string listName = "colors";
 
         void MakeSureSizeIsOK (SerializedProperty prop) {
@@ -63,7 +48,8 @@ namespace UnityTools {
         }
 
         protected bool DrawDisplayedToggle (Rect pos, SerializedProperty prop) {
-            if (GUITools.IconButton(pos.x, pos.y, prop.isExpanded ? isShownContent : hiddenContent, GUITools.white)){
+            GUIContent gui = BuiltInIcons.GetIcon("animationvisibilitytoggle" + (prop.isExpanded ? "on" : "off"), prop.isExpanded ? "Hide" : "Show");
+            if (GUITools.IconButton(pos.x, pos.y, gui, GUITools.white)){
                 prop.isExpanded = !prop.isExpanded;
             }
             return prop.isExpanded;
@@ -86,7 +72,6 @@ namespace UnityTools {
             
             float xOffset = (pos.x + GUITools.iconButtonWidth) + GUITools.toolbarDividerSize;
             pos.x = xOffset;
-
             
             GUITools.Label(pos, label, GUITools.black, GUITools.boldLabel);
             

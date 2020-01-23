@@ -42,25 +42,32 @@ namespace UnityTools {
             }   
             return r;
         }
-        protected override bool GetActionDown (int action, bool checkingAxis, int controller) {
+
+        public override string Action2String (int action) {
+            if (!CheckActionIndex("Action", action, actions.Length)) return null;
+            return actions[action].ToString();
+        }
+
+
+        public override bool GetActionDown (int action, bool checkingAxis, int controller) {
             if (!CheckActionIndex("Action", action, checkingAxis ? axesPos.Length : actions.Length)) return false;
             if (checkingAxis && !CheckActionIndex("Action", action, axesNeg.Length)) return false;
             if (checkingAxis) return Input.GetKeyDown(axesNeg[action]) || Input.GetKeyDown(axesPos[action]);
             return Input.GetKeyDown(actions[action]);
         }
-        protected override bool GetAction (int action, bool checkingAxis, int controller) {
+        public override bool GetAction (int action, bool checkingAxis, int controller) {
             if (!CheckActionIndex("Action", action, checkingAxis ? axesPos.Length : actions.Length)) return false;
             if (checkingAxis && !CheckActionIndex("Action", action, axesNeg.Length)) return false;
             if (checkingAxis) return Input.GetKey(axesNeg[action]) || Input.GetKey(axesPos[action]);
             return Input.GetKey(actions[action]);
         }
-        protected override bool GetActionUp (int action, bool checkingAxis, int controller) {
+        public override bool GetActionUp (int action, bool checkingAxis, int controller) {
             if (!CheckActionIndex("Action", action, checkingAxis ? axesPos.Length : actions.Length)) return false;
             if (checkingAxis && !CheckActionIndex("Action", action, axesNeg.Length)) return false;
             if (checkingAxis) return Input.GetKeyUp(axesNeg[action]) || Input.GetKeyUp(axesPos[action]);
             return Input.GetKeyUp(actions[action]);
         }
-        protected override float GetAxis (int axis, int controller) {
+        public override float GetAxis (int axis, int controller) {
             if (!CheckActionIndex("Axis", axis, axesPos.Length)) return 0;
             if (!CheckActionIndex("Axis", axis, axesNeg.Length)) return 0;
             float r = 0;

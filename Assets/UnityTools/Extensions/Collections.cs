@@ -30,6 +30,64 @@ namespace UnityTools {
         public static List<T> MakeCopy <T> (this List<T> s) {
             return new List<T>(s);
         }
+
+
+        static void PrepareArrayForCopy<T> (ref T[] a, int count) {
+            if (a == null) 
+                a = new T[count];
+            else {
+                if (a.Length != count)
+                    System.Array.Resize(ref a, count);
+            }
+        }
+        static List<T> PrepareListForCopy<T> (ref List<T> a) {
+            if (a == null) 
+                a = new List<T>();
+            else 
+                a.Clear();
+            return a;
+        }
+
+
+        public static void MakeCopy <T> (this T[] s, ref T[] c) {
+
+            int l = s.Length;
+            PrepareArrayForCopy(ref c, l);
+            for (int i = 0; i < l; i++)
+                c[i] = s[i];
+        }
+        public static void MakeCopy <T> (this List<T> s, ref T[] c) {
+
+            int l = s.Count;
+            PrepareArrayForCopy(ref c, l);
+            for (int i = 0; i < l; i++)
+                c[i] = s[i];
+        }
+
+        public static void MakeCopy<T, K> (this Dictionary<K, T> s, ref T[] c) {
+             int l = s.Count;
+            PrepareArrayForCopy(ref c, l);
+            
+            int i = 0;
+            foreach (var k in s.Keys) {
+                c[i] = s[k];
+                i++;
+            }
+        }
+
+        public static void MakeCopy <T> (this T[] s, ref List<T> c) {
+            PrepareListForCopy(ref c).AddRange(s);
+        }
+        public static void MakeCopy <T> (this List<T> s, ref List<T> c) {
+            PrepareListForCopy(ref c).AddRange(s);
+        }
+        public static void MakeCopy<T, K> (this Dictionary<K, T> s, ref List<T> c) {
+            PrepareListForCopy(ref c);            
+            foreach (var k in s.Keys) 
+                c.Add(s[k]);
+        }
+
+
         public static T Last <T> (this List<T> s, T defaultValue) {
             int c = s.Count;
             if (c == 0)

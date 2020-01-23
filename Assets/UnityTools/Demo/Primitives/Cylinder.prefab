@@ -126,6 +126,9 @@ MonoBehaviour:
   prefabRef:
     collection: Primitives
     name: Cylinder
+  renderers: []
+  usesAlias: 0
+  aliasUsed: 
 --- !u!114 &699833131536391057
 MonoBehaviour:
   m_ObjectHideFlags: 0

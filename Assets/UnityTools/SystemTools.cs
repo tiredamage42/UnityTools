@@ -6,6 +6,10 @@ using System.Linq;
 
 using System.Reflection;
 using System.Collections.Generic;
+using System.Text;
+
+using UnityEngine;
+
 namespace UnityTools {
 
     public static class SystemTools 
@@ -71,6 +75,64 @@ namespace UnityTools {
                 }
                 return hash1 + (hash2 * 1566083941);
             }
+        }
+
+        public static bool TryParse (string parameter, Type type, out object value) {
+            value = null;
+            
+            if (string.IsNullOrEmpty(parameter))
+                return false;
+
+            if (type == typeof(char)) {
+                // maybe check length == 1
+                value = parameter[0];
+                return true;
+            }
+            if (type == typeof(string)) {
+                value = parameter;
+                return true;
+            }
+            if (type == typeof(object)) {
+                value = parameter as object;
+                return true;
+            }
+            // if (type == typeof(Type)) {
+            //     value = Type.GetType(parameter);
+            //     return true;
+            // }
+
+            if (type.IsEnum) {
+                try {
+                    value = Enum.Parse(type, parameter, true);
+                }
+                catch {
+                    value = null;
+                }
+                return value != null;
+            }
+            
+            if (type == typeof(bool)) {
+                string l = parameter.ToLower();
+                if (parameter != "1" && parameter != "0" && l != "true" && l != "false")
+                    return false;
+                
+                value = parameter == "1" || l == "true";
+                return true;
+            }
+
+            MethodInfo m = type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy).Where(x => x.Name == "TryParse").First();    
+            if (m == null) {
+                Debug.LogError(type.Name + " doesnt have Try Parse...");
+                return false;
+            }
+
+            object[] parameters = new object[] { parameter, null };
+            if ((bool)m.Invoke (null, parameters)) {
+                value = parameters[1];
+                return true;
+            }
+            Debug.LogError(type.Name + " couldnt parse: " + parameter);
+            return false;
         }
 
         public static T StringToEnum<T>(string value, T defValue)

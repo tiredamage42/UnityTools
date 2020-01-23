@@ -18,12 +18,19 @@ namespace UnityToolsDemo {
         void Start()
         {
             moveObject = null;
-            DynamicObject obj;
-            TrackedObjectState state = encounter.GetSpawnedObject(moveObjectKey, out obj, out _);
-            if (state == TrackedObjectState.Loaded) {
-                moveObject = obj.transform;
+
+            object obj;
+            if (encounter.GetSpawnedObject(moveObjectKey, out obj) == ObjectLoadState.Loaded) {
+                moveObject = ((DynamicObject)obj).transform;
                 originalPosition = moveObject.position;
             }
+
+            // DynamicObject obj;
+            // TrackedObjectState state = encounter.GetSpawnedObject(moveObjectKey, out obj, out _);
+            // if (state == TrackedObjectState.Loaded) {
+            //     moveObject = obj.transform;
+            //     originalPosition = moveObject.position;
+            // }
         }
 
         void Update()

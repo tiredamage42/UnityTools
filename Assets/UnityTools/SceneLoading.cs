@@ -10,21 +10,6 @@ namespace UnityTools {
 
     public class SceneLoading 
     {
-        static Func<string, List<MonoBehaviour>, List<MonoBehaviour>> filterObjectsForScene;
-        public static void SetObjectsSceneFilter (Func<string, List<MonoBehaviour>, List<MonoBehaviour>> filterObjectsForScene) {
-            SceneLoading.filterObjectsForScene = filterObjectsForScene;
-        }
-
-        public static List<C> FilterObjectsForScene<C> (string scene, List<C> objects) where C : MonoBehaviour {
-            if (filterObjectsForScene == null) 
-                return objects;
-            
-            return filterObjectsForScene(scene, objects.Cast<MonoBehaviour>().ToList()).Cast<C>().ToList();
-        }
-
-
-
-
         public static event Action<string, LoadSceneMode> onSceneLoadStart;
         public static event Action<string, float, LoadSceneMode> onSceneLoadUpdate;
         public static event Action<string, LoadSceneMode> onSceneLoadEnd;
@@ -32,12 +17,10 @@ namespace UnityTools {
         // called when we load a single scene, non additively, 
         // any scenes that are unloaded as a result are passed in as the list
         // as we "exit" them
-        public static event Action<List<string>> onSceneExit;
+        public static event Action<List<string>, string> onSceneExit;
 
         // called when we manually unload a scene
         public static event Action<string> onSceneUnload;
-        
-        
         
         // to keep track of game pause
         static SceneLoading sceneLoadingPauseObject = new SceneLoading();
@@ -60,9 +43,9 @@ namespace UnityTools {
             }
         }
 
-        static void BroadcastSceneExits () {
+        static void BroadcastSceneExits (string targetScene) {
             if (onSceneExit != null) 
-                onSceneExit(currentLoadedScenes);
+                onSceneExit(currentLoadedScenes, targetScene);
             currentLoadedScenes.Clear();
         }
 
@@ -70,7 +53,6 @@ namespace UnityTools {
         // caching the active scene name, because Scene.name was creating garbage when 
         // checking every frame....
         public static string activeScene;
-        // public static Scene activeScene { get { return SceneManager.GetActiveScene(); } }
         public static void SetActiveScene (string scene) {
             SceneManager.SetActiveScene( SceneManager.GetSceneByName( scene ) );
             activeScene = scene;
@@ -86,7 +68,6 @@ namespace UnityTools {
 
         // all the currently loaded scenes
         public static List<string> currentLoadedScenes = new List<string>();
-
 
         static List<string> unloadingScenes = new List<string>();
         static List<string> loadingScenes = new List<string>();
@@ -129,8 +110,6 @@ namespace UnityTools {
             unloadingScenes.Remove(scene);
         }
 
-        
-
         // define an override, to have custom loading logic
         // return true if the override is used...
         static Func<string, Action<LoadSceneMode>, Action<string, LoadSceneMode>, LoadSceneMode, bool> sceneLoadOverride;
@@ -141,9 +120,8 @@ namespace UnityTools {
         public static bool LoadSceneAsync (string scene, Action<LoadSceneMode> onSceneStartLoad, Action<string, LoadSceneMode> onSceneLoaded, LoadSceneMode loadSceneMode, bool useSingleLoadEffects) {
             // check if we should run our overridden logic, if any...
             if (sceneLoadOverride != null) {
-                if (sceneLoadOverride(scene, onSceneStartLoad, onSceneLoaded, loadSceneMode)) {
+                if (sceneLoadOverride(scene, onSceneStartLoad, onSceneLoaded, loadSceneMode)) 
                     return true;
-                }
             }
 
             AsyncOperation operation = SceneManager.LoadSceneAsync(scene, loadSceneMode);
@@ -157,14 +135,12 @@ namespace UnityTools {
                 // check if loading should pause the game...
                 if (fakedMode == LoadSceneMode.Single) 
                     loadingScenesThatPause.Add(scene);
-
                 
                 BroadcastSceneLoadStart(scene, fakedMode);
 
                 // if we're not loading additively "exit" all currently loaded scenes
-                if (loadSceneMode == LoadSceneMode.Single) {
-                    BroadcastSceneExits();
-                }
+                if (loadSceneMode == LoadSceneMode.Single)
+                    BroadcastSceneExits(scene);
                 
                 if (onSceneStartLoad != null) 
                     onSceneStartLoad(fakedMode);
@@ -195,12 +171,13 @@ namespace UnityTools {
             currentLoadedScenes.Add(scene);
             
             operation.allowSceneActivation = true;
-            
-
-            // let the scene activate for frame
 
             // SceneManager.onSceneLoaded gets called here...
-            yield return null;
+            
+            while (!operation.isDone) {
+                // wait until it is really finished
+                yield return null;
+            }
             
             // now scene is considered "loaded"
                 

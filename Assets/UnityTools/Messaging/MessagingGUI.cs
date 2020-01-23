@@ -7,6 +7,7 @@ using UnityTools.EditorTools;
 namespace UnityTools.Internal {
     #if UNITY_EDITOR
     
+
     public class FieldWithMessageDrawer : PropertyDrawer {
 
         protected SerializedProperty DrawRunTargetAndCallMethod (ref Rect pos, SerializedProperty prop, float callMethodWidth) {
@@ -19,20 +20,37 @@ namespace UnityTools.Internal {
             GUITools.StringFieldWithDefault(pos.x, pos.y, pos.width, pos.height, prop.FindPropertyRelative("callMethod"), "Call Method");            
             pos.x += pos.width;
             return runTargetProp;
-
         }
+
         protected void DrawEnd (ref Rect pos, SerializedProperty prop, float origX, float origWidth, SerializedProperty runTargetProp) {
             
-            prop.isExpanded = GUITools.DrawToggleButton(prop.isExpanded, new GUIContent("P", "Show Parameters"), pos.x, pos.y, GUITools.blue, GUITools.white);
+            prop.isExpanded = GUITools.DrawIconToggle(prop.isExpanded, new GUIContent("P", "Show Parameters"), pos.x, pos.y, GUITools.blue, GUITools.white);
             
             pos.x += GUITools.iconButtonWidth;
             
             if (runTargetProp.enumValueIndex == (int)RunTarget.Reference) {
                 DrawReferenceTarget ( ref pos, prop, origX, origWidth);
             }
+            else if (runTargetProp.enumValueIndex == (int)RunTarget.Subject) {
+                DrawRuntimeObjectName(ref pos, prop, origX, origWidth);
+            }
             
             DrawParameters (ref pos, prop, prop.isExpanded, origX, origWidth);
         }
+
+
+        void DrawRuntimeObjectName (ref Rect pos, SerializedProperty prop, float origX, float origWidth) {
+            pos.y += GUITools.singleLineHeight;
+            pos.x = origX + GUITools.iconButtonWidth;
+            pos.width = origWidth - GUITools.iconButtonWidth;
+
+            
+            EditorGUI.LabelField(pos, "Subject:");
+            pos.x += 65;
+            pos.width -= 65;
+            EditorGUI.PropertyField(pos, prop.FindPropertyRelative("runtimeSubjectName"), GUITools.noContent, true);
+        }
+
         void DrawReferenceTarget (ref Rect pos, SerializedProperty prop, float origX, float origWidth) {
             pos.y += GUITools.singleLineHeight;
             pos.x = origX + GUITools.iconButtonWidth;
@@ -70,7 +88,6 @@ namespace UnityTools.Internal {
             float h = GUITools.singleLineHeight;
 
             if (prop.isExpanded) {
-            
                 h += EditorGUI.GetPropertyHeight(prop.FindPropertyRelative("parameters"), true);
             }
             else {
@@ -78,8 +95,13 @@ namespace UnityTools.Internal {
                     h += GUITools.singleLineHeight;
                 }
             }
-            if (prop.FindPropertyRelative("runTarget").enumValueIndex == (int)RunTarget.Reference) {
+            SerializedProperty runTargetProp = prop.FindPropertyRelative("runTarget");
+            if (runTargetProp.enumValueIndex == (int)RunTarget.Reference) {
                 h += GUITools.singleLineHeight;
+            }
+            else if (runTargetProp.enumValueIndex == (int)RunTarget.Subject) {
+                h += GUITools.singleLineHeight;
+            
             }
             return h;
         }

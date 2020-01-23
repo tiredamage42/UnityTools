@@ -29,6 +29,17 @@ namespace UnityTools {
         [NonSerialized] public CustomGameObject loadedVersion = null;
         // public bool isLoaded { get { return loadedVersion != null; } }
         public bool isLoaded { get { return loadedVersion != null && loadedVersion.gameObject.activeSelf; } }
+
+        public ObjectAttachmentState GetComponent (Type type) {
+
+            foreach (var k in attachedStates.Values) {
+                if (k.GetType() == type) {
+                    return k;
+                }
+            }
+            Debug.Log("Object STate Doesnt Contain Component of Type: " + type.Name);
+            return null;
+        }
     }
 
     public abstract class CustomGameObject : MonoBehaviour
@@ -48,7 +59,7 @@ namespace UnityTools {
         public void AddTags (List<string> tags) {
             objectTags.AddRange(tags);
             if (objectTags.Count > 25) {
-                Debug.LogError(name + " interaction tags getting bloated");
+                Debug.LogError(name + " tags getting bloated");
             }
         }
 
@@ -82,15 +93,15 @@ namespace UnityTools {
         bool loaded;
             
 
-
-
-
+        protected void SetLoadedVersion (ObjectState state) {
+            state.loadedVersion = this;
+        }
 
         protected void GetAttachedStates (ObjectState state) {
-            state.loadedVersion = this;
             state.attachedStates = new Dictionary<string, ObjectAttachmentState>();            
             for (int x = 0; x < attachments.Length; x++) {
                 Type t = attachments[x].GetType();
+                // Debug.Log(name + ": Saving Attachment Type: " + t.Name);
                 state.attachedStates[t.Name] = attachments[x].GetState(); 
             }
         }

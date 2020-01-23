@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿
+
+using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Linq;
-using UnityTools.Spawning;
 using UnityEditor;
+
 
 /*
     framework for saving the state of specified components on a per scene basis
@@ -41,11 +43,9 @@ using UnityEditor;
 
 */
 
-using UnityTools.Internal;
     
 namespace UnityTools {
 
-    
     /*
         serializable representation of the object script, includign all the states
         of the attachment scripts
@@ -53,15 +53,34 @@ namespace UnityTools {
     [Serializable] public class DynamicObjectState : ObjectState {
 
         public PrefabReference prefabRef;
-        public sVector3 position;
-        public sQuaternion rotation;
-        public string trackKey;
-        public bool isTracked { get { return !string.IsNullOrEmpty(trackKey); } }
-        public SpawnOptions spawnOptions;
+        public sVector3 position, rotation;
+        public string scene, id;
+        public bool permanent, delayedInstantiate, isUntouched;
 
+        public DynamicObjectState (string id, string scene, PrefabReference prefabRef, bool permanent) {
+            this.id = id;
+            this.scene = scene;
+            this.prefabRef = prefabRef;
+            this.permanent = permanent;
+        }
     }
+
         
     public class DynamicObject : CustomGameObject {
+
+        Dictionary<Type, Component> cachedScripts = new Dictionary<Type, Component>();
+        public T GetObjectScript<T> () where T : Component {
+            Type t = typeof(T);
+
+            Component script;
+            if (cachedScripts.TryGetValue(t, out script)) {
+                return script as T;
+            }
+
+            T i = GetComponent<T>();
+            cachedScripts[t] = i;
+            return i;
+        }
 
         public void AddAvailabilityForLoadCheck (Func<bool> check) {
             availableForLoadChecks.Add(check);
@@ -80,7 +99,7 @@ namespace UnityTools {
                     return false;    
             }
 
-            Debug.Log(name + " is vaialbale for load");
+            // Debug.Log(name + " is vaialbale for load");
             return true;
         }
 
@@ -90,25 +109,60 @@ namespace UnityTools {
         protected override void OnEnable () {
             base.OnEnable();
 
-            if (!isPlayer) 
+            if (!_isPlayer) {
                 activeInstances.Add(this);
+            }
         }
+
+        [HideInInspector] public Renderer[] renderers;
+        void GetRenderers() {
+            renderers = GetComponentsInChildren<Renderer>();
+        }
+        
+
         void OnDisable () {
 
-            SetTracked(null);
+            // dont disable loaded version (since it's happening anyways)
+            DynamicObjectManager.RemoveObjectByGUID(id, false, false); 
+            
+            id = null;
 
-            if (!isPlayer)
+            if (!_isPlayer)
                 activeInstances.Remove(this);
                 
-            if (isPlayer) {
+            if (_isPlayer) {
                 if (playerObject != null && playerObject == this) {
                     playerObject = null;
                 }
             }
         }
 
+        public void SetID (string id) {        
+            this.id = id;
+        }
+        public string GetID () {
+            return id;
+        }
+        string id = null;
+
+        // for editor placed alias models
+        public bool usesAlias;
+        public string aliasUsed;
+
+
+        // should only return true when a non aliased obj is loaded with scene
+        // if we instntiate objects we should set guids manually
+        bool NeedsID () {
+            bool idIsEmpty = string.IsNullOrEmpty(id);    
+            if (usesAlias && idIsEmpty) 
+                id = DynamicObjectManager.Alias2ID (aliasUsed);
+            return idIsEmpty;
+        }
+
+
         public static DynamicObject playerObject;
-        bool isPlayer;
+        bool _isPlayer;
+        public bool isPlayer { get { return _isPlayer; } }
 
         public Vector3 GetPosition () {
             if (getPosition != null)
@@ -127,9 +181,9 @@ namespace UnityTools {
         }
 
         void Awake () {
-            isPlayer = gameObject.CompareTag(GameManager.playerTag);
+            _isPlayer = gameObject.CompareTag(GameManager.playerTag);
 
-            if (isPlayer) {
+            if (_isPlayer) {
                 if (playerObject != null && playerObject != this) {
                     Debug.LogWarning("Copy of player playerObject in scene, deleting: " + name);
                     Destroy(gameObject);
@@ -138,123 +192,86 @@ namespace UnityTools {
                 playerObject = this;
                 DontDestroyOnLoad(gameObject);
             }
-        }
-
-        public bool MatchesState (DynamicObjectState state) {
-            return state.spawnOptions == null
-                && state.prefabRef.collection == prefabRef.collection 
-                && state.prefabRef.name == prefabRef.name 
-                && state.position == transform.position 
-                && state.rotation == transform.rotation 
-                && state.attachedStates.Count == attachments.Length
-            ;
+            else {
+                GetRenderers ();
+            }
         }
 
         // if delayedInstantiate, we dont have anything to actually load or unload to state
-        // serves as a delayed 'Instantiate' call
-        // since we cant serialize prefab object references :/
+        // serves as a delayed 'Instantiate' call since we cant serialize prefab object references :/
         public void Load(DynamicObjectState state) 
         {
-            _trackKey = state.trackKey;
 
-            state.loadedVersion = this;
+            SetID(state.id);
+            
+            SetLoadedVersion (state);
 
-            if (state.spawnOptions == null) {
+            if (!state.delayedInstantiate)
                 LoadAttachedStates(state);
-            }
+
+            state.delayedInstantiate = false;
         }
 
         
-        public DynamicObjectState GetState ()
-        {
-            DynamicObjectState state = new DynamicObjectState();
-            
-            state.prefabRef = prefabRef;
-            
-            state.position = transform.position;
-            state.rotation = transform.rotation;
+        public DynamicObjectState AdjustState (DynamicObjectState state, string scene, Vector3 position, Vector3 rotation, bool delayedInstantiate)
+        {    
+            state.isUntouched = false;
 
-            GetAttachedStates (state);
-            return state;
-        }
-
-        public DynamicObjectState GetState (SpawnOptions spawnOptions, Vector3 position, Quaternion rotation)
-        {
-            // when delayed instantiate happens, we supply a custom position and rotation...
-            DynamicObjectState state = new DynamicObjectState();
             state.prefabRef = prefabRef;
+            state.scene = scene;
+
             state.position = position;
             state.rotation = rotation;
 
-            state.spawnOptions = spawnOptions;
-            return state;
-        }   
+            state.delayedInstantiate = delayedInstantiate;
+            
+            if (!delayedInstantiate) {
+                SetLoadedVersion (state);
+                GetAttachedStates (state);
+            }
 
-        
-        public void SetTracked (string trackKey) {
-            _trackKey = trackKey;
+            return state;
         }
 
-        string _trackKey;
+        
         bool isInPool;
 
+        void Start () {
+            if (_isPlayer)
+                return;
+
+            if (isInPool) 
+                return;
+            
+            Debug.Log("Adding to pool: " + name);
+            DynamicObjectManager.pool.AddManualInstance(PrefabReferenceCollection.GetPrefabReference<DynamicObject>(prefabRef), this, onPoolCreateAction);
+        }
+
         public static readonly Action<DynamicObject> onPoolCreateAction = (o) => o.isInPool = true;
-
-        public string trackKey { get { return _trackKey; } }
-        public bool isTracked { get { return !string.IsNullOrEmpty(trackKey); } }
-        
-
-        static PrefabPool<DynamicObject> pool = new PrefabPool<DynamicObject>();
         static List<DynamicObject> activeInstances = new List<DynamicObject>();
 
-        public static List<DynamicObject> GetInstancesNotInPool () {
-            return activeInstances.Where(i => !i.isInPool).ToList();
+        public static List<DynamicObject> GetInstancesThatNeedID () {
+            return activeInstances.Where(i => i.NeedsID()).ToList();
         }
+
         public static List<DynamicObject> GetInstancesAvailableForLoad () {
             return activeInstances.Where(i => i.IsAvailableForLoad()).ToList();
-        }
-
-
-        public void AddInstanceToPool (bool disable) {
-            if (isInPool) {
-                Debug.LogWarning(name + " ( DynamicObject ) is already in pool...");
-                return;
-            }
-
-            Debug.Log("Adding to pool: " + name);
-            
-            pool.AddManualInstance(PrefabReferenceCollection.GetPrefabReference<DynamicObject>(prefabRef), this, onPoolCreateAction);
-            if (gameObject.activeSelf) {
-                if (disable) {
-                    gameObject.SetActive(false);
-                }
-            }
-        }
-
-        public static DynamicObject GetAvailableInstance (PrefabReference prefabRef, Vector3 position, Quaternion rotation) {
-            return GetAvailableInstance(PrefabReferenceCollection.GetPrefabReference<DynamicObject>(prefabRef), position, rotation);
-        }
-        public static T GetAvailableInstance<T> (PrefabReference prefabRef, Vector3 position, Quaternion rotation) where T : Component{
-            DynamicObject prefab = PrefabReferenceCollection.GetPrefabReference<DynamicObject>(prefabRef);
-            if (prefab == null)
-                return null;
-            if (prefab.GetComponent<T>() == null)
-                return null;
-            return GetAvailableInstance(prefab, position, rotation).GetComponent<T>();
-        }
-        public static DynamicObject GetAvailableInstance (DynamicObjectState state) {
-            return GetAvailableInstance(state.prefabRef, state.position, state.rotation);
-        }
-        public static DynamicObject GetAvailableInstance (DynamicObject prefab, Vector3 position, Quaternion rotation) {
-            return pool.GetAvailable(prefab, null, true, position, rotation, onPoolCreateAction, null);
-        }
-        
+        }        
     }
+
+    
 
     #if UNITY_EDITOR
     [CustomEditor(typeof(DynamicObject))] class DynamicObjectEditor : Editor {
         public override void OnInspectorGUI() {
             // base.OnInspectorGUI();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("usesAlias"), true);
+
+            //TODO: use alias Picker
+            if (serializedObject.FindProperty("usesAlias").boolValue)
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("aliasUsed"), true);
+
+            serializedObject.ApplyModifiedProperties();
         }
     }
     #endif

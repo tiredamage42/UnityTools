@@ -1,189 +1,268 @@
 ﻿
 
-using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using UnityTools.GameSettingsSystem;
-using UnityTools.Internal;
 using System;
+using System.Collections.Generic;
+using System.IO;
 
-using System.Linq;
-using System.Reflection;
+using UnityEngine;
 using UnityEngine.SceneManagement;
-
-using UnityTools.InitializationSceneWorkflow;
-
-// using UnityTools.Spawning;
 using UnityEngine.AI;
 
+using UnityTools.GameSettingsSystem;
+using UnityTools.Internal;
 using UnityTools.FastTravelling;
+using UnityTools.DevConsole;
 
 namespace UnityTools {
-
-    // added at first initialization...
+    /*
+        any singletons that inherit from this class are automatically added to
+        the game manager object when the application starts
+    */
     public abstract class InitializationSingleTon<T> : Singleton<T> where T : MonoBehaviour { }
+
+
+    /*
+        class that is in charge of the overall architecture of the application and game
+        handles:
+            initializing application
+            starting new games
+            creating and destroying the player when entering or leaving "game" mode
+            quitting to main menu, or quitting application
+
+        application is set up, so the first scene in the build is the 
+        "main menu scene"
+        so it is the first scene that loads
+    */
 
     public class GameManager : Singleton<GameManager>
     {
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        static void _LoadGameManager1()
-        {
-            Debug.Log("GameManager: Initilializing Game");
-            
-            // Debug.Log(Application.streamingAssetsPath);
-            // Debug.Log("Exists: " + System.IO.Directory.Exists(Application.streamingAssetsPath));
-
-            // Debug.Log("Loading Game Manager");
-            new GameObject("GameManager").AddComponent<GameManager>();
-        }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        static void _LoadGameManager2()
-        {
-            Debug.Log("GameManager: Loading Initialization Scenes");
-            InitializationScenes.LoadAdditionalInitializationScenes();
-        }
-
-
         static GameManagerSettings settings { get { return GameManagerSettings.instance; } }
-        public static LayerMask environmentMask { get { return settings.environmentMask; } }
 
 
-
-        /*
-            start and awake should only happen during the initial scene load
-        */
-        protected override void Awake() {
-            base.Awake();
-            if (!thisInstanceErrored) {
-                
-                SceneLoading.onSceneLoadStart += OnSceneLoadStart;
-                SaveLoad.onSaveGame += OnSaveGame;
-                SceneManager.sceneLoaded += OnSceneLoaded;
-                
-                if (settings.actionsController != null) 
-                    settings.actionsController.InitializeActionsInterface();
+        #region INITIALIZATION
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        static void OnApplicationStart()
+        {
+            GameObject gameManagerObject = new GameObject("GameManager");
+         
+            Debug.Log("Adding Game Manager");
+            GameManager gameManager = gameManagerObject.AddComponent<GameManager>();
             
-                // get all types of InitializationSingleTon's
-                Type[] results = SystemTools.FindAllDerivedTypes(typeof(InitializationSingleTon<>));
-                
-                // add tehm to this gameObject
-                for (int i = 0; i < results.Length; i++) {
-                    // Debug.Log("Adding Initialization Singletons " + results[i].Name);
-                    gameObject.AddComponent(results[i]);
-                }
+            Debug.Log("Initializing Inputs");
+            InitializeInputActionsController();
+            
+            Debug.Log("Adding Initialization Scripts");
+            AddInitialSingletons(gameManagerObject);
+            
+            Debug.Log("Instantiating Initialization Prefabs");
+            InstantiateInitialGamePrefabs();
 
-                for (int i = 0; i < settings.initialPrefabSpawns.Length; i++) {
-                    Instantiate(settings.initialPrefabSpawns[i]);
-                }
-            }
-        }   
-
-        const string playerSaveKey = "GAMEPLAYER";
-        void OnSaveGame (List<string> allActiveLoadedScenes) {
-            SaveLoad.gameSaveState.UpdateSaveState (playerSaveKey, player.GetState());
         }
 
-        void OnSceneLoaded (Scene scene, LoadSceneMode mode)
+        // main menu is loaded by starting the application, then we initialize the game manager
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        static void OnApplicationStartAfterMainMenuLoad()
         {
-            if (IsMainMenuScene(scene.name))
-                return;
+            Debug.Log("Setting Main Menu as Active Scene");
+            SceneLoading.SetActiveScene(mainMenuScene);
+            
+            Debug.Log("Loading Initialization Scenes");
+            LoadInitializationScenes();
+            
+            Debug.Log("Loading Additional Main Menu Scenes");
+            LoadAdditiveMainMenuScenes();
+            
+            SceneLoading.onSceneLoadStart += OnSceneLoadStart;
+        }
 
-            if (!SaveLoad.isLoadingSaveSlot)
-                return;
-
-            DynamicObjectState savedPlayer = (DynamicObjectState)SaveLoad.gameSaveState.LoadSaveStateObject(playerSaveKey);
-            player.Load(savedPlayer);
-            player.transform.WarpTo(savedPlayer.position, savedPlayer.rotation);
+        static void LoadInitializationScenes () {
+            for (int i = 0; i < settings.initSceneNames.Length; i++) 
+                SceneLoading.LoadSceneAsync (settings.initSceneNames[i], null, null, LoadSceneMode.Additive, false);
         }
         
-        public bool showPause;
+        static void InitializeInputActionsController () {
+            if (settings.actionsController != null) 
+                settings.actionsController.InitializeActionsInterface();
+        }
+
+        static void AddInitialSingletons(GameObject gameObject) {
+            // get all types of InitializationSingleTon's and add tehm to this gameObject
+            Type[] initSingletons = SystemTools.FindAllDerivedTypes(typeof(InitializationSingleTon<>));
+            for (int i = 0; i < initSingletons.Length; i++) 
+                gameObject.AddComponent(initSingletons[i]);
+        }
+
+        static void InstantiateInitialGamePrefabs () {
+            List<InitialGamePrefabs> initialPrefabs = GameSettings.GetSettingsOfType<InitialGamePrefabs>();
+            for (int p = 0; p < initialPrefabs.Count; p++) 
+                for (int i = 0; i < initialPrefabs[p].prefabs.Length; i++) 
+                    Instantiate(initialPrefabs[p].prefabs[i]).DontDestroyOnLoad(true);
+        }
+        #endregion
+
 
         void Update () {
             pauseManager.Update();
-            showPause = isPaused;
         }
         
-        public static int maxSaveSlots { get { return settings.maxSaveSlots; } }
-        public static bool isQuitting;
-        public const string playerTag = "Player";
+        
+        #region SCENE_ARCHITECTURE
+        public static bool IsMainMenuScene(string scene) { return scene == mainMenuScene; }  
+        public static bool isInMainMenuScene { get { return IsMainMenuScene(SceneLoading.activeScene); } }        
+        
+        public static event Action onLoadMainMenu, onExitMainMenu;
+        static void OnSceneLoadStart (string targetScene, LoadSceneMode mode) {
+            if (mode == LoadSceneMode.Additive)
+                return;
+            
+            // if we're going into the main menu scene
+            if (IsMainMenuScene(targetScene)) {
+                
+                if (onLoadMainMenu != null)
+                    onLoadMainMenu();
+            
+                DestroyPlayer();
+            }
+            else {
 
+                // build player if it doestn exist
+                BuildPlayer();
+                // going into "game mode" from teh main menu
+                if (isInMainMenuScene) {
+                    Debug.Log("Exiting Main Menu Scene Event");
+                    if (onExitMainMenu != null)
+                        onExitMainMenu();
+                }
+            }    
+        }
+
+        public static event Action onNewGameStart;        
+        public static bool startingNewGame;
+
+        [Command("newgame", "Starts a new game", "Game", false)]
+        public static void StartNewGame (bool overrideConfirm=false) {
+            
+            if (overrideConfirm || isInMainMenuScene) {
+                _StartNewGame();
+                return;
+            } 
+
+            string msg = "Are You Sure You Want To Start A New Game?\nAny Unsaved Progress Will Be Lost!";
+            UIEvents.ShowConfirmationPopup(msg, _StartNewGame);
+            
+            
+            // startingNewGame = true;
+            
+            // DestroyPlayer();
+
+            // Debug.Log("On New Game Start Event");
+            // if (onNewGameStart != null) 
+            //     onNewGameStart();
+
+            // Debug.Log("Loading New Game Scene");
+            // DynamicObjectManager.MovePlayer(settings.newGameLocation, true);
+            // startingNewGame = false;
+        }
+        static void _StartNewGame () {
+            startingNewGame = true;
+            
+            DestroyPlayer();
+
+            Debug.Log("On New Game Start Event");
+            if (onNewGameStart != null) 
+                onNewGameStart();
+
+            Debug.Log("Loading New Game Scene");
+            DynamicObjectManager.MovePlayer(settings.newGameLocation, true);
+            startingNewGame = false;
+        }
+
+
+        [Command("quit", "Quit Application", "Game", false)]
+        public static void QuitApplication (bool overrideConfirm=false) {
+
+            // #if UNITY_EDITOR
+            // UnityEditor.EditorApplication.isPlaying = false;
+            // #else
+            // Application.Quit ();
+            // #endif
+            if (overrideConfirm) {
+                _QuitApplication();
+                return;
+            }
+
+            string msg = "Are You Sure You Want To Quit To Desktop?";
+            if (!isInMainMenuScene)
+                msg += "\nAny Unsaved Progress Will Be Lost!";
+
+            UIEvents.ShowConfirmationPopup(msg, _QuitApplication);
+        }
+        static void _QuitApplication () {
+            #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+            #else
+            Application.Quit ();
+            #endif
+        }
+
+        public static bool isQuitting;
         void OnApplicationQuit () {
             isQuitting = true;
         }
 
-        void Start () {
-            if (!thisInstanceErrored) {
-                SceneLoading.SetActiveScene(InitializationScenes.mainInitializationScene);
+        public const string mainMenuScene = "_MainMenuScene";
 
-                SaveLoad.LoadSettingsOptions();
-
-                // #if UNITY_EDITOR
-                StartCoroutine(SkipToScene());
-                // #endif
-
-                #if !UNITY_EDITOR
-                // just to not get stuck in full screen mode during test builds...
-                StartCoroutine(QuitDebug());
-                #endif
-
-
+        [Command("quitmm", "Quit to main menu", "Game", true)]
+        public static void QuitToMainMenu (bool overrideConfirm=false) {
+            if (overrideConfirm) {
+                _QuitToMainMenu();
+                return;
             }
-        }
-        IEnumerator QuitDebug() {
-            yield return new WaitForSecondsRealtime(60);
-            QuitApplication();
-        }
+
             
-        // #if UNITY_EDITOR
-        IEnumerator SkipToScene() {
-            yield return new WaitForSecondsRealtime(3);
-            // Debug.Log("Skippng to scene");
-
-            FastTravel.FastTravelTo(settings.editorSkipToSpawn);
-            // GameManagerSettings.instance.editorSkipToSpawn.DoFastTravel();
+            string msg = "Are You Sure You Want To Quit To Main Menu?\nAny Unsaved Progress Will Be Lost!";
+            UIEvents.ShowConfirmationPopup(msg, _QuitToMainMenu);
+            
+            // // load the additive main menu scenes after we load the main menu scene
+            // Action<string, LoadSceneMode> onSceneLoaded = (s, m) => LoadAdditiveMainMenuScenes();
+            // SceneLoading.LoadSceneAsync (mainMenuScene, null, onSceneLoaded, LoadSceneMode.Single, false);
+        }
+        static void _QuitToMainMenu () {
+            // load the additive main menu scenes after we load the main menu scene
+            Action<string, LoadSceneMode> onSceneLoaded = (s, m) => LoadAdditiveMainMenuScenes();
+            SceneLoading.LoadSceneAsync (mainMenuScene, null, onSceneLoaded, LoadSceneMode.Single, false);
+        }
+        static void LoadAdditiveMainMenuScenes () {
+            for (int i = 0; i < settings.mmSceneNames.Length; i++) 
+                SceneLoading.LoadSceneAsync (settings.mmSceneNames[i], null, null, LoadSceneMode.Additive, false);
         }
 
-        // #endif
 
-
-        public static event Action onLoadMainMenu, onExitMainMenu;
-
-        static void OnSceneLoadStart (string targetScene, LoadSceneMode mode) {
-            if (mode != LoadSceneMode.Additive) {
-
-                if (targetScene == InitializationScenes.mainInitializationScene) {
-                    
-                    if (onLoadMainMenu != null)
-                        onLoadMainMenu();
-                
-                    DestroyPlayer();
-                }
-                else {
-                    BuildPlayer();
-
-                    if (isInMainMenuScene) {
-                        if (onExitMainMenu != null)
-                            onExitMainMenu();
-                    }
-                } 
-            }   
+        [Command("printscenes", "Print all the scenes in the game", "Game", false)]
+        static string PrintScenes () {
+            return string.Join("\n", GetAllScenes());
         }
+        
+        public static string[] GetAllScenes () {
+            int sceneCount = SceneManager.sceneCountInBuildSettings;
+            string[] allScenes = new string[sceneCount];
+            for (int i = 0; i < sceneCount; i++)
+                allScenes[i] = System.IO.Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(i));
+            return allScenes;
+        }
+        #endregion
+
 
         #region PAUSE_GAME
         static PauseManager pauseManager = new PauseManager ();
         public static bool isPaused { get { return pauseManager.isPaused; } }
         
-
         public static void PauseGame (object pauseObject) {
             pauseManager.PauseGame(pauseObject);
         }
-
         public static void UnpauseGame (object pauseObject) {
             pauseManager.UnpauseGame(pauseObject);
         }
-
         public static void TogglePase (object pauseObject) {
             pauseManager.TogglePase(pauseObject);
         }
@@ -191,166 +270,60 @@ namespace UnityTools {
 
 
         #region PLAYER
+        public const string playerTag = "Player";
         public static bool playerExists { get { return DynamicObject.playerObject != null; } }
         public static DynamicObject player {
             get {
-                if (!playerExists) Debug.LogError("Player not instantiated!!!");
+                if (!playerExists) 
+                    Debug.LogError("Player not instantiated!!!");
                 return DynamicObject.playerObject;
             }
         }
-        public static Camera playerCamera { get { return PlayerCamera.myCamera; } }
+        static Camera _playerCamera;
+        public static Camera playerCamera { get { return _playerCamera; } } //PlayerCamera.myCamera; } }
+
+        public static event Action onPlayerCreate, onPlayerDestroy;
         static void BuildPlayer () {
-            if (!playerExists) {
-                GameObject.Instantiate(GameManagerSettings.instance.playerPrefab);
-            }
+            if (playerExists) 
+                return;
+
+            Debug.Log("Building Non Existant Player");
+            GameObject.Instantiate(GameManagerSettings.instance.playerPrefab);
+            _playerCamera = player.GetComponentInChildren<Camera>();
+
+            Type[] camScripts = SystemTools.FindAllDerivedTypes(typeof(CameraScript));
+            for (int i = 0; i < camScripts.Length; i++) 
+                _playerCamera.gameObject.AddComponent(camScripts[i]);
+        
+            Debug.Log("On Player Create Event");
+            if (onPlayerCreate != null) 
+                onPlayerCreate();
         }
         static void DestroyPlayer () {
-            if (playerExists) {
-                GameObject.Destroy(player.gameObject);
-            }
+            if (!playerExists)
+                return;
+
+            Debug.Log("Destroying Player");
+            GameObject.Destroy(player.gameObject);
+            DynamicObject.playerObject = null;
+            _playerCamera = null;
+
+            
+            Debug.Log("On Player Destroy Event");
+            if (onPlayerDestroy != null) 
+                onPlayerDestroy();  
         }
         #endregion
 
-        public static bool IsMainMenuScene(string scene) { return scene == InitializationScenes.mainInitializationScene; }  
-        public static bool isInMainMenuScene { get { return IsMainMenuScene(SceneLoading.activeScene); } }        
 
-        public static void StartNewGame () {
-            DestroyPlayer();
-            SaveLoad.ClearGameSaveState();
+        public static void GetSpawnOptionsForObject (DynamicObject obj, out bool ground, out bool navigate, out bool unIntersect) {
+            // jsut true if player object has colliders...
+            ground = !obj.isPlayer;
+            unIntersect = !obj.isPlayer;
 
-            FastTravel.FastTravelTo(settings.newGameSpawn);
-            // GameManagerSettings.instance.newGameSpawn.DoFastTravel();
+            navigate = obj.GetObjectScript<NavMeshAgent>() != null;
         }
 
-        public static void QuitToMainMenu () {
-            SaveLoad.ClearGameSaveState();
-            InitializationScenes.LoadInitializationScene();
-        }
-
-        // public static string[] GetAllScenes () {
-        //     int sceneCount = SceneManager.sceneCountInBuildSettings;
-        //     string[] allScenes = new string[sceneCount];
-        //     for (int i = 0; i < sceneCount; i++)
-        //     {
-        //         string path = SceneUtility.GetScenePathByBuildIndex(i);
-        //         string sceneName = System.IO.Path.GetFileNameWithoutExtension(path);
-        //         allScenes[i] = sceneName;
-        //     }
-        //     return allScenes;
-        // }
-
-
-        public static void QuitApplication () {
-            SaveLoad.SaveSettingsOptions();
-
-    #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-    #else
-            Application.Quit ();
-    #endif
-        }
-
-
-        public static Vector3 GroundPosition (Vector3 pos, bool stickToGround, bool stickToNavMesh, out Vector3 up) {
-            up = Vector3.up;
-            if (stickToGround) {
-                RaycastHit hit;
-                if (Physics.Raycast(pos, Vector3.down, out hit, settings.groundCheckDistance, environmentMask, QueryTriggerInteraction.Ignore)) {
-                    pos = hit.point;
-                    up = hit.normal;
-                }
-            }
-            if (stickToNavMesh) {
-                NavMeshHit hit;
-                if (NavMesh.SamplePosition(pos, out hit, settings.navmeshCheckDistance, NavMesh.AllAreas)) 
-                    pos = hit.position;
-            }
-            return pos;
-        }
-
-
-        public static void UnIntersectTransform (Transform transform, Vector3 nudgeDir) {
-            transform.WarpTo( UnIntersectColliderGroup(transform.GetComponentsInChildren<Collider>(), transform.position, nudgeDir), transform.rotation);
-        }
-
-
-        public static Vector3 UnIntersectColliderGroup (Collider[] group, Vector3 originalRoot, Vector3 nudgeDir) {
-            int tries = 0;
-
-            // Vector3 root = originalRoot;
-            Vector3 offset = Vector3.zero;
-            while (ColliderGroupIntersects(group, offset)){
-                // root += nudgeDir * unIntersectNudge;
-                offset += nudgeDir * unIntersectNudge;
-                tries++;
-                if (tries >= maxUnIntersectTries) {
-                    // Debug.LogWarning("Max Intersection Tries Reached, giving up");
-                    return originalRoot;
-                }
-            }
-            return originalRoot + offset;
-        }
-
-        const int maxUnIntersectTries = 500;
-        const float unIntersectNudge = .01f;
         
-
-
-        const int physicsCheckOverlapCount = 10;
-        static Collider[] hits = new Collider[physicsCheckOverlapCount];
-        static bool ColliderInIgnores (Collider c, Collider[] ignores) {
-            for (int x = 0; x < ignores.Length; x++) {
-                if (c == ignores[x]) {
-                    return true;
-                }
-            }
-            return false;
-        }
-        static bool CollidersAreHit (Collider[] ignores, int length) {
-
-            for (int i = 0; i < length; i++) {
-                if (hits[i] != null) {
-                    if (!ColliderInIgnores(hits[i], ignores)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-        static bool ColliderGroupIntersects(Collider[] group, Vector3 offset) {
-            for (int i = 0; i < group.Length; i++) {
-                Collider c = group[i];
-
-                float scale = c.transform.lossyScale.x;
-                Vector3 pos = c.transform.position + offset;
-                Quaternion rot = c.transform.rotation;
-
-                SphereCollider sphere = c as SphereCollider;
-                CapsuleCollider capsule = c as CapsuleCollider;
-                BoxCollider box = c as BoxCollider;
-
-                if (sphere != null) {
-                    if (CollidersAreHit(group, Physics.OverlapSphereNonAlloc(pos + sphere.center * scale, sphere.radius * scale, hits, environmentMask, QueryTriggerInteraction.Ignore)))
-                        return true;
-                }
-                else if (capsule != null) {
-                    // x y z
-                    Vector3 dir = capsule.direction == 0 ? c.transform.right : (capsule.direction == 1 ? c.transform.up : c.transform.forward);
-                    Vector3 mod0 = pos + capsule.center * scale;
-                    Vector3 mod1 = dir * ((capsule.height * .5f - capsule.radius * .5f) * scale);
-                    if (CollidersAreHit(group, Physics.OverlapCapsuleNonAlloc(mod0 + mod1, mod0 - mod1, capsule.radius * scale, hits, environmentMask, QueryTriggerInteraction.Ignore)))
-                        return true;
-                }
-                else if (box != null) {
-                    if (CollidersAreHit(group, Physics.OverlapBoxNonAlloc(pos, box.size * .5f * scale, hits, rot, environmentMask, QueryTriggerInteraction.Ignore)))
-                        return true;
-                }
-                else {
-                    if (CollidersAreHit(group, Physics.OverlapBoxNonAlloc(pos, c.bounds.size * .5f * scale, hits, rot, environmentMask, QueryTriggerInteraction.Ignore)))
-                        return true;
-                }   
-            }
-            return false;
-        }
     }   
 }

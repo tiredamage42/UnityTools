@@ -125,3 +125,6 @@ MonoBehaviour:
   prefabRef:
     collection: NPCs
     name: NPC2
+  renderers: []
+  usesAlias: 0
+  aliasUsed: 

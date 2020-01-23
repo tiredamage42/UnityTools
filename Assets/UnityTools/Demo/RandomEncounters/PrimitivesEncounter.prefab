@@ -48,10 +48,6 @@ MonoBehaviour:
     prefab:
       collection: NPCs
       name: NPC0
-  spawnOptions:
-    ground: 0
-    navigate: 0
-    uncollide: 0
 --- !u!1 &219646553348748192
 GameObject:
   m_ObjectHideFlags: 0
@@ -107,6 +103,9 @@ MonoBehaviour:
   prefabRef:
     collection: RandomEncounters
     name: PrimitivesEncounter
+  renderers: []
+  usesAlias: 0
+  aliasUsed: 
 --- !u!114 &219646553348748193
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -167,10 +166,6 @@ MonoBehaviour:
     prefab:
       collection: NPCs
       name: NPC1
-  spawnOptions:
-    ground: 0
-    navigate: 0
-    uncollide: 0
 --- !u!1 &2815602844881931391
 GameObject:
   m_ObjectHideFlags: 0
@@ -219,10 +214,6 @@ MonoBehaviour:
     prefab:
       collection: NPCs
       name: NPC1
-  spawnOptions:
-    ground: 0
-    navigate: 0
-    uncollide: 0
 --- !u!1 &4389346090198942911
 GameObject:
   m_ObjectHideFlags: 0
@@ -271,10 +262,6 @@ MonoBehaviour:
     prefab:
       collection: NPCs
       name: NPC0
-  spawnOptions:
-    ground: 0
-    navigate: 0
-    uncollide: 0
 --- !u!1 &6033986846234157625
 GameObject:
   m_ObjectHideFlags: 0
@@ -323,10 +310,6 @@ MonoBehaviour:
     prefab:
       collection: NPCs
       name: NPC1
-  spawnOptions:
-    ground: 0
-    navigate: 0
-    uncollide: 0
 --- !u!1 &7954534608148037601
 GameObject:
   m_ObjectHideFlags: 0
@@ -375,10 +358,6 @@ MonoBehaviour:
     prefab:
       collection: NPCs
       name: NPC1
-  spawnOptions:
-    ground: 0
-    navigate: 0
-    uncollide: 0
 --- !u!1 &8114487180308036101
 GameObject:
   m_ObjectHideFlags: 0
@@ -427,10 +406,6 @@ MonoBehaviour:
     prefab:
       collection: NPCs
       name: NPC1
-  spawnOptions:
-    ground: 0
-    navigate: 0
-    uncollide: 0
 --- !u!1 &8299602289723612511
 GameObject:
   m_ObjectHideFlags: 0
@@ -479,7 +454,3 @@ MonoBehaviour:
     prefab:
       collection: NPCs
       name: NPC1
-  spawnOptions:
-    ground: 0
-    navigate: 0
-    uncollide: 0

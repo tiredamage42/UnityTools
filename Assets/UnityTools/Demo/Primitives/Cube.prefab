@@ -125,6 +125,9 @@ MonoBehaviour:
   prefabRef:
     collection: Primitives
     name: Cube
+  renderers: []
+  usesAlias: 0
+  aliasUsed: 
 --- !u!114 &2093492395270258054
 MonoBehaviour:
   m_ObjectHideFlags: 0
