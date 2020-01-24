@@ -101,12 +101,73 @@ namespace UnityTools.Rendering {
             }
         }
 
+        
+        public enum DitherType {
+            Bayer2x2, Bayer3x3, Bayer4x4, Bayer8x8, BlueNoise64x64
+        };
+
+
+        static Texture2D _bayer2x2Texture; 
+		public static Texture2D bayer2x2Texture {
+			get {
+				if (_bayer2x2Texture == null) 
+                    _bayer2x2Texture = Resources.Load<Texture2D>("DitherBayer2");
+				return _bayer2x2Texture;
+			}
+		}
+        
+        
+        static Texture2D _bayer3x3Texture; 
+		public static Texture2D bayer3x3Texture {
+			get {
+				if (_bayer3x3Texture == null) 
+                    _bayer3x3Texture = Resources.Load<Texture2D>("DitherBayer3");
+				return _bayer3x3Texture;
+			}
+		}
+        
+        static Texture2D _bayer4x4Texture; 
+		public static Texture2D bayer4x4Texture {
+			get {
+				if (_bayer4x4Texture == null) 
+                    _bayer4x4Texture = Resources.Load<Texture2D>("DitherBayer4");
+				return _bayer4x4Texture;
+			}
+		}
+        static Texture2D _bayer8x8Texture; 
+		public static Texture2D bayer8x8Texture {
+			get {
+				if (_bayer8x8Texture == null) 
+                    _bayer8x8Texture = Resources.Load<Texture2D>("DitherBayer8");
+				return _bayer8x8Texture;
+			}
+		}
+        static Texture2D _bnoise64x64Texture; 
+		public static Texture2D bnoise64x64Texture {
+			get {
+				if (_bnoise64x64Texture == null) 
+                    _bnoise64x64Texture = Resources.Load<Texture2D>("BNoise64");
+				return _bnoise64x64Texture;
+			}
+		}
+        
+        public static Texture2D DitherTexture (DitherType type) {
+            
+            switch (type) {
+                case DitherType.Bayer2x2: return bayer2x2Texture;
+                case DitherType.Bayer3x3: return bayer3x3Texture;
+                case DitherType.Bayer4x4: return bayer4x4Texture;
+                case DitherType.Bayer8x8: return bayer8x8Texture;
+                default: return bnoise64x64Texture;
+            }
+        }
+
 
         static Texture2D _displacementTexture; 
 		public static Texture2D displacementTexture {
 			get {
 				if (_displacementTexture == null) 
-                    _displacementTexture = Resources.Load<Texture2D>("displacements");
+                    _displacementTexture = Resources.Load<Texture2D>("Displacements");
 				return _displacementTexture;
 			}
 		}

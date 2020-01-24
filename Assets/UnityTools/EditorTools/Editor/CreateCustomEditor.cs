@@ -64,7 +64,7 @@ public class {0}Inspector : Editor
     void OnEnable()
     {{
         target = base.target as {0};
-    }
+    }}
     public override void OnInspectorGUI()
     {{
         serializedObject.Update();

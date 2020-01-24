@@ -1,9 +1,10 @@
-﻿using System.IO;
-using System.Collections.Generic;
-
-using UnityEngine;
+﻿
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEngine;
+
+using System.IO;
+using System.Collections.Generic;
 
 using UnityTools.EditorTools;
 using UnityTools.Internal;
@@ -25,11 +26,31 @@ namespace UnityTools {
             BuildSettings.AddBuildWindowIgnorePattern(initSceneKey);
             BuildSettings.AddBuildWindowIgnorePattern(mmSceneKey);
 
-            
             UnityToolsEditor.AddProjectChangeListener(RefreshScenesList);
 
             EditorApplication.playModeStateChanged += OnPlayModeChanged;
+			ToolbarExtender.LeftToolbarGUI.Add(OnToolbarGUI);
         }        
+        
+        static void OnToolbarGUI()
+		{
+            if (Application.isPlaying)
+                return;
+
+			GUILayout.FlexibleSpace();
+
+            if(GUILayout.Button(BuiltInIcons.GetIcon("PlayButtonProfile", "Play From Main Menu"), ToolbarExtender.commandButtonStyle))
+			{
+                loadMainMenuOnEditorPlay = true;
+                EditorApplication.isPlaying = true;
+			}
+		}
+        const string loadMenuOnPlayKey = "GameManager.LoadMainMenuOnPlay";
+        public static bool loadMainMenuOnEditorPlay {
+            get { return EditorPrefs.GetBool(loadMenuOnPlayKey, false); }
+            set { EditorPrefs.SetBool(loadMenuOnPlayKey, value); }
+        }
+
 
 
         public static void RefreshScenesList () {
@@ -112,26 +133,11 @@ namespace UnityTools {
         const string splitKeyS = "&";
         public static void OnPlayModeChanged(PlayModeStateChange state)
         {
-            if (!GameManagerSettings.loadMainMenuOnEditorPlay)
+            if (!loadMainMenuOnEditorPlay)
                 return;
             
-            // User pressed stop -- reload previous scene.
-            if (state == PlayModeStateChange.EnteredEditMode) {
-                if (GameManagerSettings.bypassMenuLoadOnEditorPlay) {
-                    GameManagerSettings.bypassMenuLoadOnEditorPlay = false;
-                    return;
-                }
-
-                string[] scenes = PreviousScene.Split(splitKey);
-                for (int i = 0; i < scenes.Length; i++) {
-                    try     { EditorSceneManager.OpenScene(scenes[i], i == 0 ? OpenSceneMode.Single : OpenSceneMode.Additive); }
-                    catch   { Debug.LogError("Error: scene not found: " + scenes[i]); }
-                }
-        
-            }
-            else if (state == PlayModeStateChange.ExitingEditMode) {
-                if (GameManagerSettings.bypassMenuLoadOnEditorPlay)
-                    return;
+            
+            if (state == PlayModeStateChange.ExitingEditMode) {
                 
                 // User pressed play -- autoload initials scene.
                 if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
@@ -149,12 +155,24 @@ namespace UnityTools {
                     }
                     catch {
                         Debug.LogError("Error: scene not found: " + mainMenuScenePath);
+                        loadMainMenuOnEditorPlay = false;
                         EditorApplication.isPlaying = false;
                     }
                 }
                 else {
                     // User cancelled the save operation -- cancel play as well.
+                    loadMainMenuOnEditorPlay = false;
                     EditorApplication.isPlaying = false;
+                }
+            }
+            // User pressed stop -- reload previous scene.
+            else if (state == PlayModeStateChange.EnteredEditMode) {
+                loadMainMenuOnEditorPlay = false;
+                    
+                string[] scenes = PreviousScene.Split(splitKey);
+                for (int i = 0; i < scenes.Length; i++) {
+                    try     { EditorSceneManager.OpenScene(scenes[i], i == 0 ? OpenSceneMode.Single : OpenSceneMode.Additive); }
+                    catch   { Debug.LogError("Error: scene not found: " + scenes[i]); }
                 }
             }
         }

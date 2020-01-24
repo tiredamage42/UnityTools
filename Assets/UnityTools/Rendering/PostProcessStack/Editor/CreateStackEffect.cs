@@ -56,6 +56,9 @@ namespace UnityTools.Rendering {{
     [PostProcess(typeof({0}Renderer), PostProcessEvent.AfterStack, ""Custom/{0}"")]
     public sealed class {0} : PostProcessEffectSettings
     {{
+
+        // [Range(0,1)] public FloatParameter param = new FloatParameter() {{ value = 0 }};
+        
         public override bool IsEnabledAndSupported(PostProcessRenderContext context)
         {{
             return enabled.value;
@@ -67,10 +70,14 @@ namespace UnityTools.Rendering {{
         static Shader _shader; 
 		static Shader shader {{ get {{ return RenderUtils.GetShaderIfNull(""Hidden/{0}"", ref _shader); }} }}
         
+        //static readonly int _Params = Shader.PropertyToID(""_Params"");
+        
         public override void Render(PostProcessRenderContext context)
         {{
             var sheet = context.propertySheets.Get(shader);
             
+            // sheet.properties.SetVector(_Params, new Vector4( x, y, z, w ));
+
             context.command.BlitFullscreenTriangle(context.source, context.destination, sheet, 0);
         }}
     }}
@@ -82,7 +89,7 @@ Shader ""Hidden/{0}""
 {{
     SubShader
     {{
-        Cull Front ZWrite Off ZTest Off Blend Off
+        Cull Off ZWrite Off ZTest Off Blend Off
         Pass
         {{
             HLSLPROGRAM

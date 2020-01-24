@@ -9,8 +9,8 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: NavyGrid
   m_Shader: {fileID: 45, guid: 0000000000000000f000000000000000, type: 0}
-  m_ShaderKeywords: _EMISSION _EMISSIONMAP _LIGHTMAPPING_DYNAMIC_LIGHTMAPS _LIGHTMAPPING_REALTIME
-    _UVSEC_UV1
+  m_ShaderKeywords: _EMISSION _EMISSIONMAP _GLOSSYREFLECTIONS_OFF _LIGHTMAPPING_DYNAMIC_LIGHTMAPS
+    _LIGHTMAPPING_REALTIME _SPECULARHIGHLIGHTS_OFF _UVSEC_UV1
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -73,7 +73,7 @@ Material:
     - _EmissionScaleUI: 2
     - _GlossMapScale: 1
     - _Glossiness: 0
-    - _GlossyReflections: 1
+    - _GlossyReflections: 0
     - _Lightmapping: 1
     - _Metallic: 0.1
     - _Mode: 0
@@ -81,14 +81,14 @@ Material:
     - _Parallax: 0.02
     - _RimPower: 1
     - _SmoothnessTextureChannel: 0
-    - _SpecularHighlights: 1
+    - _SpecularHighlights: 0
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
     - _BaseScale: {r: 1, g: 1, b: 1, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissionColor: {r: 1.3348337, g: 1.3348337, b: 1.3348337, a: 1.3348337}
+    - _EmissionColor: {r: 5.992157, g: 5.992157, b: 5.992157, a: 1.3348337}
     - _EmissionColorUI: {r: 0, g: 0, b: 0, a: 1}
     - _EmissionColorWithMapUI: {r: 1, g: 1, b: 1, a: 1}
     - _SpecColor: {r: 0.11764706, g: 0.11764706, b: 0.11764706, a: 1}

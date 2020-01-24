@@ -176,5 +176,26 @@ namespace UnityTools {
             return obj;
         }
         
+
+        public static double ConvertSize (double sizeInBytes, out FileSize size) {
+            if (sizeInBytes < 1024) {
+                size = FileSize.B;
+                return sizeInBytes;
+            }
+            else if (sizeInBytes < 1048576) {
+                size = FileSize.KB;
+                return sizeInBytes / 1024;
+            }
+            else if (sizeInBytes < 1073741824) {
+                size = FileSize.MB;
+                return sizeInBytes / 1048576;
+            }
+            else {
+                size = FileSize.GB;
+                return sizeInBytes / 1073741824;
+            } 
+        }
     }
+    public enum FileSize { B, KB, MB, GB }
+
 }

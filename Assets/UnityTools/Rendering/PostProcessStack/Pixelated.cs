@@ -8,9 +8,7 @@ namespace UnityTools.Rendering {
     [PostProcess(typeof(PixelatedRenderer), PostProcessEvent.AfterStack, "Custom/Pixelated")]
     public sealed class Pixelated : PostProcessEffectSettings
     {
-        public IntParameter pixelWidth = new IntParameter() { value = 16 };
-        public IntParameter pixelHeight = new IntParameter() { value = 16 };
-		
+        [Range(16.0f, 512.0f)] public FloatParameter blockCount = new FloatParameter() { value = 128 };
 
         public override bool IsEnabledAndSupported(PostProcessRenderContext context)
         {
@@ -21,14 +19,16 @@ namespace UnityTools.Rendering {
     public sealed class PixelatedRenderer : PostProcessEffectRenderer<Pixelated>
     {
         static Shader _shader;
-        static Shader shader { get { return RenderUtils.GetShaderIfNull("Hidden/Pixelated", ref _shader); } }
-         
-        static readonly int _PixSize = Shader.PropertyToID("_PixSize");
+        static Shader shader { get { return RenderUtils.GetShaderIfNull("Hidden/Pixelated", ref _shader); } }         
+		static readonly int _BlockCountSize = Shader.PropertyToID("_BlockCountSize");
 		
         public override void Render(PostProcessRenderContext context)
         {
             var sheet = context.propertySheets.Get(shader);
-            sheet.properties.SetVector(_PixSize, new Vector2(settings.pixelWidth, settings.pixelHeight));
+            float k = context.camera.aspect;
+            Vector2 count = new Vector2(settings.blockCount, settings.blockCount/k);
+            Vector2 size = new Vector2(1.0f/count.x, 1.0f/count.y);
+            sheet.properties.SetVector(_BlockCountSize, new Vector4(count.x, count.y, size.x, size.y));            
             context.command.BlitFullscreenTriangle(context.source, context.destination, sheet, 0);
         }
     }
