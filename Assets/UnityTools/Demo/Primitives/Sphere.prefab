@@ -126,6 +126,7 @@ MonoBehaviour:
     collection: Primitives
     name: Sphere
   renderers: []
+  colliders: []
   usesAlias: 0
   aliasUsed: 
 --- !u!114 &2451082230535050376

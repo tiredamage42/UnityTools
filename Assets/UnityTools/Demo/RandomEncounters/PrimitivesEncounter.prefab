@@ -104,6 +104,7 @@ MonoBehaviour:
     collection: RandomEncounters
     name: PrimitivesEncounter
   renderers: []
+  colliders: []
   usesAlias: 0
   aliasUsed: 
 --- !u!114 &219646553348748193

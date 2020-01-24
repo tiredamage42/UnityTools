@@ -126,5 +126,6 @@ MonoBehaviour:
     collection: NPCs
     name: NPC1
   renderers: []
+  colliders: []
   usesAlias: 0
   aliasUsed: 

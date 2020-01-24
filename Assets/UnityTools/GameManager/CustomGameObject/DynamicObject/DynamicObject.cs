@@ -115,8 +115,10 @@ namespace UnityTools {
         }
 
         [HideInInspector] public Renderer[] renderers;
-        void GetRenderers() {
+        [HideInInspector] public Collider[] colliders;
+        void GetComponents() {
             renderers = GetComponentsInChildren<Renderer>();
+            colliders = GetComponentsInChildren<Collider>();
         }
         
 
@@ -193,7 +195,7 @@ namespace UnityTools {
                 DontDestroyOnLoad(gameObject);
             }
             else {
-                GetRenderers ();
+                GetComponents ();
             }
         }
 

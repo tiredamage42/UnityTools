@@ -127,6 +127,7 @@ MonoBehaviour:
     collection: Primitives
     name: Cylinder
   renderers: []
+  colliders: []
   usesAlias: 0
   aliasUsed: 
 --- !u!114 &699833131536391057

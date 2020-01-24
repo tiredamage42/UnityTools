@@ -126,6 +126,7 @@ MonoBehaviour:
     collection: Primitives
     name: Cube
   renderers: []
+  colliders: []
   usesAlias: 0
   aliasUsed: 
 --- !u!114 &2093492395270258054

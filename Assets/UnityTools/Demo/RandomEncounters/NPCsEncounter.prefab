@@ -98,6 +98,7 @@ MonoBehaviour:
     collection: RandomEncounters
     name: NPCsEncounter
   renderers: []
+  colliders: []
   usesAlias: 0
   aliasUsed: 
 --- !u!114 &2641994269591188940

@@ -98,6 +98,7 @@ MonoBehaviour:
     collection: RandomEncounters
     name: ScriptedEncounter
   renderers: []
+  colliders: []
   usesAlias: 0
   aliasUsed: 
 --- !u!114 &6322842497657340344
