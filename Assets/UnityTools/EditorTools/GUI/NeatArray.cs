@@ -203,6 +203,24 @@ namespace UnityTools.EditorTools {
             }
             EditorGUI.indentLevel = origIndentLevel;
         }
+        /*
+            TODO:
+                MOVE BUTTONS:
+                    
+if (GUILayout.Button("↑↑", UnityBuildGUIUtility.helpButtonStyle))
+{
+    list.MoveArrayElement(i, 0);
+}
+if (GUILayout.Button("↑", UnityBuildGUIUtility.helpButtonStyle))
+{
+    list.MoveArrayElement(i, i - 1);
+}
+if (GUILayout.Button("↓", UnityBuildGUIUtility.helpButtonStyle))
+{
+    list.MoveArrayElement(i, i + 1);
+}
+        
+        */
 
         protected float CalculateHeight (SerializedProperty prop, bool displayed) {
             if (!displayed) return GUITools.singleLineHeight;

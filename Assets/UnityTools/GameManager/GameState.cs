@@ -37,7 +37,7 @@ namespace UnityTools {
             string savePath = settingsSavePath;
             if (!File.Exists(savePath)) 
                 return;
-            settingsSaveState.SetState( (Dictionary<string, object>)SystemTools.LoadFromFile(savePath) );
+            settingsSaveState.SetState( (Dictionary<string, object>)IOTools.LoadFromFile(savePath) );
             if (onSettingsLoaded != null) 
                 onSettingsLoaded();
         }
@@ -48,7 +48,7 @@ namespace UnityTools {
             if (onSettingsSave != null) 
                 onSettingsSave();
 
-            SystemTools.SaveToFile(settingsSaveState.state, settingsSavePath);
+            IOTools.SaveToFile(settingsSaveState.state, settingsSavePath);
         }
 
         /*
@@ -71,7 +71,7 @@ namespace UnityTools {
         public static SaveStateInfo GetSaveDescription (int slot) {
             if (!SaveExists(slot))
                 return null;
-            return (SaveStateInfo)SystemTools.LoadFromFile(GetGameStatePath(slot, infoExtension));
+            return (SaveStateInfo)IOTools.LoadFromFile(GetGameStatePath(slot, infoExtension));
         }
 
         // call when going to main menu, or starting new game
@@ -99,11 +99,11 @@ namespace UnityTools {
             Debug.Log("Saving Info To File");
             // keep track of the scene we were in when saving
             // save the description info
-            SystemTools.SaveToFile(new SaveStateInfo(SceneLoading.playerScene), GetGameStatePath(slot, infoExtension));
+            IOTools.SaveToFile(new SaveStateInfo(SceneLoading.playerScene), GetGameStatePath(slot, infoExtension));
             
             Debug.Log("Saving Game State To File");
             // save the actual game state
-            SystemTools.SaveToFile(gameSaveState.state, GetGameStatePath(slot, saveExtension));
+            IOTools.SaveToFile(gameSaveState.state, GetGameStatePath(slot, saveExtension));
         }
 
         [Command("loadgame", "Loads a game from the specified slot", "Game", false)]
@@ -136,7 +136,7 @@ namespace UnityTools {
             Action<LoadSceneMode> onSceneStartLoad = (m) => {
                 
                 Debug.Log("Loading State From File");
-                gameSaveState.SetState( (Dictionary<string, object>)SystemTools.LoadFromFile(savePath) );
+                gameSaveState.SetState( (Dictionary<string, object>)IOTools.LoadFromFile(savePath) );
                 
                 Debug.Log("On Load Game Event");
                 if (onGameLoaded != null)

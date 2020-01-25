@@ -354,6 +354,45 @@ namespace UnityTools.EditorTools {
             return pos.y + EditorGUI.GetPropertyHeight(p, true);
         }
 
+        static GUIStyle _dragDropArea;
+        static GUIStyle dragDropStyle {
+            get {
+                if (_dragDropArea == null) {
+                    _dragDropArea = new GUIStyle(GUI.skin.box);
+                    _dragDropArea.stretchWidth = true;
+                    _dragDropArea.alignment = TextAnchor.MiddleCenter;
+                    _dragDropArea.normal.textColor = GUI.skin.textField.normal.textColor;
+                }
+                return _dragDropArea;
+            }
+        }
+
+
+        public static bool DragAndDropArea (Rect rect, string msg, out Object[] objs) {
+            objs = null;
+            GUI.Box(rect, msg, dragDropStyle);
+            Event currentEvent = Event.current;
+
+            switch (currentEvent.type)
+            {
+                case EventType.DragUpdated:
+                case EventType.DragPerform:
+                    if (rect.Contains(currentEvent.mousePosition))
+                    {
+                        DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
+                        if (currentEvent.type == EventType.DragPerform)
+                        {
+                            DragAndDrop.AcceptDrag();
+
+                            objs = DragAndDrop.objectReferences;
+                        }
+                        return true;
+                    }
+                    break;
+            }
+            return false;
+        }
+
 
 
 

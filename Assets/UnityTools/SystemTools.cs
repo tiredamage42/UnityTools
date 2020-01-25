@@ -1,14 +1,10 @@
-﻿using System;
-using System.Runtime.Serialization.Formatters.Binary;
+﻿
+using System;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
-
 using System.Reflection;
 using System.Collections.Generic;
-using System.Text;
-
-using UnityEngine;
+using System.Diagnostics;
 
 namespace UnityTools {
 
@@ -122,7 +118,7 @@ namespace UnityTools {
 
             MethodInfo m = type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy).Where(x => x.Name == "TryParse").First();    
             if (m == null) {
-                Debug.LogError(type.Name + " doesnt have Try Parse...");
+                UnityEngine.Debug.LogError(type.Name + " doesnt have Try Parse...");
                 return false;
             }
 
@@ -131,7 +127,7 @@ namespace UnityTools {
                 value = parameters[1];
                 return true;
             }
-            Debug.LogError(type.Name + " couldnt parse: " + parameter);
+            UnityEngine.Debug.LogError(type.Name + " couldnt parse: " + parameter);
             return false;
         }
 
@@ -147,34 +143,20 @@ namespace UnityTools {
 				return defValue;
 			}
 		}
+        public static void RunScript(string scriptPath, string arguments)
+        {
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.FileName = Path.GetFullPath(scriptPath);
 
-		
-        public static void SaveToFile (object obj, string filePath) {
-            using (FileStream file = File.Create(filePath))
-            {
-                using (GZipStream compressed = new GZipStream(file, CompressionMode.Compress))
-                {
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        new BinaryFormatter().Serialize(ms, obj);
-                        byte[] bytesToCompress = ms.ToArray();
-                        compressed.Write(bytesToCompress, 0, bytesToCompress.Length);
-                    }
-                }
-            }
+            if (!string.IsNullOrEmpty(arguments))
+                startInfo.Arguments = arguments;
+
+            Process proc = Process.Start(startInfo);
+            proc.WaitForExit();
         }
 
-        public static object LoadFromFile (string filePath) {
-            object obj = null;
-            using (FileStream file = File.Open(filePath, FileMode.Open))
-            {
-                using (GZipStream decompressed = new GZipStream(file, CompressionMode.Decompress))
-                {
-                    obj = new BinaryFormatter().Deserialize(decompressed);
-                }
-            }
-            return obj;
-        }
+
+
         
 
         public static double ConvertSize (double sizeInBytes, out FileSize size) {

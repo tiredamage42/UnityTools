@@ -86,14 +86,14 @@ namespace UnityTools {
             Dictionary<string, Dictionary<string, LocationDefenition>> existing;
             if (File.Exists(filePath)) {
                 Debug.Log("Updating Locations File: " + filePath);
-                existing = (Dictionary<string, Dictionary<string, LocationDefenition>>)SystemTools.LoadFromFile(filePath);
+                existing = (Dictionary<string, Dictionary<string, LocationDefenition>>)IOTools.LoadFromFile(filePath);
                 existing[sceneName] = locationDict;
             }
             else {
                 Debug.Log("Creating Locations File: " + filePath);
                 existing = new Dictionary<string, Dictionary<string, LocationDefenition>> () { { sceneName, locationDict } };
             }
-            SystemTools.SaveToFile(existing, filePath);
+            IOTools.SaveToFile(existing, filePath);
         }
 
         static string GetNameWParent (Transform t, string name) {

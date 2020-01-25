@@ -87,7 +87,7 @@ namespace UnityTools {
         public static Dictionary<string, Dictionary<string, LocationDefenition>> LoadAllLocations () {
             string path = GetLocationsObjectPath();
             if (File.Exists(path))
-                return (Dictionary<string, Dictionary<string, LocationDefenition>>)SystemTools.LoadFromFile(path);
+                return (Dictionary<string, Dictionary<string, LocationDefenition>>)IOTools.LoadFromFile(path);
             return null;
         }
         public static string GetLocationsObjectDirectory () {
