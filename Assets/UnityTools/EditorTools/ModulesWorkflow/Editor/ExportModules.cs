@@ -52,7 +52,7 @@ Accidentally exporting could lead to errors in other projects that edit other mo
             projectSpecifier = null;
             exportWarnings = "";
 
-            List<ModuleProjectSpecifier> specifiers = AssetTools.FindAssetsByType<ModuleProjectSpecifier>(false);
+            List<ModuleProjectSpecifier> specifiers = AssetTools.FindAssetsByType<ModuleProjectSpecifier>(false, null);
             if (specifiers.Count == 0)
                 return;
             

@@ -3,6 +3,8 @@ using UnityTools.GameSettingsSystem;
 using UnityTools.EditorTools;
 using UnityEngine.Rendering.PostProcessing;
 
+using UnityTools.DevConsole;
+
 namespace UnityTools.Rendering {
     [CreateAssetMenu()]
     public class RenderingSettings : GameSettingsObjectSingleton<RenderingSettings>
@@ -11,7 +13,37 @@ namespace UnityTools.Rendering {
         static void _OnLoadGame()
         {
             GameManager.onPlayerCreate += OnPlayerCreate;
+
+            GameState.onSettingsLoaded += OnSettingsLoaded;
+            GameState.onSettingsSave += OnSettingsSave;
         }
+        
+
+        static bool _useVsync;
+
+        [Command("vsync", "enable/disable vsync", "Rendering", false)]
+        static bool useVsync {
+            get { return _useVsync; }
+            set {
+                if (value) {
+                    QualitySettings.vSyncCount = 1;
+                }
+                else {
+                    QualitySettings.vSyncCount = 0;
+                    Application.targetFrameRate = uncappedFrameRate;
+                }
+                _useVsync = value;
+            }
+        }
+        const string USE_VSYNC_KEY = "vsync";
+        const int uncappedFrameRate = 500;
+        static void OnSettingsLoaded () {
+            _useVsync = (bool)GameState.settingsSaveState.Load(USE_VSYNC_KEY);  
+        }
+        static void OnSettingsSave () {
+            GameState.settingsSaveState.UpdateState(USE_VSYNC_KEY, _useVsync);
+        }
+
 
         static void OnPlayerCreate() {
 

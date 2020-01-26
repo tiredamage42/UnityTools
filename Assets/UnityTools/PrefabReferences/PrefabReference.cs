@@ -27,11 +27,10 @@ namespace UnityTools {
 
         public static void DrawPrefabReference (PrefabReference reference, GUIContent label, Action<string> onCollectionPicked, Action<string> onPrefabPicked) {
             
-            if (!string.IsNullOrEmpty(label.text)) {
+            if (!string.IsNullOrEmpty(label.text)) 
                 GUITools.Label(label, GUITools.black, GUITools.boldLabel);
-            }
-
-            AssetSelector.DrawName(typeof(PrefabReferenceCollection), reference.collection, new GUIContent("Collection"), null, onCollectionPicked );
+            
+            AssetSelector.DrawName(typeof(PrefabReferenceCollection), reference.collection, new GUIContent("Collection"), null, null, onCollectionPicked );
 
             if (!string.IsNullOrEmpty(reference.collection)) {
                 EditorGUILayout.BeginHorizontal();

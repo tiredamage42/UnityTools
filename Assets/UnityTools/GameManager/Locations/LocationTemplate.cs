@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 
 using UnityEngine;
+
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEditorInternal;
+#endif
 
 using UnityTools.EditorTools;
 namespace UnityTools.Internal {

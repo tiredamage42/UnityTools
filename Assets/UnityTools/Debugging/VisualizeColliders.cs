@@ -25,7 +25,7 @@ namespace UnityTools.Debugging {
         public static List<Collider> colliders = new List<Collider>();
         
         
-        [Command("show collider", "visualize object colliders (by dynamic object key [#/@])", "Rendering", true)]
+        [Command("showcollider", "visualize object colliders (by dynamic object key [#/@])", "Rendering", true)]
         public static void VisualizeColliders (string doKey) {
             VisualizeColliders(DynamicObjectManager.GetDynamicObjectFromKey(doKey));
         }

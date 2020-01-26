@@ -19,7 +19,7 @@ namespace UnityTools {
             if (instance == null) return;
 
             // update the array of all game settings objects in the project
-            Perk[] allScenesInProject = AssetTools.FindAssetsByType<Perk>(logToConsole: false).ToArray();
+            Perk[] allScenesInProject = AssetTools.FindAssetsByType<Perk>(log: false, null).ToArray();
 
             instance.allPerks = allScenesInProject;
 

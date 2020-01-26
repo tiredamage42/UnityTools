@@ -18,7 +18,7 @@ namespace UnityTools.EditorTools.Internal.Modules {
         int excludeIndex;
         public void InitializeModuleImporting (string excludeModuleName) {
             excludeIndex = -1;
-            modulesInProject = AssetTools.FindAssetsByType<Module>(false);
+            modulesInProject = AssetTools.FindAssetsByType<Module>(false, null);
             
             unityPackagePaths = ProjectTools.GetFilesInDirectory(ModuleWorkFlow.defaultTargetExportDirectory, ProjectTools.packageExtension, out unityPackageNames);
 

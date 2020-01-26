@@ -61,7 +61,7 @@ namespace UnityTools.GameSettingsSystem.Internal {
             }
 
             EditorGUILayout.LabelField("Choose Settings:", EditorStyles.boldLabel);
-            AssetSelector.Draw(typeof(GameSettingsObject), selectedSettingsProp, GUIContent.none, OnAssetsLoaded);
+            AssetSelector.Draw(typeof(GameSettingsObject), selectedSettingsProp, GUIContent.none, OnAssetsLoaded, null);
             windowObject.ApplyModifiedProperties();
 
             if (EditorGUI.EndChangeCheck()) OnChangedCurrentObject();

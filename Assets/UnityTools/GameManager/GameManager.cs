@@ -45,16 +45,16 @@ namespace UnityTools {
         {
             GameObject gameManagerObject = new GameObject("GameManager");
          
-            Debug.Log("Adding Game Manager");
+            // Debug.Log("Adding Game Manager");
             GameManager gameManager = gameManagerObject.AddComponent<GameManager>();
             
-            Debug.Log("Initializing Inputs");
+            // Debug.Log("Initializing Inputs");
             InitializeInputActionsController();
             
-            Debug.Log("Adding Initialization Scripts");
+            // Debug.Log("Adding Initialization Scripts");
             AddInitialSingletons(gameManagerObject);
             
-            Debug.Log("Instantiating Initialization Prefabs");
+            // Debug.Log("Instantiating Initialization Prefabs");
             InstantiateInitialGamePrefabs();
 
         }
@@ -63,13 +63,13 @@ namespace UnityTools {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void OnApplicationStartAfterMainMenuLoad()
         {
-            Debug.Log("Setting Main Menu as Active Scene");
+            // Debug.Log("Setting Main Menu as Active Scene");
             SceneLoading.SetActiveScene(mainMenuScene);
             
-            Debug.Log("Loading Initialization Scenes");
+            // Debug.Log("Loading Initialization Scenes");
             LoadInitializationScenes();
             
-            Debug.Log("Loading Additional Main Menu Scenes");
+            // Debug.Log("Loading Additional Main Menu Scenes");
             LoadAdditiveMainMenuScenes();
             
             SceneLoading.onSceneLoadStart += OnSceneLoadStart;
@@ -129,7 +129,7 @@ namespace UnityTools {
                 BuildPlayer();
                 // going into "game mode" from teh main menu
                 if (isInMainMenuScene) {
-                    Debug.Log("Exiting Main Menu Scene Event");
+                    // Debug.Log("Exiting Main Menu Scene Event");
                     if (onExitMainMenu != null)
                         onExitMainMenu();
                 }
@@ -146,33 +146,18 @@ namespace UnityTools {
                 _StartNewGame();
                 return;
             } 
-
-            string msg = "Are You Sure You Want To Start A New Game?\nAny Unsaved Progress Will Be Lost!";
-            UIEvents.ShowConfirmationPopup(msg, _StartNewGame);
-            
-            
-            // startingNewGame = true;
-            
-            // DestroyPlayer();
-
-            // Debug.Log("On New Game Start Event");
-            // if (onNewGameStart != null) 
-            //     onNewGameStart();
-
-            // Debug.Log("Loading New Game Scene");
-            // DynamicObjectManager.MovePlayer(settings.newGameLocation, true);
-            // startingNewGame = false;
+            UIEvents.ShowConfirmationPopup("Are You Sure You Want To Start A New Game?\nAny Unsaved Progress Will Be Lost!", _StartNewGame);
         }
         static void _StartNewGame () {
             startingNewGame = true;
             
             DestroyPlayer();
 
-            Debug.Log("On New Game Start Event");
+            // Debug.Log("On New Game Start Event");
             if (onNewGameStart != null) 
                 onNewGameStart();
 
-            Debug.Log("Loading New Game Scene");
+            // Debug.Log("Loading New Game Scene");
             DynamicObjectManager.MovePlayer(settings.newGameLocation, true);
             startingNewGame = false;
         }
@@ -181,11 +166,6 @@ namespace UnityTools {
         [Command("quit", "Quit Application", "Game", false)]
         public static void QuitApplication (bool overrideConfirm=false) {
 
-            // #if UNITY_EDITOR
-            // UnityEditor.EditorApplication.isPlaying = false;
-            // #else
-            // Application.Quit ();
-            // #endif
             if (overrideConfirm) {
                 _QuitApplication();
                 return;
@@ -218,14 +198,7 @@ namespace UnityTools {
                 _QuitToMainMenu();
                 return;
             }
-
-            
-            string msg = "Are You Sure You Want To Quit To Main Menu?\nAny Unsaved Progress Will Be Lost!";
-            UIEvents.ShowConfirmationPopup(msg, _QuitToMainMenu);
-            
-            // // load the additive main menu scenes after we load the main menu scene
-            // Action<string, LoadSceneMode> onSceneLoaded = (s, m) => LoadAdditiveMainMenuScenes();
-            // SceneLoading.LoadSceneAsync (mainMenuScene, null, onSceneLoaded, LoadSceneMode.Single, false);
+            UIEvents.ShowConfirmationPopup("Are You Sure You Want To Quit To Main Menu?\nAny Unsaved Progress Will Be Lost!", _QuitToMainMenu);
         }
         static void _QuitToMainMenu () {
             // load the additive main menu scenes after we load the main menu scene
@@ -280,14 +253,14 @@ namespace UnityTools {
             }
         }
         static Camera _playerCamera;
-        public static Camera playerCamera { get { return _playerCamera; } } //PlayerCamera.myCamera; } }
-
+        public static Camera playerCamera { get { return _playerCamera; } } 
+        
         public static event Action onPlayerCreate, onPlayerDestroy;
         static void BuildPlayer () {
             if (playerExists) 
                 return;
 
-            Debug.Log("Building Non Existant Player");
+            // Debug.Log("Building Non Existant Player");
             GameObject.Instantiate(GameManagerSettings.instance.playerPrefab);
             _playerCamera = player.GetComponentInChildren<Camera>();
 
@@ -295,7 +268,7 @@ namespace UnityTools {
             for (int i = 0; i < camScripts.Length; i++) 
                 _playerCamera.gameObject.AddComponent(camScripts[i]);
         
-            Debug.Log("On Player Create Event");
+            // Debug.Log("On Player Create Event");
             if (onPlayerCreate != null) 
                 onPlayerCreate();
         }
@@ -303,13 +276,13 @@ namespace UnityTools {
             if (!playerExists)
                 return;
 
-            Debug.Log("Destroying Player");
+            // Debug.Log("Destroying Player");
             GameObject.Destroy(player.gameObject);
             DynamicObject.playerObject = null;
             _playerCamera = null;
 
             
-            Debug.Log("On Player Destroy Event");
+            // Debug.Log("On Player Destroy Event");
             if (onPlayerDestroy != null) 
                 onPlayerDestroy();  
         }

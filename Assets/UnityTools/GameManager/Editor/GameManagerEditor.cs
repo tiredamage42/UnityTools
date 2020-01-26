@@ -21,10 +21,9 @@ namespace UnityTools {
         public const string mmSceneKey = "##";
         
         static GameManagerEditor () {
-            
-            BuildSettings.AddBuildWindowIgnorePattern(GameManager.mainMenuScene);
-            BuildSettings.AddBuildWindowIgnorePattern(initSceneKey);
-            BuildSettings.AddBuildWindowIgnorePattern(mmSceneKey);
+
+            ProjectBuilder.onRemoveAutoIncludedScenes += RemoveAutoIncludedScenes;
+            ProjectBuilder.onAddAutoIncludedScenes += AddAutoIncludedScenes;
 
             UnityToolsEditor.AddProjectChangeListener(RefreshScenesList);
 
@@ -51,7 +50,38 @@ namespace UnityTools {
             set { EditorPrefs.SetBool(loadMenuOnPlayKey, value); }
         }
 
-
+        static void RemoveAutoIncludedScenes (List<Object> scenes) {
+            for (int i = scenes.Count - 1; i >= 0; i--) {
+                if (scenes[i].name == GameManager.mainMenuScene) {
+                    scenes.RemoveAt(i);
+                    continue;
+                }
+                if (scenes[i].name.StartsWith(initSceneKey)) {
+                    scenes.RemoveAt(i);
+                    continue;
+                }
+                if (scenes[i].name.StartsWith(mmSceneKey)) {
+                    scenes.RemoveAt(i);
+                    continue;
+                }
+            }
+        }
+        static void AddAutoIncludedScenes (List<EditorBuildSettingsScene> scenes, List<SceneAsset> allScenes) {
+            for (int i = 0; i < allScenes.Count; i++) {
+                if (allScenes[i].name == GameManager.mainMenuScene) {
+                    scenes.Insert(0, new EditorBuildSettingsScene(AssetDatabase.GetAssetPath(allScenes[i]), true));
+                    continue;
+                }
+                if (allScenes[i].name.StartsWith(initSceneKey)) {
+                    scenes.Add(new EditorBuildSettingsScene(AssetDatabase.GetAssetPath(allScenes[i]), true));
+                    continue;
+                }
+                if (allScenes[i].name.StartsWith(mmSceneKey)) {
+                    scenes.Add(new EditorBuildSettingsScene(AssetDatabase.GetAssetPath(allScenes[i]), true));
+                    continue;
+                }
+            }
+        }
 
         public static void RefreshScenesList () {
 
@@ -61,7 +91,7 @@ namespace UnityTools {
             if (Application.isPlaying || settings == null) return;
 
             // update the array of all game settings objects in the project
-            SceneAsset[] allScenesInProject = AssetTools.FindAssetsByType<SceneAsset>(logToConsole: false).ToArray();
+            SceneAsset[] allScenesInProject = AssetTools.FindAssetsByType<SceneAsset>(log: false, null).ToArray();
 
             SceneAsset mainScene = null;
             List<SceneAsset> initScenes = new List<SceneAsset>();
@@ -88,42 +118,16 @@ namespace UnityTools {
             else {
                 settings.mainMenuScenePath = AssetDatabase.GetAssetPath(mainScene);
             }
-
-            AddScenesToBuildSettings(settings.mainMenuScenePath, StoreSceneNames(initScenes, ref settings.initSceneNames), StoreSceneNames(mmScenes, ref settings.mmSceneNames));            
+            
+            StoreSceneNames(initScenes, ref settings.initSceneNames);
+            StoreSceneNames(mmScenes, ref settings.mmSceneNames);
             EditorUtility.SetDirty(settings);
         }  
 
-        static string[] StoreSceneNames (List<SceneAsset> scenes, ref string[] sceneNames) {
-            int c = scenes.Count;
-            sceneNames = new string[c];
-            string[] paths = new string[c];
-            for (int i = 0; i < c; i++) {
-                string path = AssetDatabase.GetAssetPath(scenes[i]);
-                paths[i] = path;
-                sceneNames[i] = Path.GetFileNameWithoutExtension(path);
-            }
-            return paths;
-        }
-
-        static void AddScenesToBuildSettings (string mainMenuScenePath, string[] initPaths, string[] mmPaths) {
-            
-            List<EditorBuildSettingsScene> finalScenes = new List<EditorBuildSettingsScene>();
-            finalScenes.Add(new EditorBuildSettingsScene(mainMenuScenePath, true));
-            for (int i = 0; i < initPaths.Length; i++) finalScenes.Add(new EditorBuildSettingsScene(initPaths[i], true));
-            for (int i = 0; i < mmPaths.Length; i++) finalScenes.Add(new EditorBuildSettingsScene(mmPaths[i], true));
-            
-            EditorBuildSettingsScene[] buildScenes = EditorBuildSettings.scenes;
-            // add all non initialization scenes that were already in the build settings...
-            for (int i = 0; i < buildScenes.Length; i++) {
-                string path = buildScenes[i].path;
-
-                if (string.IsNullOrEmpty(path) || path.Contains(GameManager.mainMenuScene) || path.Contains(initSceneKey) || path.Contains(mmSceneKey))
-                    continue;
-                
-                finalScenes.Add(buildScenes[i]);
-            }
-            
-            EditorBuildSettings.scenes = finalScenes.ToArray();
+        static void StoreSceneNames (List<SceneAsset> scenes, ref string[] sceneNames) {
+            sceneNames = new string[scenes.Count];
+            for (int i = 0; i < scenes.Count; i++) 
+                sceneNames[i] = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(scenes[i]));
         }
 
         /*

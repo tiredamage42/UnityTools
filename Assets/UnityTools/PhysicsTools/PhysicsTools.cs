@@ -40,8 +40,10 @@ namespace UnityTools {
             while (ColliderGroupIntersects(group, offset)){
                 offset += nudgeDir * unIntersectNudge;
                 tries++;
+
+
                 if (tries >= maxUnIntersectTries) {
-                    // Debug.LogWarning("Max Intersection Tries Reached, giving up");
+                    Debug.LogWarning("Max Intersection Tries Reached, giving up");
                     return originalRoot;
                 }
             }
@@ -83,9 +85,13 @@ namespace UnityTools {
                 else if (capsule != null) {
                     // x y z
                     Vector3 dir = capsule.direction == 0 ? c.transform.right : (capsule.direction == 1 ? c.transform.up : c.transform.forward);
-                    Vector3 mod0 = pos + capsule.center * scale;
-                    Vector3 mod1 = dir * ((capsule.height * .5f - capsule.radius * .5f) * scale);
-                    if (CollidersAreHit(group, Physics.OverlapCapsuleNonAlloc(mod0 + mod1, mod0 - mod1, capsule.radius * scale, hits, environmentMask, QueryTriggerInteraction.Ignore)))
+                    
+                    
+                    Vector3 center = pos + capsule.center * scale;
+                    // Vector3 mod1 = dir * ((capsule.height * .5f - capsule.radius * .5f) * scale);
+                    Vector3 mod1 = dir * ((capsule.height * .5f - capsule.radius) * scale);
+                    
+                    if (CollidersAreHit(group, Physics.OverlapCapsuleNonAlloc(center + mod1, center - mod1, capsule.radius * scale, hits, environmentMask, QueryTriggerInteraction.Ignore)))
                         return true;
                 }
                 else if (box != null) {

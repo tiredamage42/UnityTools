@@ -1,42 +1,68 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿#if UNITY_EDITOR
 
-using System.Linq;
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
+using UnityEngine;
 using UnityEditor;
+using Object = UnityEngine.Object;
 
-namespace UnityTools.EditorTools
-{
-    public enum VersionUpdate { None, Major, Minor, Patch };
+namespace UnityTools.EditorTools {
 
-    public static class AutoBuild
+    public class AutoBuildSceneAttribute : AssetSelectionAttribute {
+        public override List<Object> OnAssetsFound(List<Object> originals) {
+            ProjectBuilder.RemoveAutoIncludedScenes(originals);
+            return originals;
+        }
+        
+        public AutoBuildSceneAttribute ( ) : base(typeof(SceneAsset)) { }
+    }
+
+
+    [Serializable] public class BuildTargetDefList : NeatListWrapper<BuildTargetDef> { }
+    [Serializable] public class BuildTargetDef {
+        public ProjectBuilder.SupportedBuild buildTarget;
+        public bool autoRun;
+        [NeatArray] public NeatStringArray customDefines;
+        public BuildTargetDef (ProjectBuilder.SupportedBuild buildTarget, bool autoRun=false, string[] customDefines=null) {
+            this.buildTarget = buildTarget;
+            this.autoRun = autoRun;
+            this.customDefines = new NeatStringArray( customDefines );
+        }
+    }
+
+    [CustomPropertyDrawer(typeof(BuildTargetDef))]
+    class BuildTargetDefDrawer : PropertyDrawer {
+        public override void OnGUI(Rect pos, SerializedProperty prop, GUIContent label) {
+            EditorGUI.PropertyField(new Rect(pos.x, pos.y, pos.width - GUITools.iconButtonWidth, EditorGUIUtility.singleLineHeight), prop.FindPropertyRelative("buildTarget"), true);
+            GUITools.DrawIconToggle(prop.FindPropertyRelative("autoRun"), new GUIContent("A", "Auto Run"), pos.x + (pos.width - GUITools.iconButtonWidth), pos.y);
+            EditorGUI.PropertyField(new Rect(pos.x, pos.y + EditorGUIUtility.singleLineHeight, pos.width, EditorGUIUtility.singleLineHeight), prop.FindPropertyRelative("customDefines"), true);            
+        }
+        public override float GetPropertyHeight(SerializedProperty prop, GUIContent label) {
+            return GUITools.singleLineHeight + EditorGUI.GetPropertyHeight(prop.FindPropertyRelative("customDefines"), true);
+        }
+    }
+
+
+    
+    public static class ProjectBuilder
     {
+
+        public static void RemoveAutoIncludedScenes(List<Object> scenes) {
+            if (onRemoveAutoIncludedScenes != null)
+                onRemoveAutoIncludedScenes(scenes);   
+        }
+        public static event Action<List<Object>> onRemoveAutoIncludedScenes;
+
+        
+        static void AddAutoIncludedScenes (List<EditorBuildSettingsScene> scenes, List<SceneAsset> allScenesInProject) {
+            if (onAddAutoIncludedScenes != null)
+                onAddAutoIncludedScenes(scenes, allScenesInProject);
+        }
+        public static event Action<List<EditorBuildSettingsScene>, List<SceneAsset>> onAddAutoIncludedScenes;
+
     
-
-
-    // profile only available with not development build
-    // BuildOptions.AutoRunPlayer | BuildOptions.ConnectWithProfiler
-                        
-    /*
-        Button to build:
-            EditorApplication.delayCall += BuildProject.BuildAll;
-
-        if (GUILayout.Button("Open Build Folder", GUILayout.ExpandWidth(true)))
-            {
-                string path = BuildSettings.basicSettings.baseBuildFolder;
-                if (!Directory.Exists(path))
-                    Directory.CreateDirectory(path);
-
-                System.Diagnostics.Process.Start(path);
-            }
-    */
-    
-
+        public enum VersionUpdate { None, Major, Minor, Patch };
         const string versionPrefix = "VS_";
         const string buildsDir = "Builds/";
 
@@ -92,7 +118,6 @@ namespace UnityTools.EditorTools
 
         static string GenerateBuildDirectory(string versionDir, BuildTarget target, out bool existsAlready)
         {
-            
             string dir = versionDir + "/" + target.ToString() + "/";
             existsAlready = Directory.Exists(dir);
             
@@ -101,26 +126,8 @@ namespace UnityTools.EditorTools
             
             return Path.GetFullPath(dir);
         }
-
-
-
-        public class BuildTargetDef {
-            public BuildTarget buildTarget;
-            public bool autoRun;
-            public string[] customDefines;
-            public BuildTargetDef (BuildTarget buildTarget, bool autoRun=false, string[] customDefines=null) {
-                this.buildTarget = buildTarget;
-                this.autoRun = autoRun;
-                this.customDefines = customDefines;
-            }
-        }
-
+        
         static void CheckBuildTargetsForDuplicatesAndOnlyOneAutoRun (List<BuildTargetDef> targets) {
-            
-            // verify that build targets are supported
-            for (int i = targets.Count - 1; i >= 0; i--)
-                if (!BuildTargetSupported(targets[i].buildTarget))
-                    targets.RemoveAt(i);
             
             // remove duplicates
             HashSet<int> dup = new HashSet<int>();
@@ -147,29 +154,21 @@ namespace UnityTools.EditorTools
             }
         }
 
-        // only have extensions defined for certain build targets...
-        static bool BuildTargetSupported (BuildTarget target) {
-            bool isSupported = GetBuildTargetGroup(target) != BuildTargetGroup.Unknown && !string.IsNullOrEmpty(BinaryNameFormat(target));
-            
-            if (!isSupported)
-                Debug.LogWarning (target.ToString() + " build target is not supported by auto build...");
-            
-            return isSupported;
-        }
-
-
         public static void PerformBuild (List<EditorBuildSettingsScene> buildScenes, string company, string productName, List<BuildTargetDef> buildTargets, Vector3Int forcedVersion, bool devBuild, bool connectProfiler, bool allowDebugging, bool headless, string bundleID = null) { 
             PerformBuild (buildScenes, company, productName, buildTargets, VersionUpdate.None, true, forcedVersion, devBuild, connectProfiler, allowDebugging, headless, bundleID);
         }
         public static void PerformBuild (List<EditorBuildSettingsScene> buildScenes, string company, string productName, List<BuildTargetDef> buildTargets, VersionUpdate versionUpdate, bool devBuild, bool connectProfiler, bool allowDebugging, bool headless, string bundleID = null) {
             PerformBuild (buildScenes, company, productName, buildTargets, versionUpdate, false, Vector3Int.zero, devBuild, connectProfiler, allowDebugging, headless, bundleID);
         }
-        static void PerformBuild (List<EditorBuildSettingsScene> buildScenes, string company, string productName, List<BuildTargetDef> buildTargets, VersionUpdate versionUpdate, bool forceVersion, Vector3Int forcedVersion, bool devBuild, bool connectProfiler, bool allowDebugging, bool headless, string bundleID)
+        public static void PerformBuild (List<EditorBuildSettingsScene> buildScenes, string company, string productName, List<BuildTargetDef> buildTargets, VersionUpdate versionUpdate, bool forceVersion, Vector3Int forcedVersion, bool devBuild, bool connectProfiler, bool allowDebugging, bool headless, string bundleID)
         {
+            
             CheckBuildTargetsForDuplicatesAndOnlyOneAutoRun (buildTargets);
 
             if (buildTargets.Count == 0)
                 return;
+            
+            AddAutoIncludedScenes(buildScenes, AssetTools.FindAssetsByType<SceneAsset>(log: false, null));
             
             BuildOptions options = BuildOptions.None;
             if (devBuild)           options |= BuildOptions.Development;
@@ -250,8 +249,10 @@ namespace UnityTools.EditorTools
             return scenes.ToArray();
         }
 
-        static bool BuildPlayer(EditorBuildSettingsScene[] scenes, BuildOptions options, string versionDir, string productName, BuildTarget target, bool autoRun, string[] customDefines, string bundleID)
+        static bool BuildPlayer(EditorBuildSettingsScene[] scenes, BuildOptions options, string versionDir, string productName, SupportedBuild buildTarget, bool autoRun, string[] customDefines, string bundleID)
         {
+
+            BuildTarget target = Supported2Target(buildTarget);
             string dir = GenerateBuildDirectory(versionDir, target, out bool dirExists);
             if (dirExists) {
                 if (EditorUtility.DisplayDialog("Overwrite Build", "Overwrite build at path: '" + dir + "' ?", "Yes", "No"))
@@ -339,6 +340,39 @@ namespace UnityTools.EditorTools
             return BuildTargetGroup.Unknown;
         }
 
+        public enum SupportedBuild { 
+            Android, iOS, 
+            StandaloneLinux, StandaloneLinux64, StandaloneLinuxUniversal, 
+            StandaloneOSX, 
+            StandaloneWindows, StandaloneWindows64, 
+            WebGL,
+        };
+            
+
+        static BuildTarget Supported2Target (SupportedBuild supported) {
+            switch (supported) {
+                case SupportedBuild.Android:
+                    return BuildTarget.Android;
+                case SupportedBuild.iOS:
+                    return BuildTarget.iOS;
+                case SupportedBuild.StandaloneLinux:
+                    return BuildTarget.StandaloneLinux;
+                case SupportedBuild.StandaloneLinux64:
+                    return BuildTarget.StandaloneLinux64;
+                case SupportedBuild.StandaloneLinuxUniversal:
+                    return BuildTarget.StandaloneLinuxUniversal;
+                case SupportedBuild.StandaloneOSX:
+                    return BuildTarget.StandaloneOSX;
+                case SupportedBuild.StandaloneWindows:
+                    return BuildTarget.StandaloneWindows;
+                case SupportedBuild.StandaloneWindows64:
+                    return BuildTarget.StandaloneWindows64;
+                case SupportedBuild.WebGL:
+                    return BuildTarget.WebGL;
+            }   
+            return BuildTarget.NoTarget;
+        }
+
         static string BinaryNameFormat (BuildTarget target) {
             switch (target) {
                 case BuildTarget.Android:
@@ -371,9 +405,6 @@ namespace UnityTools.EditorTools
             return null;
         }
         
-
-        
-
         /*
         static void BuildAssetBundles_ (string directory, BuildAssetBundleOptions options, BuildTarget buildTarget) {
             if (!Directory.Exists(directory))
@@ -385,3 +416,7 @@ namespace UnityTools.EditorTools
     }
 
 }
+
+
+
+#endif

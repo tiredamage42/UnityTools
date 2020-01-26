@@ -9,8 +9,6 @@ using UnityTools.Internal;
 using UnityTools.EditorTools;
 using UnityTools.GameSettingsSystem;
 
-// using UnityTools.Locations;
-// using UnityTools.Locations.Internal;
 using UnityTools.DevConsole;
 
 namespace UnityTools {
@@ -165,7 +163,6 @@ namespace UnityTools {
             MoveObject (ObjectLoadState.Loaded, dynamicObject, scene, target);
         }
 
-
         static void MovePlayer ( string scene, MiniTransform target, bool forceReload) {
             if (!CheckSceneName (scene))
                 return;
@@ -173,7 +170,7 @@ namespace UnityTools {
             if (forceReload || !GameManager.playerExists || !SceneLoading.currentLoadedScenes.Contains(scene))
                 MovePlayerToUnloadedScene ( scene, target );
 
-            MoveDynamicObjectToTransform(GameManager.player, target.position, target.rotation);
+            MoveDynamicObjectToTransform(GameManager.player, target.position, target.rotation, false);
         }
 
         static void MovePlayerToUnloadedScene (string scene, MiniTransform target) {
@@ -192,7 +189,7 @@ namespace UnityTools {
                 DynamicObject dynamicObject = (DynamicObject)obj;
                 // moving loaded DO to a scene and position thats already loaded
                 if (sceneIsLoaded) {
-                    MoveDynamicObjectToTransform(dynamicObject, target.position, target.rotation);
+                    MoveDynamicObjectToTransform(dynamicObject, target.position, target.rotation, false);
                 }
                 // moving loaded DO to an unloaded scene/position
                 else {
@@ -221,39 +218,42 @@ namespace UnityTools {
 
                 //moving an unloaded object to a loaded scene
                 if (sceneIsLoaded)
-                    LoadNewDynamicObjectWithState(objState);
+                    LoadNewDynamicObjectWithState(objState, false);
             }
         }
 
 
-        static void MoveDynamicObjectToTransform (DynamicObject dynamicObject, Vector3 position, Vector3 rotation) {
-        
-            GameManager.GetSpawnOptionsForObject(dynamicObject, out bool ground, out bool navigate, out bool uncollide);
+        static void MoveDynamicObjectToTransform (DynamicObject dynamicObject, Vector3 position, Vector3 rotation, bool preAdjusted) {
+            
+            if (preAdjusted) {
+                dynamicObject.transform.WarpTo(position, Quaternion.Euler(rotation));
+            }
+            else {
 
-            Vector3 up;    
-            position = PhysicsTools.GroundPosition(position, ground, navigate, out up);
+                GameManager.GetSpawnOptionsForObject(dynamicObject, out bool ground, out bool navigate, out bool uncollide);
 
-            dynamicObject.transform.WarpTo(position, Quaternion.Euler(rotation));
+                Vector3 up;    
+                position = PhysicsTools.GroundPosition(position, ground, navigate, out up);
 
-            if (uncollide)
-                PhysicsTools.UnIntersectTransform (dynamicObject.transform, up);
+                dynamicObject.transform.WarpTo(position, Quaternion.Euler(rotation));
+
+                if (uncollide)
+                    PhysicsTools.UnIntersectTransform (dynamicObject.transform, up);
+            }
             
         }
 
         // set scene, position, rotation, and spawn options of state beforehand
-        static void LoadNewDynamicObjectWithState (DynamicObjectState state) {
+        static void LoadNewDynamicObjectWithState (DynamicObjectState state, bool preAdjusted) {
             
             DynamicObject dynamicObject = GetAvailableInstance(state);
 
-            MoveDynamicObjectToTransform(dynamicObject, state.position, state.rotation);
-
-            GameManager.GetSpawnOptionsForObject(dynamicObject, out bool ground, out bool navigate, out bool unIntersect);
+            MoveDynamicObjectToTransform(dynamicObject, state.position, state.rotation, preAdjusted);
 
             dynamicObject.Load(state);
 
             state.isUntouched = false;
         }
-
 
         public static ObjectLoadState GetObjectFromKey (string key, out object obj) {
             obj = null;
@@ -293,6 +293,7 @@ namespace UnityTools {
                     if (!state.permanent) {
                         id2ObjectState.Remove(id);
                         if (id2Alias.ContainsKey(id)) {
+
                             alias2ID.Remove(id2Alias[id]);
                             id2Alias.Remove(id);
                         }
@@ -354,8 +355,6 @@ namespace UnityTools {
         public static ObjectLoadState GetObjectByAlias (string alias, out object obj) {
             return GetObjectByGUID (Alias2ID(alias), out obj);
         }
-
-
         
         public static ObjectLoadState AddNewAliasedObject (string alias, PrefabReference prefabRef, string scene, Vector3 pos, Quaternion rot, bool permanent, out object obj) {
         
@@ -390,7 +389,7 @@ namespace UnityTools {
 
                 DynamicObject dynamicObject = GetAvailableInstance (prefabRef, pos, rot, id, false, false, false);
                 
-                MoveDynamicObjectToTransform(dynamicObject, pos, rot.eulerAngles);
+                MoveDynamicObjectToTransform(dynamicObject, pos, rot.eulerAngles, false);
                 
                 dynamicObject.AdjustState(objectState, scene, pos, rot.eulerAngles, false);
                 
@@ -404,15 +403,11 @@ namespace UnityTools {
                     obj = basePrefab.AdjustState(objectState, scene, pos, rot.eulerAngles, true);
                 }
                 else {
-                //     obj = DynamicObject.playerObject.AdjustState(objectState);// objectState;
                     obj = objectState;
                 }
             }
             return objectState.isLoaded ? ObjectLoadState.Loaded : ObjectLoadState.Unloaded;
         }
-
-
-
 
         public static DynamicObject GetAvailableInstance (DynamicObjectState state) {
             return GetAvailableInstance(state.prefabRef, state.position, Quaternion.Euler(state.rotation), state.id, false, false, false);
@@ -495,7 +490,6 @@ namespace UnityTools {
                         
                         if (state != null) {
 
-                            // dynamicObject.AdjustState(state, scene, dynamicObject.transform.position, dynamicObject.transform.rotation.eulerAngles, null, false);
                             dynamicObject.AdjustState(state, scene, dynamicObject.transform.position, dynamicObject.transform.rotation.eulerAngles, false);
                         
                             if (isUnloading)
@@ -526,8 +520,6 @@ namespace UnityTools {
             GameState.gameSaveState.UpdateState (ALIASES_KEY, alias2ID);
         }
 
-        // TODO: clear tracked on new game
-
         void OnNewGameStart () {
             ClearAll();
             LoadPredefinedAliases();
@@ -540,20 +532,20 @@ namespace UnityTools {
             id2Alias.Clear();
         }
 
+
         void OnSceneExit (List<string> allActiveLoadedScenes, string targetScene) {
 
-            if (GameManager.isInMainMenuScene) return;
-            if (GameManager.IsMainMenuScene(targetScene)) return;
+            if (GameManager.isInMainMenuScene) 
+                return;
             
             // save the objects in this scene if we're going to another one,
             // e.g we're going to an indoor area that's a different scene, then save the objects "outdoors"
 
             // jsut disable if we're starting an new game, or exiting from loading a save
-            
             suppressStateRemovalOnDisable = true;
 
             for (int i = 0; i < allActiveLoadedScenes.Count; i++)
-                GetObjectStatesInScene ( allActiveLoadedScenes[i], true, GameState.isLoadingSave || GameManager.startingNewGame );
+                GetObjectStatesInScene ( allActiveLoadedScenes[i], true, GameState.isLoadingSave || GameManager.startingNewGame || GameManager.IsMainMenuScene(targetScene) );
 
             suppressStateRemovalOnDisable = false;
         }
@@ -601,24 +593,12 @@ namespace UnityTools {
             if (GameManager.IsMainMenuScene(sceneName))
                 return;
 
-            
+
             if (movingPlayer) {
                 if (GameManager.playerExists) 
-                    MoveDynamicObjectToTransform (GameManager.player, movePlayerTarget.position, movePlayerTarget.rotation);
+                    MoveDynamicObjectToTransform (GameManager.player, movePlayerTarget.position, movePlayerTarget.rotation, false);
                 movingPlayer = false;
             }
-
-
-            
-
-
-
-
-
-
-
-
-
 
             // tODO: objects that are pre placed already alias refed might be copy if 
             // existing state already has loaded object 
@@ -632,6 +612,7 @@ namespace UnityTools {
             List<DynamicObjectState> states = GetStatesForScene(sceneName);
             
             if (scenesAlreadyLoaded.Contains(sceneName)) {
+
                 // add them to the pool for availablity
                 for (int i = 0; i < editorPlacedObjects.Count; i++) {
                     // if it needs a guid it comes with the scene... so this shouldnt matter (maybe...)
@@ -642,14 +623,14 @@ namespace UnityTools {
             // scene loaded for the first time
             // create object states and id's for default placed objects
             else {
+                
                 scenesAlreadyLoaded.Add(sceneName);
 
                 // give id's and states for those default objects
                 for (int i = 0; i < editorPlacedObjects.Count; i++) {
+
                     string id = null;
-
                     if (editorPlacedObjects[i].usesAlias) {
-
                         id = editorPlacedObjects[i].GetID();
                         if (!string.IsNullOrEmpty(id)) {
                             DynamicObjectState aliasedState = GetStateByID(id);
@@ -658,8 +639,10 @@ namespace UnityTools {
                             if (aliasedState.isUntouched) {
 
                                 // dotn load in this scene again, just in case we were trying to
-                                if (states.Contains(aliasedState)) 
+                                if (states.Contains(aliasedState)) {
+
                                     states.Remove(aliasedState);
+                                }
                                 
                                 editorPlacedObjects[i].AdjustState(aliasedState, sceneName, editorPlacedObjects[i].transform.position, editorPlacedObjects[i].transform.rotation.eulerAngles, false);
 
@@ -676,14 +659,14 @@ namespace UnityTools {
                         }
                     }
 
-
                     id = GetNewGUID ();                    
                     id2ObjectState.Add(id, editorPlacedObjects[i].AdjustState(new DynamicObjectState(id, sceneName, editorPlacedObjects[i].prefabRef, false), sceneName, editorPlacedObjects[i].transform.position, editorPlacedObjects[i].transform.rotation.eulerAngles, false));
+                    editorPlacedObjects[i].SetID(id);
                 }
             }
 
             for (int i = 0; i < states.Count; i++) 
-                LoadNewDynamicObjectWithState(states[i]);
+                LoadNewDynamicObjectWithState(states[i], !states[i].isUntouched);
             
         }
 

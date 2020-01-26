@@ -5,6 +5,9 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEditor;
 
+using System;
+using Object = UnityEngine.Object;
+
 namespace UnityTools.EditorTools {
 
     public static class AssetTools
@@ -20,39 +23,46 @@ namespace UnityTools.EditorTools {
             return r;
         }
 
-        public static List<T> FindAssetsByType<T> (bool logToConsole) where T : Object {
-            return FindAssetsByType(typeof(T), logToConsole).Cast<T>().ToList();
+        public static List<T> FindAssetsByType<T> (bool log, Func<List<Object>, List<Object>> filter) where T : Object {
+            return FindAssetsByType(typeof(T), log, filter).Cast<T>().ToList();
         }
 
-        public static List<Object> FindAssetsByType (System.Type type, bool logToConsole)
+        public static List<Object> FindAssetsByType (Type type, bool log, Func<List<Object>, List<Object>> filter)
         {
-            if (logToConsole) Debug.Log("Searching project for assets of type: " + type.FullName);
-            List<Object> assets = new List<Object>();
-            string[] guids = AssetDatabase.FindAssets(string.Format("t:{0}", type.FullName));
+            if (log) 
+                Debug.Log("Searching project for assets of type: " + type.FullName);
             
+            List<Object> assets = new List<Object>();
+            
+            string[] guids = AssetDatabase.FindAssets(string.Format("t:{0}", type.FullName));
             if (guids.Length == 0) {
-                if (logToConsole) Debug.Log("None Found, searching project for assets of type: " + type.Name);
+                if (log) 
+                    Debug.Log("None Found, searching project for assets of type: " + type.Name);
                 guids = AssetDatabase.FindAssets(string.Format("t:{0}", type.Name));
             }
             
-            for( int i = 0; i < guids.Length; i++ )
-            {
+            for( int i = 0; i < guids.Length; i++ ) {
                 Object asset = AssetDatabase.LoadAssetAtPath( AssetDatabase.GUIDToAssetPath( guids[i] ), type );
-                if ( asset != null ) assets.Add(asset);
+                if ( asset != null ) 
+                    assets.Add(asset);
             }
 
-            Object[] resourcesFound = Resources.FindObjectsOfTypeAll(type);
+            Object[] found = Resources.FindObjectsOfTypeAll(type);
 
-            for (int i = 0; i < resourcesFound.Length; i++) {
-                if (!assets.Contains(resourcesFound[i])) {
-                    assets.Add(resourcesFound[i]);
+            for (int i = 0; i < found.Length; i++) {
+                if (!assets.Contains(found[i])) {
+                    assets.Add(found[i]);
 
                     // if resources found it, but guids didnt, reimport the asset
-                    AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(resourcesFound[i]));
+                    AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(found[i]));
                 }
             }
 
-            if (logToConsole) Debug.Log("Found " + assets.Count + " assets in project");
+            if (filter != null)
+                assets = filter(assets);
+
+            if (log) 
+                Debug.Log("Found " + assets.Count + " assets in project");
             
             return assets;
         }

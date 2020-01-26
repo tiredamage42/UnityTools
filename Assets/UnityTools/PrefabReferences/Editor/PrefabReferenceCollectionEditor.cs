@@ -53,7 +53,7 @@ namespace UnityTools.EditorTools {
             if (Application.isPlaying)
                 return;
 
-            List<PrefabReferenceCollection> refs = AssetTools.FindAssetsByType<PrefabReferenceCollection>(logToConsole: false);
+            List<PrefabReferenceCollection> refs = AssetTools.FindAssetsByType<PrefabReferenceCollection>(log: false, null);
             for (int i = 0; i < refs.Count; i++) 
                 PrefabReferenceCollectionEditor.UpdateDynamicObjectReferencesInPrefabCollection(refs[i]);            
         }

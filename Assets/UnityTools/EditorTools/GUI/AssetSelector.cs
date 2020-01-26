@@ -17,6 +17,8 @@ namespace UnityTools.EditorTools {
         public Type type;   
         public bool useName;
         public virtual List<AssetSelectorElement> OnAssetsLoaded (List<AssetSelectorElement> originals) { return originals; }
+        public virtual List<Object> OnAssetsFound (List<Object> originals) { return originals; }
+        
         public AssetSelectionAttribute(Type type, bool useName=false) { 
             this.type = type; 
             this.useName = useName;
@@ -52,7 +54,7 @@ namespace UnityTools.EditorTools {
                     EditorGUI.PropertyField(position, property, label);
                     return;
                 }
-                AssetSelector.DrawName(type, position, property, label, att.OnAssetsLoaded);
+                AssetSelector.DrawName(type, position, property, label, att.OnAssetsLoaded, att.OnAssetsFound);
             }
             else {
 
@@ -61,7 +63,7 @@ namespace UnityTools.EditorTools {
                     EditorGUI.PropertyField(position, property, label);
                     return;
                 }
-                AssetSelector.Draw(type, position, property, label, att.OnAssetsLoaded);
+                AssetSelector.Draw(type, position, property, label, att.OnAssetsLoaded, att.OnAssetsFound);
             }
         }
     }
@@ -81,8 +83,8 @@ namespace UnityTools.EditorTools {
 
         public delegate List<AssetSelectorElement> OnAssetsLoaded (List<AssetSelectorElement> assets);
 
-        public static void Draw (Type type, SerializedProperty prop, GUIContent gui, OnAssetsLoaded onAssetsLoaded) {
-            Draw(type, prop.objectReferenceValue, gui, onAssetsLoaded, 
+        public static void Draw (Type type, SerializedProperty prop, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Func<List<Object>, List<Object>> onAssetsFound) {
+            Draw(type, prop.objectReferenceValue, gui, onAssetsLoaded, onAssetsFound, 
                 (picked) => {
                     prop.objectReferenceValue = picked;
                     prop.serializedObject.ApplyModifiedProperties();
@@ -90,42 +92,42 @@ namespace UnityTools.EditorTools {
             );
                 
         }
-        public static void Draw (Type type, Rect pos, SerializedProperty prop, GUIContent gui, OnAssetsLoaded onAssetsLoaded) {
-            Draw(type, pos, prop.objectReferenceValue, gui, onAssetsLoaded, 
+        public static void Draw (Type type, Rect pos, SerializedProperty prop, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Func<List<Object>, List<Object>> onAssetsFound) {
+            Draw(type, pos, prop.objectReferenceValue, gui, onAssetsLoaded, onAssetsFound, 
                 (picked) => {
                     prop.objectReferenceValue = picked; 
                     prop.serializedObject.ApplyModifiedProperties();
                 }         
             );
         }
-        public static void Draw (Type type, Rect pos, Object current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Action<Object> onPicked) {
-            GetSelector(type).Draw(pos, current, gui, onAssetsLoaded, onPicked);
+        public static void Draw (Type type, Rect pos, Object current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Func<List<Object>, List<Object>> onAssetsFound, Action<Object> onPicked) {
+            GetSelector(type).Draw(pos, current, gui, onAssetsLoaded, onAssetsFound, onPicked);
         }
-        public static void Draw (Type type, Object current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Action<Object> onPicked) {
-            GetSelector(type).Draw(current, gui, onAssetsLoaded, onPicked);
+        public static void Draw (Type type, Object current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Func<List<Object>, List<Object>> onAssetsFound, Action<Object> onPicked) {
+            GetSelector(type).Draw(current, gui, onAssetsLoaded, onAssetsFound, onPicked);
         }
 
-        public static void DrawName (Type type, SerializedProperty prop, GUIContent gui, OnAssetsLoaded onAssetsLoaded) {
-            DrawName(type, prop.stringValue, gui, onAssetsLoaded, 
+        public static void DrawName (Type type, SerializedProperty prop, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Func<List<Object>, List<Object>> onAssetsFound) {
+            DrawName(type, prop.stringValue, gui, onAssetsLoaded, onAssetsFound, 
                 (picked) => {
                     prop.stringValue = picked ;
                     prop.serializedObject.ApplyModifiedProperties();    
                 }
             );
         }
-        public static void DrawName (Type type, Rect pos, SerializedProperty prop, GUIContent gui, OnAssetsLoaded onAssetsLoaded) {
-            DrawName(type, pos, prop.stringValue, gui, onAssetsLoaded, 
+        public static void DrawName (Type type, Rect pos, SerializedProperty prop, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Func<List<Object>, List<Object>> onAssetsFound) {
+            DrawName(type, pos, prop.stringValue, gui, onAssetsLoaded, onAssetsFound, 
                 (picked) => {
                     prop.stringValue = picked;
                     prop.serializedObject.ApplyModifiedProperties();
                 } 
             );
         }
-        public static void DrawName (Type type, Rect pos, string current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Action<string> onPicked) {
-            GetSelector(type).DrawName(pos, current, gui, onAssetsLoaded, onPicked);
+        public static void DrawName (Type type, Rect pos, string current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Func<List<Object>, List<Object>> onAssetsFound, Action<string> onPicked) {
+            GetSelector(type).DrawName(pos, current, gui, onAssetsLoaded, onAssetsFound, onPicked);
         }
-        public static void DrawName (Type type, string current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Action<string> onPicked) {
-            GetSelector(type).DrawName(current, gui, onAssetsLoaded, onPicked);
+        public static void DrawName (Type type, string current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Func<List<Object>, List<Object>> onAssetsFound, Action<string> onPicked) {
+            GetSelector(type).DrawName(current, gui, onAssetsLoaded, onAssetsFound, onPicked);
         }
 
         const string nullString = "[ Null ]";
@@ -141,8 +143,8 @@ namespace UnityTools.EditorTools {
             this.type = type;
         }
 
-        List<AssetSelectorElement> BuildElements(OnAssetsLoaded onAssetsLoaded, bool addNull, bool logToConsole) {
-            List<Object> assets = AssetTools.FindAssetsByType(type, logToConsole);
+        List<AssetSelectorElement> BuildElements(OnAssetsLoaded onAssetsLoaded, Func<List<Object>, List<Object>> onAssetsFound, bool addNull, bool logToConsole) {
+            List<Object> assets = AssetTools.FindAssetsByType(type, logToConsole, onAssetsFound);
 
             List<AssetSelectorElement> r = new List<AssetSelectorElement>();
             
@@ -158,8 +160,8 @@ namespace UnityTools.EditorTools {
             return r;
         }
 
-        void BuildMenu<T> (T current, OnAssetsLoaded onAssetsLoaded, Action<T> onPicked, Func<AssetSelectorElement, T> getObj) where T : class {
-            List<AssetSelectorElement> elements = BuildElements(onAssetsLoaded, true, logToConsole: false);
+        void BuildMenu<T> (T current, OnAssetsLoaded onAssetsLoaded, Func<List<Object>, List<Object>> onAssetsFound, Action<T> onPicked, Func<AssetSelectorElement, T> getObj) where T : class {
+            List<AssetSelectorElement> elements = BuildElements(onAssetsLoaded, onAssetsFound, true, logToConsole: false);
             GenericMenu menu = new GenericMenu();
             for (int i =0 ; i < elements.Count; i++) {
                 T e = getObj (elements[i]);
@@ -186,27 +188,27 @@ namespace UnityTools.EditorTools {
         GUIContent GetGUI (Object current) { return new GUIContent(current != null ? current.name : nullString); }
         GUIContent GetGUI (string current) { return new GUIContent(current != null ? current : nullString); }
 
-        void Draw (Rect pos, Object current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Action<Object> onPicked) {    
+        void Draw (Rect pos, Object current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Func<List<Object>, List<Object>> onAssetsFound, Action<Object> onPicked) {    
             float x = pos.x;
             DrawLabel (ref x, pos.y, gui);
             if (DrawButton (x, pos, GetGUI(current)))
-                BuildMenu (current, onAssetsLoaded, onPicked, (e) => e.asset);
+                BuildMenu (current, onAssetsLoaded, onAssetsFound, onPicked, (e) => e.asset);
             if (GUITools.IconButton(pos.x + (pos.width - GUITools.iconButtonWidth), pos.y, pingGUI))
                 EditorGUIUtility.PingObject(current);
         }
 
-        void Draw (Object current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Action<Object> onPicked) {
+        void Draw (Object current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Func<List<Object>, List<Object>> onAssetsFound, Action<Object> onPicked) {
             EditorGUILayout.BeginHorizontal();
             DrawLabel(gui);            
             if (GUITools.Button(GetGUI(current), GUITools.popup))
-                BuildMenu (current, onAssetsLoaded, onPicked, (e) => e.asset);
+                BuildMenu (current, onAssetsLoaded, onAssetsFound, onPicked, (e) => e.asset);
             if (GUITools.IconButton(pingGUI))
                 EditorGUIUtility.PingObject(current);   
             EditorGUILayout.EndHorizontal();
         }
-        void PingAssetWithName (string name, OnAssetsLoaded onAssetsLoaded) {
+        void PingAssetWithName (string name, OnAssetsLoaded onAssetsLoaded, Func<List<Object>, List<Object>> onAssetsFound) {
             if (name != null) {
-                List<AssetSelectorElement> elements = BuildElements(onAssetsLoaded, false, logToConsole: false);
+                List<AssetSelectorElement> elements = BuildElements(onAssetsLoaded, onAssetsFound, false, logToConsole: false);
                 for (int i =0 ; i < elements.Count; i++) {
                     if (elements[i].asset.name == name) {
                         EditorGUIUtility.PingObject(elements[i].asset);
@@ -215,21 +217,21 @@ namespace UnityTools.EditorTools {
                 }
             }
         }
-        void DrawName (Rect pos, string current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Action<string> onPicked) {
+        void DrawName (Rect pos, string current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Func<List<Object>, List<Object>> onAssetsFound, Action<string> onPicked) {
             float x = pos.x;
             DrawLabel (ref x, pos.y, gui);
             if (DrawButton (x, pos, GetGUI(current)))
-                BuildMenu (current, onAssetsLoaded, onPicked, (e) => e.assetName);
+                BuildMenu (current, onAssetsLoaded, onAssetsFound, onPicked, (e) => e.assetName);
             if (GUITools.IconButton(pos.x + (pos.width - GUITools.iconButtonWidth), pos.y, pingGUI)) 
-                PingAssetWithName(current, onAssetsLoaded);
+                PingAssetWithName(current, onAssetsLoaded, onAssetsFound);
         }
-        void DrawName (string current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Action<string> onPicked) {
+        void DrawName (string current, GUIContent gui, OnAssetsLoaded onAssetsLoaded, Func<List<Object>, List<Object>> onAssetsFound, Action<string> onPicked) {
             EditorGUILayout.BeginHorizontal();
             DrawLabel(gui);
             if (GUITools.Button(GetGUI(current), GUITools.popup))
-                BuildMenu (current, onAssetsLoaded, onPicked, (e) => e.assetName);
+                BuildMenu (current, onAssetsLoaded, onAssetsFound, onPicked, (e) => e.assetName);
             if (GUITools.IconButton( pingGUI )) 
-                PingAssetWithName(current, onAssetsLoaded);
+                PingAssetWithName(current, onAssetsLoaded, onAssetsFound);
             EditorGUILayout.EndHorizontal();
             
         }

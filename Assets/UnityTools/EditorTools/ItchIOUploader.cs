@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿
+#if UNITY_EDITOR
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using UnityEditor;
@@ -11,11 +13,10 @@ namespace UnityTools.EditorTools {
         const string OSX = "osx";
         const string LINUX = "linux";
 
-        public static void UploadToItch(string pathToButlerExe, BuildTarget buildTarget, string gamePath, string user, string gameName, string version = null)
+        public static void UploadToItch(string pathToButlerExe, ProjectBuilder.SupportedBuild buildTarget, string gamePath, string user, string gameName, string version = null)
         {
             // Disable to capture error output for debugging.
             bool showUploadProgress = true;
-
 
             // Verify that butler executable exists.
             if (!File.Exists(pathToButlerExe))
@@ -24,7 +25,6 @@ namespace UnityTools.EditorTools {
                 return;
             }
 
-
             gamePath = Path.GetFullPath(gamePath);
 
             // Generate build args for the form: butler push {optional args} {build path} {itch username}/{itch game}:{channel}
@@ -32,10 +32,7 @@ namespace UnityTools.EditorTools {
 
             switch (buildTarget)
             {
-                case BuildTarget.StandaloneOSX:
-                case BuildTarget.StandaloneLinux:
-                case BuildTarget.StandaloneLinux64:
-                case BuildTarget.StandaloneLinuxUniversal:
+                case ProjectBuilder.SupportedBuild.StandaloneLinuxUniversal:
                     // Fix exe permissions for Linux/OSX.
                     scriptArguments.Append("--fix-permissions ");
                     break;
@@ -99,26 +96,26 @@ namespace UnityTools.EditorTools {
             }
         }
 
-        static string GetChannelName(BuildTarget target)
+        static string GetChannelName(ProjectBuilder.SupportedBuild target)
         {
             switch (target)
             {
                 // Windows
-                case BuildTarget.StandaloneWindows:
+                case ProjectBuilder.SupportedBuild.StandaloneWindows:
                     return WINDOWS + "-x86";
-                case BuildTarget.StandaloneWindows64:
+                case ProjectBuilder.SupportedBuild.StandaloneWindows64:
                     return WINDOWS + "-x64";
 
                 // Linux
-                case BuildTarget.StandaloneLinux:
+                case ProjectBuilder.SupportedBuild.StandaloneLinux:
                     return LINUX + "-x86";
-                case BuildTarget.StandaloneLinux64:
+                case ProjectBuilder.SupportedBuild.StandaloneLinux64:
                     return LINUX + "-x64";
-                case BuildTarget.StandaloneLinuxUniversal:
+                case ProjectBuilder.SupportedBuild.StandaloneLinuxUniversal:
                     return LINUX + "-universal";
 
                 // OSX
-                case BuildTarget.StandaloneOSX:
+                case ProjectBuilder.SupportedBuild.StandaloneOSX:
                     return OSX;
                 
                 default:
@@ -127,3 +124,5 @@ namespace UnityTools.EditorTools {
         }
     }
 }
+
+#endif

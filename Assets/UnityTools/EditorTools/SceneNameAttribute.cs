@@ -5,7 +5,8 @@ namespace UnityTools.EditorTools {
     {
         #if UNITY_EDITOR
         public SceneNameAttribute ( ) : base(typeof(SceneAsset), true) { }
-        // #else
+        #else
+        public SceneNameAttribute ( ) : base(typeof(float), true) { }
         #endif
     }
 }

@@ -21,15 +21,20 @@ namespace UnityTools.DevConsole
                 input = input.Replace(id + " ", "");
             }
 
+            string commandName = input;
+            if (commandName.Contains(" "))
+                commandName = input.Substring(0, input.IndexOf(' '));
+
             foreach (Command command in Command.allCommands)
             {
                 //check
-                if (input.StartsWith(command.Name))
+                if (commandName == command.Name)
                 {
                     List<string> parameters = GetParameters(input.Replace(command.Name, ""));
-
+                
                     if (command.Matches(parameters, out object[] converted))
                     {
+                    
                         bool useLinked;
                         
                         object instance = FindInstance(command, id, out useLinked);

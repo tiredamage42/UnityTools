@@ -49,15 +49,8 @@ namespace UnityTools {
 
 
         //2 for vr, 1 for fps...
-        // public static int maxControllers = 1; 
-
-        // action, controller
-        // static Func<int, bool, int, bool> getActionDown, getAction, getActionUp;
-        // static Func<int, int, float> getAxis;
-        // static Func<int, Vector2> getMousePos, getMouseScrollDelta, getMouseAxis;
-        // static Func<int, int, bool> getMouseButtonDown, getMouseButton, getMouseButtonUp;
         
-        // static object interfaceInitializer;
+        // action, controller
         static bool inputFrozen;
 
         static void PrepareForSceneLoad (string scene, LoadSceneMode mode) { 
@@ -71,45 +64,13 @@ namespace UnityTools {
         
         public static void FreezeInput (bool frozen) { inputFrozen = frozen; }
         
-        public static bool InitializeActionsInterface (
-            ActionsInterfaceController control
-            // Func<int, bool, int, bool> getActionDown, Func<int, bool, int, bool> getAction, Func<int, bool, int, bool> getActionUp, 
-            // Func<int, int, float> getAxis, Func<int, Vector2> getMousePos, Func<int, Vector2> getMouseScrollDelta, Func<int, Vector2> getMouseAxis,
-            // Func<int, int, bool> getMouseButtonDown, Func<int, int, bool> getMouseButton, Func<int, int, bool> getMouseButtonUp, 
-            // int maxControllers, object interfaceInitializer
-            
-        ) {
+        public static bool InitializeActionsInterface (ActionsInterfaceController control) {
             
             if (isInitialized) {
                 Debug.Log("Actions Interface already initialized by " + control.GetType());
                 return false;
             }
             ActionsInterface.control = control;
-
-            // if (IsInitialized(false)) {
-            //     Debug.Log("Actions Interface already initialized by " + interfaceInitializer.GetType());
-            //     return false;
-            // }
-
-
-            // ActionsInterface.interfaceInitializer = interfaceInitializer;
-            // ActionsInterface.getActionDown = getActionDown;
-            // ActionsInterface.getAction = getAction;
-            // ActionsInterface.getActionUp = getActionUp;
-
-
-            // ActionsInterface.getAxis = getAxis;
-
-            // ActionsInterface.getMousePos = getMousePos;
-            // ActionsInterface.getMouseScrollDelta = getMouseScrollDelta;
-            // ActionsInterface.getMouseAxis = getMouseAxis;
-
-            
-            // ActionsInterface.getMouseButtonDown = getMouseButtonDown;
-            // ActionsInterface.getMouseButton = getMouseButton;
-            // ActionsInterface.getMouseButtonUp = getMouseButtonUp;
-
-            // ActionsInterface.maxControllers = maxControllers;
 
             SceneLoading.onSceneLoadStart += PrepareForSceneLoad;
             SceneLoading.onSceneLoadEnd += EndSceneLoad;
@@ -147,8 +108,8 @@ namespace UnityTools {
 
         static bool IsInitialized (bool throwError = true) {
             if (control == null) {
-            // if (getActionDown == null || getAction == null || getActionUp == null || getAxis == null || getMousePos == null) {
-                if (throwError) Debug.LogError("ActionsInterface not initialized with action functions");
+                if (throwError) 
+                    Debug.LogError("ActionsInterface not initialized with action functions");
                 return false;
             }
             return true;
@@ -170,7 +131,6 @@ namespace UnityTools {
                     if (ActionOccupied(action, controller)) return false;
                 }
             }
-            // return getActionDown(action, checkingAxis, controller);
             return control.GetActionDown(action, checkingAxis, controller);
         }
         public static bool GetAction (int action, bool checkingAxis=false, int controller=0, bool checkOccupied=true) {
@@ -184,7 +144,6 @@ namespace UnityTools {
                 }
             }
             
-            // return getAction(action, checkingAxis, controller);
             return control.GetAction(action, checkingAxis, controller);
         }
 
@@ -199,47 +158,39 @@ namespace UnityTools {
                 }
             }
             
-            // return getActionUp(action, checkingAxis, controller);
             return control.GetActionUp(action, checkingAxis, controller);
         }
         public static float GetAxis (int axis, int controller=0, bool checkOccupied=true) {
             if (!IsInitialized() || axis < 0 || inputFrozen || (checkOccupied && AxisOccupied(axis, controller))) return 0;
-            // return getAxis(axis, controller);
             return control.GetAxis(axis, controller);
         }
         public static Vector2 GetMousePos (int controller=0, bool checkOccupied=true) {
             if (!IsInitialized() || inputFrozen || (checkOccupied && MouseAxisOccupied(controller))) return Vector2.zero;
-            // return getMousePos(controller);
             return control.GetMousePos(controller);
         }
         public static Vector2 GetMouseAxis (int controller=0, bool checkOccupied=true) {
             if (!IsInitialized() || inputFrozen || (checkOccupied && MouseAxisOccupied(controller))) return Vector2.zero;
-            // return getMouseAxis(controller);
             return control.GetMouseAxis(controller);
         }
 
         public static Vector2 GetMouseScrollDelta (int controller = 0, bool checkOccupied=true) {
             if (!IsInitialized() || inputFrozen || (checkOccupied && MouseScrollOccupied(controller))) return Vector2.zero;
-            // return getMouseScrollDelta(controller);
             return control.GetMouseScrollDelta(controller);
         }
 
         public static bool GetMouseButtonDown (int action, int controller=0, bool checkOccupied=true) {
             if (!IsInitialized() || action < 0 || inputFrozen) return false;
             if (checkOccupied && MouseButtonOccupied(action, controller)) return false;
-            // return getMouseButtonDown(action, controller);
             return control.GetMouseButtonDown(action, controller);
         }
         public static bool GetMouseButton (int action, int controller=0, bool checkOccupied=true) {
             if (!IsInitialized() || action < 0 || inputFrozen) return false;
             if (checkOccupied && MouseButtonOccupied(action, controller)) return false;
-            // return getMouseButton(action, controller);
             return control.GetMouseButton(action, controller);
         }
         public static bool GetMouseButtonUp (int action, int controller=0, bool checkOccupied=true) {
             if (!IsInitialized() || action < 0|| inputFrozen) return false;
             if (checkOccupied && MouseButtonOccupied(action, controller)) return false;
-            // return getMouseButtonUp(action, controller);
             return control.GetMouseButtonUp(action, controller);
         }
     }
@@ -247,13 +198,7 @@ namespace UnityTools {
     public abstract class ActionsInterfaceController : GameSettingsObject {
         
         public void InitializeActionsInterface () {
-            ActionsInterface.InitializeActionsInterface (
-                this
-                // GetActionDown, GetAction, GetActionUp, GetAxis, 
-                // GetMousePos, GetMouseScrollDelta, GetMouseAxis, 
-                // GetMouseButtonDown, GetMouseButton, GetMouseButtonUp,
-                // MaxControllers(), this
-            );
+            ActionsInterface.InitializeActionsInterface (this);
         }
         protected bool CheckActionIndex (string type, int action, int length) {
             if (action < 0 || action >= length) {

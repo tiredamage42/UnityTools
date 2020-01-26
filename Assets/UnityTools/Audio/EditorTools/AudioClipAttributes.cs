@@ -56,7 +56,7 @@ namespace UnityTools.Audio {
             Rect rect = new Rect(pos.x, pos.y, pos.width - fullToolbarSize, EditorGUIUtility.singleLineHeight);
             
             if ((attribute as PreviewedAudioAttribute).useAssetSelector) 
-                AssetSelector.Draw(typeof(AudioClip), rect, prop, label, null);
+                AssetSelector.Draw(typeof(AudioClip), rect, prop, label, null, null);
             else 
                 EditorGUI.PropertyField(rect, prop, label);
             

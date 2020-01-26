@@ -128,16 +128,7 @@ namespace UnityTools.DevConsole {
         
         void HandleLog(string message, string stack, LogType logType)
         {
-            //dont print this, its spam
-            if (logType == LogType.Warning)
-                return;
-            
-            else if (logType == LogType.Log)
-                WriteLine(message, logType);
-            
-            //if any kind of error, print the stack as well
-            else
-                WriteLine(message + "\n" + stack, logType);
+            WriteLine(message, logType);
         }
 
         static string GetStringFromObject(object message)
@@ -180,9 +171,9 @@ namespace UnityTools.DevConsole {
             {
                 Exception inner = exception.InnerException;
                 if (inner != null)
-                    Error(exception.Message + "\n" + exception.Source + "\n" + inner.Message + "\n" + inner.StackTrace);
+                    Error(exception.Message + "\n" + exception.Source + "\n" + inner.Message);
                 else
-                    Error(exception.Message + "\n" + exception.StackTrace);
+                    Error(exception.Message);
             }
             else
                 Print(result.ToString());
@@ -484,7 +475,6 @@ namespace UnityTools.DevConsole {
             
 
             gUIContent.text = linesString;
-            // GUILayout.Box(linesString, DebugUI.DebugStyle(TextAnchor.UpperLeft, ConsoleSettings.instance.fontSize), GUILayout.Width(Screen.width));
             GUILayout.Box(gUIContent, DebugUI.DebugStyle(TextAnchor.UpperLeft, ConsoleSettings.instance.fontSize), GUILayout.Width(Screen.width));
             
             Rect lastControl = GUILayoutUtility.GetLastRect();
@@ -494,7 +484,6 @@ namespace UnityTools.DevConsole {
 
             
             //draw the typing field
-            // GUI.Box(new Rect(0, lastControl.y + lastControl.height, Screen.width, 2), "", DebugUI.DebugStyle(TextAnchor.MiddleCenter, ConsoleSettings.instance.fontSize, false));
             GUI.Box(r, GUIContent.none, DebugUI.DebugStyle(TextAnchor.MiddleCenter, ConsoleSettings.instance.fontSize, false));
 
             GUI.SetNextControlName(ConsoleControlName);
@@ -503,8 +492,6 @@ namespace UnityTools.DevConsole {
 
             r.y += r.height;
             r.height = lineHeight * 1.25f;
-            // string typedText = GUI.TextField(new Rect(0, lastControl.y + lastControl.height + 2, Screen.width, lineHeight * 1.25f), input, DebugUI.DebugStyle(TextAnchor.MiddleLeft, ConsoleSettings.instance.fontSize));
-            
             
             string typedText = GUI.TextField(r, input, DebugUI.DebugStyle(TextAnchor.MiddleLeft, ConsoleSettings.instance.fontSize));
             
@@ -544,10 +531,7 @@ namespace UnityTools.DevConsole {
             r.height = searchResults.Count * lineHeight;
 
             //display the search box
-            // GUI.Box(new Rect(0, lastControl.y + lastControl.height + 2 + lineHeight * 1.25f, Screen.width, searchResults.Count * lineHeight), string.Join("\n", searchResults), DebugUI.DebugStyle(TextAnchor.MiddleLeft, ConsoleSettings.instance.fontSize));
-            
             gUIContent.text = string.Join("\n", searchResults);
-            
             GUI.Box(r, gUIContent, DebugUI.DebugStyle(TextAnchor.MiddleLeft, ConsoleSettings.instance.fontSize));
             
             //pressing enter to run command

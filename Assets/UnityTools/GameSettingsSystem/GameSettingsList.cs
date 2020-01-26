@@ -11,7 +11,7 @@ namespace UnityTools.GameSettingsSystem.Internal {
             if (Application.isPlaying || GameSettings.settings == null) return;
 
             // update the array of all game settings objects in the project
-            GameSettings.settings = AssetTools.FindAssetsByType<GameSettingsObject>(logToConsole: false).ToArray();
+            GameSettings.settings = AssetTools.FindAssetsByType<GameSettingsObject>(log: false, null).ToArray();
             EditorUtility.SetDirty(GameSettings.gameSettings);
     #endif
         }

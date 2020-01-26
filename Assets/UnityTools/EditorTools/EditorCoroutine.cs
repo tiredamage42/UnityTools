@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using System;
 using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
@@ -87,3 +88,4 @@ namespace UnityTools.EditorTools {
         }
     }
 }
+#endif
